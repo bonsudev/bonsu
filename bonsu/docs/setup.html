@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/bonsu.ico"/>
+    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.0.0 documentation" href="index.html" />
+    <link rel="next" title="History and Licence" href="licence.html" />
+    <link rel="prev" title="General Usage" href="usage.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="licence.html" title="History and Licence"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="usage.html" title="General Usage"
+             accesskey="P">previous</a> |</li>
+        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installation">
+<span id="setup"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation-on-linux-unix">
+<h2>Installation on Linux/Unix<a class="headerlink" href="#installation-on-linux-unix" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="system-preparation">
+<h3>System Preparation<a class="headerlink" href="#system-preparation" title="Permalink to this headline">¶</a></h3>
+<p>Before Bonsu can be installed from source, a number of software packages are required. They are namely:</p>
+<ul class="simple">
+<li>2.6 <img class="math" src="_images/math/5ffbdb8f6fd40e856169dda4586fe9e70ab19466.png" alt="\leq"/> <a class="reference external" href="http://www.python.org">Python</a> <img class="math" src="_images/math/c1063a458139235d94b43817ed8d89dab9f9f811.png" alt="&lt;"/> 3.0</li>
+<li><a class="reference external" href="http://www.wxpython.org">wxPython</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 2.8.10</li>
+<li><a class="reference external" href="http://www.fftw.org">FFTW with threading</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 3.0</li>
+<li><a class="reference external" href="http://numpy.org">NumPy (FFTW aware)</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 1.4.1</li>
+<li><a class="reference external" href="http://www.vtk.org">VTK (compiled with python bindings)</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 5.4.2</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/Pillow">Python Imaging Library (Pillow)</a></li>
+<li>A reasonably new c<sup>++</sup>compiler such as <a class="reference external" href="http://gcc.gnu.org">gcc</a></li>
+</ul>
+<p>Others optional packages include:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://www.h5py.org/">H5Py</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 1.8</li>
+</ul>
+<p>As most Linux systems and services require Python natively, it is likely that Python is already provided in your distribution. Also, many distributions package all of the above prerequisites.  Please check your distributions repositories.</p>
+<p>It is also possible to install a stand alone python distribution such as that provided by <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought</a>. This will include most of the above prerequisites. In order to compile and use any additional packages (such as FFTW) into the stand alone distribution, a number of environmental variables should be set. If you are using the <em>Bourne-again</em> (BASH) shell, append something akin to the following in your <tt class="docutils literal"><span class="pre">.bashrc</span></tt> profile:</p>
+<div class="highlight-python"><div class="highlight"><pre>export EPD=&quot;/path/to/python/installation/&quot;
+export PYVER=&quot;2.7&quot;
+export PYTHONSITE=$EPD/lib/python$PYVER/site-packages
+export PYTHONPATH=$EPD/lib:$EPD/lib/python$PYVER/:$EPD/lib/python$PYVER/lib-dyload/:/work/newton:
+export PATH=/bin:/usr/bin/:/usr/local/bin:$EPD/bin/:$EPD/include:$EPD/include/vtk-5.6:.
+alias python=$EPD/bin/python
+export INSTALL_PREFIX=$EPD
+export PREFIX=$EPD
+export prefix=$EPD
+export LIBDIR=$EPD/lib
+export CC=gcc
+export CFLAGS=&quot;-m64 -O2 -ftree-vectorize -fPIC -mieee-fp&quot;
+export LDFLAGS=&quot;-L$EPD/lib -L$EPD/lib/python$PYVER/site-packages/vtk/&quot;
+export CPPFLAGS=${CFLAGS}
+export CXXFLAGS=${CFLAGS}
+export FFLAGS=${CFLAGS}
+export FCFLAGS=${CFLAGS}
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is essential to modify the above environmental variables to suite the chosen system type (32-bit or 64-bit) and stand alone Python package version(s).</p>
+</div>
+</div>
+<div class="section" id="note-on-building-fftw">
+<h3>Note on Building FFTW<a class="headerlink" href="#note-on-building-fftw" title="Permalink to this headline">¶</a></h3>
+<p>To build FFTW into a stand alone python distribution such as that provided by <a class="reference external" href="http://www.enthought.com/products/epd.php">Enthought</a> , use the following sequence of commands:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>./configure --prefix<span class="o">=</span><span class="si">${</span><span class="nv">PREFIX</span><span class="si">}</span> --enable-threads --enable-sse2 --enable-shared --disable-fortran
+<span class="nv">$ </span>make
+<span class="nv">$ </span>make install
+</pre></div>
+</div>
+</div>
+<div class="section" id="installing-bonsu">
+<h3>Installing Bonsu<a class="headerlink" href="#installing-bonsu" title="Permalink to this headline">¶</a></h3>
+<p>Source code for Bonsu is available for download <a class="reference external" href="https://github.com/bonsudev/bonsu">here</a>.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="https://github.com/bonsudev/bonsu">https://github.com/bonsudev/bonsu</a></p>
+</div>
+<p>Unpack the source code with the following:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>tar -xvf Bonsu-<span class="o">{</span>x<span class="o">}</span>.tar.gz
+</pre></div>
+</div>
+<p>where x is the current version.</p>
+<p>Enter the newly created directory and first build the source:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python setup.py build
+</pre></div>
+</div>
+<p>If this is successful you will now have a fully prepared built source tree for installation. To install the package type the following (super user privileges may be required):</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python setup.py install
+</pre></div>
+</div>
+<p>To install the package to a non-default location (perhaps where super user privileges are not required) use the following command:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python setup.py install --home<span class="o">=</span>/my/install/path
+</pre></div>
+</div>
+<p>The <em class="xref std std-option">--home</em> option defines the installation base directory.  Files are installed to the following directories under the installation base as follows</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="80%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type of file</th>
+<th class="head">Installation directory</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>modules</td>
+<td><tt class="file docutils literal"><em><span class="pre">home</span></em><span class="pre">/lib/python</span></tt></td>
+</tr>
+<tr class="row-odd"><td>scripts</td>
+<td><tt class="file docutils literal"><em><span class="pre">home</span></em><span class="pre">/bin</span></tt></td>
+</tr>
+<tr class="row-even"><td>data</td>
+<td><tt class="file docutils literal"><em><span class="pre">home</span></em></tt></td>
+</tr>
+<tr class="row-odd"><td>C headers</td>
+<td><tt class="file docutils literal"><em><span class="pre">home</span></em><span class="pre">/include/python/</span><em><span class="pre">distname</span></em></tt></td>
+</tr>
+</tbody>
+</table>
+<p>To make Python find the distributions installed with this scheme, it is necessary to modify Python&#8217;s search path(s) to include the above.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>To start the program, execute the following from the command line:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>bonsu <span class="p">&amp;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For Linux users, a link to the program should be visible in the applications menu.</p>
+</div>
+</div>
+</div>
+<div class="section" id="installation-on-windows">
+<h2>Installation on Windows<a class="headerlink" href="#installation-on-windows" title="Permalink to this headline">¶</a></h2>
+<p>Binaries are provided for installation on (32-bit or 64bit) Microsoft Windows and are available for download <a class="reference external" href="http://cxs.phys.soton.ac.uk/Bonsu/Download">here</a>.  The following prerequisites are also available <a class="reference external" href="http://cxs.phys.soton.ac.uk/Bonsu/Download">here</a>.:</p>
+<ul class="simple">
+<li>2.6 <img class="math" src="_images/math/5ffbdb8f6fd40e856169dda4586fe9e70ab19466.png" alt="\leq"/> <a class="reference external" href="http://www.python.org">Python</a> <img class="math" src="_images/math/c1063a458139235d94b43817ed8d89dab9f9f811.png" alt="&lt;"/> 3.0</li>
+<li><a class="reference external" href="http://www.wxpython.org">wxPython</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 2.8.10</li>
+<li><a class="reference external" href="http://numpy.org">NumPy (FFTW aware)</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 1.4.1</li>
+<li><a class="reference external" href="http://www.vtk.org">VTK (compiled with python bindings)</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 5.4.2</li>
+</ul>
+<p>Alternatively, it is possible to install a stand alone python distribution such as <a class="reference external" href="http://code.google.com/p/pythonxy">Python(x,y)</a> or <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought Canopy</a>. This will likely include all of the above prerequisites.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="bonsu.html">
+              <img class="logo" src="_static/bonsu.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="bonsu.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#installation-on-linux-unix">Installation on Linux/Unix</a><ul>
+<li><a class="reference internal" href="#system-preparation">System Preparation</a></li>
+<li><a class="reference internal" href="#note-on-building-fftw">Note on Building FFTW</a></li>
+<li><a class="reference internal" href="#installing-bonsu">Installing Bonsu</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#installation-on-windows">Installation on Windows</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="usage.html"
+                        title="previous chapter">General Usage</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="licence.html"
+                        title="next chapter">History and Licence</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="licence.html" title="History and Licence"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="usage.html" title="General Usage"
+             >previous</a> |</li>
+        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011 - 2017, Marcus C. Newton.
+    </div>
+  </body>
+</html>

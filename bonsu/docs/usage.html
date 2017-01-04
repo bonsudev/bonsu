@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>General Usage &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/bonsu.ico"/>
+    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.0.0 documentation" href="index.html" />
+    <link rel="next" title="Installation" href="setup.html" />
+    <link rel="prev" title="Introduction" href="intro.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="setup.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="general-usage">
+<span id="usage"></span><h1>General Usage<a class="headerlink" href="#general-usage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="user-interface">
+<h2>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h2>
+<p>The graphical user interface is divided into five tabs which are namely <tt class="docutils literal"><span class="pre">Phasing</span> <span class="pre">Pipeline</span></tt>, <tt class="docutils literal"><span class="pre">Visualisation</span></tt>, <tt class="docutils literal"><span class="pre">Graph</span></tt>, <tt class="docutils literal"><span class="pre">Python</span> <span class="pre">Prompt</span></tt> and <tt class="docutils literal"><span class="pre">Log</span></tt>.  Algorithms and tools are manipulated and executed on the <tt class="docutils literal"><span class="pre">Phasing</span> <span class="pre">Pipeline</span></tt> tab.  During algorithmic phase retrieval, real-time images of the object during reconstruction are shown on the <tt class="docutils literal"><span class="pre">Visualisation</span></tt> tab.  Information regarding the statistical error during phase retrieval is displayed on the <tt class="docutils literal"><span class="pre">Graph</span></tt> tab.  The <tt class="docutils literal"><span class="pre">Log</span></tt> tab provides the user with any information the various algorithms and tools return during execution.   The <tt class="docutils literal"><span class="pre">Python</span> <span class="pre">Prompt</span></tt> is, as it suggests, a fully functioning  interactive python shell.</p>
+<p>When loading and saving files, the current working directory where the program was loaded is used as the default path.  It is possible to change the working directory by selecting <em class="menuselection">Edit ‣ Current Working Directory</em> from the main menu.</p>
+<p>The remainder of this section describes in further detail the use of each graphical interface tab.</p>
+<div class="section" id="phasing-pipeline">
+<span id="usage-pipeline"></span><h3>Phasing Pipeline<a class="headerlink" href="#phasing-pipeline" title="Permalink to this headline">¶</a></h3>
+<p>Most user interaction occurs in the <tt class="docutils literal"><span class="pre">Phasing</span> <span class="pre">Pipeline</span></tt> tab. This tab is divided into three columns. From left to right, the first shows a drop-down menu divided into three sections where various array functions, phasing algorithms and posterior phasing operations can be found.  For a complete list of available operations and algorithms, please see the  <a class="reference internal" href="libref.html#libref"><em>Library Reference</em></a>. Once selected from the drop-down menu, an instance of the selected item appears in the centre column (or <tt class="docutils literal"><span class="pre">pipeline</span></tt>), where it can be selected and properties modified for that instance. The properties appear in the right-hand column. Once items have been added to the pipeline, it is possible to save the contents of the pipeline and all custom settings by simply choosing <tt class="docutils literal"><span class="pre">Save</span></tt> from the menu. At this point, the user is prompted for a file name. See <a class="reference internal" href="#usage-sessions"><em>Saving Sessions</em></a> for further details.</p>
+<p>Below the three columns are the control buttons <tt class="docutils literal"><span class="pre">Start</span></tt>, <tt class="docutils literal"><span class="pre">Pause</span></tt> and <tt class="docutils literal"><span class="pre">Stop</span></tt>. These buttons will, respectively, execute all items in the pipeline sequentially in the order that they appear, pause the execution of an algorithm or stop the execution of an algorithm. The remaining checkboxes control the type of visualization that appears on the &#8216;Visualisation&#8217; tab and the maximum number of threads used by the Fourier transform algorithm. The options include no visualization,
+real-space amplitude, real-space amplitude with phase, Fourier-space amplitude and Fourier-space amplitude with phase.</p>
+</div>
+<div class="section" id="visualisation">
+<span id="usage-visual"></span><h3>Visualisation<a class="headerlink" href="#visualisation" title="Permalink to this headline">¶</a></h3>
+<p>In order to view real-time visualisation, either <tt class="docutils literal"><span class="pre">real-space</span></tt> or <tt class="docutils literal"><span class="pre">Fourier-space</span></tt> must be selected from the <tt class="docutils literal"><span class="pre">visualisation</span> <span class="pre">options</span></tt> on the <tt class="docutils literal"><span class="pre">Phasing</span> <span class="pre">Pipeline</span></tt> tab. This is the default. The <tt class="docutils literal"><span class="pre">Visualisation</span></tt> tab is where a rendered scene of the reconstruction will appear. From here the user can interact fully with and manipulate the object as it is being reconstructed.   Either a two-dimensional or three-dimensional object is displayed depending on the dimensions of the data.  In both cases, pressing the &#8220;p&#8221; keyboard button will display the current co-ordinates of the mouse cursor and print these coordinates to the <a class="reference internal" href="#usage-log"><em>Log</em></a>.</p>
+<p>It is also possible to <span class="target" id="index-0"></span>undock the rendered scene by selecting <em class="menuselection">View ‣ Visualisation ‣ Undock</em> from the main menu. This will open the current visualisation in a new window. <span class="target" id="index-1"></span>Selecting <em class="menuselection">View ‣ Visualisation ‣ Dock</em> returns the rendered scene back to the <tt class="docutils literal"><span class="pre">Visualisation</span></tt> tab.</p>
+<p>To save images of the object for further use, select the <tt class="docutils literal"><span class="pre">save</span></tt> button.  After this, no prompt for a file name will appear. Instead, the file will be saved to the working directory with the present date and time used as a filename string.
+Control buttons <tt class="docutils literal"><span class="pre">Start</span></tt>, <tt class="docutils literal"><span class="pre">Pause</span></tt> and <tt class="docutils literal"><span class="pre">Stop</span></tt> also appear on the <tt class="docutils literal"><span class="pre">Visualisation</span></tt> tab.  These are identical in operation to those on the <tt class="docutils literal"><span class="pre">Phasing</span> <span class="pre">Pipeline</span></tt> tab and are present for convenience.</p>
+</div>
+<div class="section" id="visualisation-animation">
+<h3>Visualisation: Animation<a class="headerlink" href="#visualisation-animation" title="Permalink to this headline">¶</a></h3>
+<p>A feature for animating the rendered scene is made available by selecting the <tt class="docutils literal"><span class="pre">Animate</span></tt> button.  From here a dialog appears with various options for scene animation.  The axis about which the rotation occurs can be selected by choosing a value greater than zero. Either a single axis or a composite of the three rectilinear (x,y,z) axes can be selected.  If multiple axis are chosen, their vector sum is used as the final axis of rotation.  The rendered scene is generally rotated about the centre of mass.</p>
+<p>Options for setting the angle of increment and total number of rotation steps are also available.  It is also possible to save an image for each step by selecting <tt class="docutils literal"><span class="pre">save</span> <span class="pre">scene</span></tt> and providing a file name.  Indices of the animation step will be appended to the filename automatically.</p>
+</div>
+<div class="section" id="visualisation-measurement">
+<h3>Visualisation: Measurement<a class="headerlink" href="#visualisation-measurement" title="Permalink to this headline">¶</a></h3>
+<p>Features for performing measurements on the rendered scene are made available by selecting the <tt class="docutils literal"><span class="pre">Measure</span></tt> button on the <tt class="docutils literal"><span class="pre">Visualisation</span></tt> tab.  A dialog appears which shows a number of tabs for measurement.
+When enabled, the <tt class="docutils literal"><span class="pre">Line</span> <span class="pre">Scan</span></tt> tab provides a feature for arbitrary direction line scans measurements in both two and three dimensions.  A line will appear in the render window with handles at either end for manipulation.  As the line is stretched and moved, the corresponding line scan through the data appears on the dialog tab.  Information on the line properties are also displayed on the <a class="reference internal" href="#usage-log"><em>Log</em></a> tab. To save the data, select <tt class="docutils literal"><span class="pre">Save</span> <span class="pre">Data</span></tt> from the dialog tab.  No prompt for a file name will appear. Instead, the file will be saved in csv format to the working directory with the present date and time used as a filename string.</p>
+<p>When enabled, the <tt class="docutils literal"><span class="pre">Angle</span></tt> tab provides a feature for measuring arbitrary angle in both two and three dimensions.  In order to begin using this feature, the user must first select three points using the mouse cursor in the render scene.  These points will become the vertices of the angular measurement.</p>
+</div>
+<div class="section" id="visualisation-render-preferences">
+<h3>Visualisation: Render Preferences<a class="headerlink" href="#visualisation-render-preferences" title="Permalink to this headline">¶</a></h3>
+<p>To adjust preferences and additional features for the render scene select <em class="menuselection">Edit ‣ Preferences</em> from the main menu. From here, the user can <span class="target" id="index-2"></span>adjust the default <span class="target" id="index-3"></span>colour map corresponding to each type of visualisation.</p>
+</div>
+<div class="section" id="graph">
+<h3>Graph<a class="headerlink" href="#graph" title="Permalink to this headline">¶</a></h3>
+<p>During phase reconstruction, the <tt class="docutils literal"><span class="pre">Graph</span></tt> tab displays the reconstruction residual error plotted on a graph with dynamic axes. From here the graph can be paused (independently of the reconstruction process) and the data saved to a text file. No prompt for a file name will appear. Instead, the file will be saved in csv format to the working directory with the present date and time used as a filename string. It is also possible to save the reconstruction residual error information automatically after the phase retrieval process, by appending <a class="reference internal" href="libref-posterior.html#libref-posterior-res"><em>Save Residual</em></a> to the phasing pipeline.</p>
+</div>
+<div class="section" id="python-prompt">
+<h3>Python Prompt<a class="headerlink" href="#python-prompt" title="Permalink to this headline">¶</a></h3>
+<p>The &#8216;Python Prompt&#8217; tab enables the user to perform additional tasks through the Python interpreter. This might be the
+execution of additional Python scripts or additional array operations with standard numpy tools.</p>
+</div>
+<div class="section" id="log">
+<span id="usage-log"></span><h3>Log<a class="headerlink" href="#log" title="Permalink to this headline">¶</a></h3>
+<p>The &#8216;Log&#8217; tab allows the user to view additional information on the program&#8217;s operation and any graph data values in text form. From here the log data can be saved to a text file. No prompt for a file name will appear. Instead, the file will be saved in txt format to the working directory with the present date and time used as a filename string.</p>
+</div>
+</div>
+<div class="section" id="array-creation-and-storage">
+<span id="usage-arrays"></span><h2>Array Creation and Storage<a class="headerlink" href="#array-creation-and-storage" title="Permalink to this headline">¶</a></h2>
+<p>NumPy array format is used internally for data manipulation. NumPy arrays loaded from file are converted to double-precision complex format in row-major order (c style). NumPy arrays are also saved in this format by default.</p>
+<p><span class="target" id="index-4"></span>When a large number of array operations are performed, it is often desirable to store the result in memory at each intermediate step.  This can help to reduce disk usage and improve overall performance at the expense of additional memory usage.  Bonsu provides a way to store and access arrays in memory, that is accessible to all operations and algorithms.  By using either of the 10 keywords <tt class="docutils literal"><span class="pre">memory0</span></tt>, <tt class="docutils literal"><span class="pre">memory1</span></tt>, ... , <tt class="docutils literal"><span class="pre">memory9</span></tt> as a string in place of a NumPy file path, it is possible to save to memory an array manipulated by any phasing algorithm or operation that uses NumPy arrays. The array is then accessible by using the corresponding keyword in place of the NumPy file path when attempting to load an array. It is also possible to directly visualise the array using <a class="reference internal" href="libref-prephasing.html#libref-prephasing-view"><em>View Array</em></a>.</p>
+<p>In addition to the above, keywords <tt class="docutils literal"><span class="pre">memorysequence</span></tt> and <tt class="docutils literal"><span class="pre">memorycoords</span></tt> can be used to view or use <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><em>sequence data</em></a> and <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><em>Co-ordinate Transformation</em></a> arrays respectively.  This is useful for using <a class="reference internal" href="libref-prephasing.html#libref-prephasing-viewobject"><em>View Object</em></a> exclusively with arrays in memory.</p>
+</div>
+<div class="section" id="saving-a-session">
+<span id="usage-sessions"></span><h2>Saving a Session<a class="headerlink" href="#saving-a-session" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to save the contents of the pipeline and all customised settings by simply choosing <tt class="docutils literal"><span class="pre">Save</span></tt> from the program menu. Pipeline data is saved in &#8216;.fin&#8217; file format. Similarly, to recover a pipeline, simply select <tt class="docutils literal"><span class="pre">open</span></tt>  from the program menu and locate the saved &#8216;.fin&#8217; file. Bonsu also allows pipeline entries to be appended. For example, opening a &#8216;.fin&#8217; file twice will append the list of tasks twice into the pipeline. To clear the pipeline, simply select <tt class="docutils literal"><span class="pre">New</span></tt> from the menu.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="bonsu.html">
+              <img class="logo" src="_static/bonsu.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="bonsu.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">General Usage</a><ul>
+<li><a class="reference internal" href="#user-interface">User Interface</a><ul>
+<li><a class="reference internal" href="#phasing-pipeline">Phasing Pipeline</a></li>
+<li><a class="reference internal" href="#visualisation">Visualisation</a></li>
+<li><a class="reference internal" href="#visualisation-animation">Visualisation: Animation</a></li>
+<li><a class="reference internal" href="#visualisation-measurement">Visualisation: Measurement</a></li>
+<li><a class="reference internal" href="#visualisation-render-preferences">Visualisation: Render Preferences</a></li>
+<li><a class="reference internal" href="#graph">Graph</a></li>
+<li><a class="reference internal" href="#python-prompt">Python Prompt</a></li>
+<li><a class="reference internal" href="#log">Log</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#array-creation-and-storage">Array Creation and Storage</a></li>
+<li><a class="reference internal" href="#saving-a-session">Saving a Session</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="previous chapter">Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="setup.html"
+                        title="next chapter">Installation</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="setup.html" title="Installation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction"
+             >previous</a> |</li>
+        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011 - 2017, Marcus C. Newton.
+    </div>
+  </body>
+</html>

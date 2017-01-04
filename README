@@ -1,0 +1,115 @@
+﻿Bonsu - The Interactive Phase Retrieval Suite
+
+
+NOTES
+============
+Bonus is a collection of tools and algorithms primarily for the reconstruction of phase information from diffraction intensity measurements.
+If Bonsu is used within article publications, it is requested that authors cite this publication:
+
+Newton M. C., Nishino Y. and Robinson I. K., J. Appl. Cryst. (2012). 45, 840-843
+doi:10.1107/S0021889812026751 
+
+
+
+HISTORY
+============
+
+Version 2.0.0
+
+	+ Added Comments pipeline item.
+	* Fixed various interface bugs.
+
+Version 1.4.2
+
+	* Added Apple OSX desktop integration.
+	* Fixed various interface bugs.
+
+Version 1.4.1
+
+	* Fixed various interface bugs.
+
+
+Version 1.4.0
+
+	+ Added a number of new array operations.
+	+ Added support for saving arrays from memory slots.
+	+ Various improvements to the interface.
+	* Fixed various interface bugs.
+
+
+Version 1.3.0
+
+	+ Added compatibility with VTK 6.
+	+ Added compatibility with wxpython 3.
+	+ Added support for loading of arrays directly into memory slots
+	+ Various improvements to the interface.
+	* Fixed various interface bugs.
+
+
+Version 1.2.0
+
+	* Fixed various bugs for improved stability.
+	* Fixed bug in visualisation animation.
+	* Improved compatibility with msvc/intel compilers.
+	+ Added partial coherence algorithm.
+	
+  
+
+Version 1.1.0
+
+	+ Added support for program wide array manipulation in memory.
+	* Fixed sequence data array size change bug.
+	+ Added support for changeable working directory.
+	+ Added support for alternative colour map lookup tables.
+	+ Added array Gaussian fill operation.
+	+ Added array Fourier transform operation.
+	+ Added array convolution operation.
+	+ Added array conjugate and reflect operation.
+	+ Added support for undocking/docking visualisation.
+	* Fixed array wrap operation for arrays with odd dimensions.
+
+
+Version 1.0.0
+
+	+ First stable release.
+
+
+
+INSTALL
+============
+- Bonsu requires:
+Python >= 2.6  < 3.0
+wxPython >= 2.8.10
+FFTW with threading >= 3.0
+NumPy (FFTW aware) >= 1.4.1
+VTK (with python bindings) >= 5.4.2
+A C++ compiler such as gcc
+
+- To instal the package, type:
+$ python setup.py build
+$ su -c 'python setup.py install'
+
+- To run, type:
+$ bonsu 
+
+
+COPYING / LICENCE
+============
+Copyright 2011 - 2013 - Marcus C. Newton <Bonsu.Devel@gmail.com>
+Registration number 284653218
+
+Please send any bugs, problems, and proposals to: Bonsu.Devel@gmail.com
+or visit: http://code.google.com/p/bonsu/
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.

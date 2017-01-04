@@ -1,0 +1,1370 @@
+#############################################
+##   Filename: panelvisual.py
+##
+##    Copyright (C) 2011 Marcus C. Newton
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##
+## Contact: Bonsu.Devel@gmail.com
+#############################################
+import wx
+import os
+import vtk
+from .render import wxVTKRenderWindowInteractor
+import numpy
+from vtk.util import numpy_support
+from time import strftime
+from .plot import PlotCanvas, PolyLine, PlotGraphics
+from .common import *
+from ..operations.wrap import WrapArray
+from ..operations.wrap import WrapArrayAmp
+class AnimateDialog(wx.Dialog):
+	def __init__(self, parent):
+		wx.Dialog.__init__(self, parent, title="Animate Scene", size=(450,300))
+		self.SetSizeHints(450,300,-1,-1)
+		self.count = 0
+		self.count_total = 0
+		self.xstep = 0
+		self.ystep = 0
+		self.zstep = 0
+		self.filename=""
+		self.timer = wx.Timer(self)
+		self.parent = parent
+		self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		sbox1 = wx.StaticBox(self, label="Rotate Scene", style=wx.SUNKEN_BORDER)
+		sboxs1 = wx.StaticBoxSizer(sbox1,wx.VERTICAL)
+		sboxs1.Add((-1, 5))
+		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		text1 = wx.StaticText(self, label="Axis:",size=(50, 30))
+		text1.SetToolTipString("Axis about which the scene will rotate.")
+		self.x = SpinnerObject(self,"x: ",MAX_INT_16,0,1,0,15,80)
+		self.y = SpinnerObject(self,"y: ",MAX_INT_16,0,1,0,15,80)
+		self.z = SpinnerObject(self,"z: ",MAX_INT_16,0,1,1,15,80)
+		hbox1.Add(text1 ,0, flag=wx.EXPAND|wx.RIGHT, border=10)
+		hbox1.Add(self.x ,0, flag=wx.EXPAND|wx.RIGHT, border=5)
+		hbox1.Add(self.y ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		hbox1.Add(self.z ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		sboxs1.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		sboxs1.Add((-1, 5))
+		hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.angle = SpinnerObject(self,"Angle: ",360,-360,0.1,5.0,75,80)
+		self.angle.label.SetToolTipString("Angle (degrees) by which the rotation is incremented.")
+		hbox2.Add(self.angle ,0, flag=wx.EXPAND|wx.RIGHT, border=5)
+		sboxs1.Add(hbox2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+		self.steps = SpinnerObject(self,"Steps: ",MAX_INT_16,1,1,36,75,80)
+		hbox3.Add(self.steps ,0, flag=wx.EXPAND|wx.RIGHT, border=5)
+		sboxs1.Add(hbox3, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(sboxs1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 5))
+		self.chkbox_save = wx.CheckBox(self, -1, 'Save scene', size=(200, 20))
+		self.chkbox_save.SetValue(False)
+		vbox.Add(self.chkbox_save, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
+		vbox.Add((-1, 5))
+		self.filename_path = TextPanelObject(self, "Filename: ", "",80,"PNG files (*.png)|*.png|JPEG files (*.jpg)|*.jpg|PPM files (*.ppm)|*.ppm|All files (*.*)|*.*")
+		vbox.Add(self.filename_path, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 5))
+		self.gauge = wx.Gauge(self, range=100, size=(400, 20))
+		vbox.Add(self.gauge, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=25)
+		self.gauge.SetValue(0)
+		vbox.Add((-1, 5))
+		hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
+		button_start = wx.Button(self, label="Start", size=(120, 30))
+		hbox_btn.Add(button_start, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=0)
+		self.Bind(wx.EVT_BUTTON, self.Start, button_start)
+		hbox_btn.Add((2, -1))
+		button_stop =wx.Button(self, label="Stop", size=(120, 30))
+		hbox_btn.Add(button_stop, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=0)
+		self.Bind(wx.EVT_BUTTON, self.Stop, button_stop)
+		hbox_btn.Add((2, -1))
+		vbox.Add(hbox_btn, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		vbox.Add((-1, 5))
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+	def Start(self,event):
+		self.count_total = int(self.steps.value.GetValue())
+		if self.count >= self.count_total:
+			return
+		self.gauge.SetRange(self.count_total)
+		self.xstep = float(self.angle.value.GetValue())*float(self.x.value.GetValue())
+		self.ystep = float(self.angle.value.GetValue())*float(self.y.value.GetValue())
+		self.zstep = float(self.angle.value.GetValue())*float(self.z.value.GetValue())
+		self.filename = file_ext = os.path.splitext( self.filename_path.objectpath.GetValue() )[0]
+		self.timer.Start(50)
+	def Stop(self,event):
+		self.timer.Stop()
+		self.count = 0
+		self.count_total = 0
+		self.gauge.SetValue(0)
+	def OnTimer(self, event):
+		self.gauge.SetValue(self.count)
+		wx.Yield()
+		renderers = self.parent.renWin.GetRenderWindow().GetRenderers()
+		renderers.InitTraversal()
+		no_renderers = renderers.GetNumberOfItems()
+		for i in range(no_renderers):
+			renderers.GetItemAsObject(i).GetActiveCamera().Elevation(self.xstep)
+			renderers.GetItemAsObject(i).GetActiveCamera().OrthogonalizeViewUp()
+			renderers.GetItemAsObject(i).GetActiveCamera().Roll(self.ystep)
+			renderers.GetItemAsObject(i).GetActiveCamera().Azimuth(self.zstep)
+		self.parent.ancestor.GetParent().Refresh()
+		try:
+			self.parent.ancestor.GetParent().visualdialog
+		except AttributeError:
+			pass
+		else:
+			self.parent.ancestor.GetParent().visualdialog.Refresh()
+		if(self.chkbox_save.GetValue() == True):
+			image = vtk.vtkWindowToImageFilter()
+			image.SetInput(self.parent.renWin.GetRenderWindow())
+			image.Update()
+			writer = vtk.vtkPNGWriter()
+			countstr = str(self.count).rjust(4, "0")
+			writer.SetFileName(self.filename+countstr+".png")
+			if self.parent.VTKIsNot6:
+				writer.SetInput(image.GetOutput())
+			else:
+				writer.SetInputData(image.GetOutput())
+			writer.Write()
+		self.count = self.count +1
+		if self.count == self.count_total:
+			self.timer.Stop()
+			self.count = 0
+			return
+class MeasureDialog(wx.Dialog):
+	def __init__(self, parent):
+		wx.Dialog.__init__(self, parent, title="Measure Scene", size=(640,480))
+		self.SetSizeHints(640,480,-1,-1)
+		self.Bind(wx.EVT_CLOSE, self.OnExit)
+		self.panelvisual = self.GetParent()
+		self.nb = wx.Notebook(self)
+		self.nb.AddPage(MeasureLine(self.nb), "Line Scan")
+		self.nb.AddPage(MeasureAngle(self.nb), "Angle")
+		sizer = wx.BoxSizer()
+		sizer.Add(self.nb, 1, wx.EXPAND)
+		self.SetSizer(sizer)
+		self.Fit()
+	def Update(self):
+		self.nb.GetPage(0).linewidget.SetEnabled(0)
+		bounds = self.panelvisual.image_probe.GetBounds()
+		self.nb.GetPage(0).linerep.PlaceWidget(bounds)
+		self.nb.GetPage(0).linerep.Modified()
+		if self.nb.GetPage(0).chkbox_enable.GetValue() == True:
+			self.nb.GetPage(0).linewidget.SetEnabled(1)
+			self.nb.GetPage(0).DrawGraph(None,None)
+		self.nb.GetPage(1).anglewidget.SetEnabled(0)
+		if hasattr(self.panelvisual.data, 'shape'):
+			if self.panelvisual.data.shape[2] == 1:
+				self.nb.GetPage(1).anglewidget.SetRepresentation(self.nb.GetPage(1).anglerep2D)
+			else:
+				self.nb.GetPage(1).anglewidget.SetRepresentation(self.nb.GetPage(1).anglerep)
+		else:
+			self.nb.GetPage(1).anglewidget.SetRepresentation(self.nb.GetPage(1).anglerep)
+		if self.nb.GetPage(1).chkbox_enable.GetValue() == True:
+			self.nb.GetPage(1).anglewidget.SetEnabled(1)
+	def OnExit(self,event):
+		self.nb.GetPage(0).linewidget.SetEnabled(0)
+		self.nb.GetPage(1).anglewidget.SetEnabled(0)
+		del self.panelvisual.meauredialog
+		self.Destroy()
+		self.panelvisual.EnablePanelPhase(enable=True)
+class MeasureLine(wx.Panel):
+	def __init__(self,parent):
+		wx.Panel.__init__(self, parent)
+		self.panelvisual = self.GetParent().GetParent().GetParent()
+		self.canvas = PlotCanvas(self)
+		self.canvas.SetInitialSize(size=self.GetClientSize())
+		self.canvas.SetShowScrollbars(False)
+		self.canvas.SetEnableLegend(True)
+		self.canvas.SetGridColour(wx.Colour(0, 0, 0))
+		self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
+		self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
+		self.canvas.SetEnableZoom(False)
+		self.canvas.SetFontSizeAxis(point=12)
+		self.canvas.SetFontSizeTitle(point=12)
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+		self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.EXPAND)
+		self.hbox_p1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox_p2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.p1x = NumberObject(self,"P1:x:",0.0,35)
+		self.p1y = NumberObject(self,"P1:y:",0.0,35)
+		self.p1z = NumberObject(self,"P1:z:",0.0,35)
+		self.p2x = NumberObject(self,"P2:x:",0.0,35)
+		self.p2y = NumberObject(self,"P2:y:",0.0,35)
+		self.p2z = NumberObject(self,"P2:z:",0.0,35)
+		self.p1x.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
+		self.p1y.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
+		self.p1z.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
+		self.p2x.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
+		self.p2y.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
+		self.p2z.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
+		self.EnablePointCoordsDisplay(0)
+		self.hbox_p1.Add(self.p1x ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox_p1.Add(self.p1y ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox_p1.Add(self.p1z ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.vbox.Add(self.hbox_p1, 0, flag=wx.LEFT | wx.TOP | wx.EXPAND)
+		self.hbox_p2.Add(self.p2x ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox_p2.Add(self.p2y ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox_p2.Add(self.p2z ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.vbox.Add(self.hbox_p2, 0, flag=wx.LEFT | wx.TOP | wx.EXPAND)
+		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
+		self.button_save = wx.Button(self, label="Save Data", size=(120, 30))
+		self.Bind(wx.EVT_BUTTON, self.OnClickSaveButton, self.button_save)
+		self.hbox_btn.Add(self.button_save)
+		self.hbox_btn.Add((10, -1))
+		self.pointcount = SpinnerObject(self,"Data Points",MAX_INT_16,2,1,100,100,80)
+		self.Bind(wx.EVT_SPIN, self.OnDataPoints, self.pointcount.spin)
+		self.Bind(wx.EVT_TEXT, self.OnDataPoints, self.pointcount.value)
+		self.hbox_btn.Add(self.pointcount)
+		self.hbox_btn.Add((10, -1))
+		self.chkbox_enable = wx.CheckBox(self, -1, 'Enable', size=(80, 25))
+		self.chkbox_enable.SetToolTipString("Enable Widget")
+		self.chkbox_enable.SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, self.chkbox_enable)
+		self.hbox_btn.Add(self.chkbox_enable)
+		self.chkbox_log = wx.CheckBox(self, -1, 'Log', size=(80, 25))
+		self.chkbox_log.SetToolTipString("Log Scale")
+		self.chkbox_log.SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLog, self.chkbox_log)
+		self.hbox_btn.Add(self.chkbox_log)
+		self.vbox.Add(self.hbox_btn, 0, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.TOP | wx.EXPAND, border=2)
+		self.SetSizer(self.vbox)
+		self.Fit()
+		self.Show()
+		self.data = None
+		self.nopoints = int(self.pointcount.value.GetValue())
+		self.linerep = vtk.vtkLineRepresentation()
+		self.linewidget = vtk.vtkLineWidget2()
+		self.line = vtk.vtkLineSource()
+		bounds = self.panelvisual.image_probe.GetBounds()
+		if (self.panelvisual.measure_data[0] == list(bounds)):
+			p1 = self.panelvisual.measure_data[1][0]
+			p2 = self.panelvisual.measure_data[1][1]
+		else:
+			self.panelvisual.measure_data[0] = list(bounds)
+			p1 = [bounds[0],bounds[2],bounds[4]]
+			p2 = [bounds[1],bounds[3],bounds[5]]
+			self.panelvisual.measure_data[1][0] = p1
+			self.panelvisual.measure_data[1][1] = p2
+		self.linerep.PlaceWidget(bounds)
+		self.linerep.SetPoint1WorldPosition(p1)
+		self.linerep.SetPoint2WorldPosition(p2)
+		self.linerep.DistanceAnnotationVisibilityOff()
+		self.linewidget.SetInteractor(self.panelvisual.renWin)
+		self.linewidget.SetRepresentation(self.linerep)
+		self.linewidget.AddObserver("EndInteractionEvent", self.DrawGraph)
+		self.linewidget.SetEnabled(0)
+	def OnDataPoints(self, event):
+		self.nopoints = int(self.pointcount.value.GetValue())
+		if self.nopoints < 1:
+			return
+		self.DrawGraph(None,None)
+		self.panelvisual.ancestor.GetParent().Refresh()
+	def EnablePointCoordsDisplay(self,enabled):
+		if enabled == 0:
+			self.p1x.Disable()
+			self.p1y.Disable()
+			self.p1z.Disable()
+			self.p2x.Disable()
+			self.p2y.Disable()
+			self.p2z.Disable()
+		else:
+			self.p1x.Enable()
+			self.p1y.Enable()
+			self.p1z.Enable()
+			self.p2x.Enable()
+			self.p2y.Enable()
+			self.p2z.Enable()
+	def SetPointCoordsDisplay(self,p1,p2):
+		self.p1x.value.SetValue(str(p1[0]))
+		self.p1y.value.SetValue(str(p1[1]))
+		self.p1z.value.SetValue(str(p1[2]))
+		self.p2x.value.SetValue(str(p2[0]))
+		self.p2y.value.SetValue(str(p2[1]))
+		self.p2z.value.SetValue(str(p2[2]))
+	def SetPointCoords(self, event):
+		try:
+			p1 = [float(self.p1x.value.GetValue()),float(self.p1y.value.GetValue()),float(self.p1z.value.GetValue())]
+			p2 = [float(self.p2x.value.GetValue()),float(self.p2y.value.GetValue()),float(self.p2z.value.GetValue())]
+		except:
+			return
+		self.panelvisual.measure_data[1][0] = p1
+		self.panelvisual.measure_data[1][1] = p2
+		self.linerep.SetPoint1WorldPosition(p1)
+		self.linerep.SetPoint2WorldPosition(p2)
+		self.linerep.Modified()
+		self.DrawGraph(None,None)
+		self.panelvisual.ancestor.GetParent().Refresh()
+	def OnClickSaveButton(self, event):
+		x = (self.linerep.GetDistance() / float(self.nopoints)) * numpy.arange(self.nopoints)
+		y = numpy.array(self.data)
+		xy = numpy.vstack((x,y)).T
+		datestr = strftime("%Y-%m-%d_%H.%M.%S")
+		numpy.savetxt('linescan_'+datestr+'.csv', xy, delimiter=',')
+	def OnChkbox(self, event):
+		if(event.GetEventObject().GetValue() == True):
+			self.linewidget.SetEnabled(1)
+			self.EnablePointCoordsDisplay(1)
+			self.panelvisual.ancestor.GetParent().Refresh()
+			self.DrawGraph(None,None)
+		else:
+			self.linewidget.SetEnabled(0)
+			self.EnablePointCoordsDisplay(0)
+			self.panelvisual.ancestor.GetParent().Refresh()
+	def OnChkboxLog(self, event):
+		self.panelvisual.ancestor.GetParent().Refresh()
+		self.DrawGraph(None,None)
+	def DrawGraph(self,object, event):
+		self.nopoints = int(self.pointcount.value.GetValue())
+		p1 = self.linerep.GetPoint1WorldPosition()
+		p2 = self.linerep.GetPoint2WorldPosition()
+		self.SetPointCoordsDisplay(p1,p2)
+		self.panelvisual.GetParent().GetPage(0).queue_info.put("Line point 1: "+str(p1))
+		self.panelvisual.GetParent().GetPage(0).queue_info.put("Line point 2: "+str(p2))
+		self.panelvisual.GetParent().GetPage(0).queue_info.put("Line distance: "+str(self.linerep.GetDistance()))
+		self.panelvisual.GetParent().GetPage(4).UpdateLog(None)
+		self.line.SetResolution(self.nopoints)
+		self.line.SetPoint1(p1)
+		self.line.SetPoint2(p2)
+		self.line.Modified()
+		self.panelvisual.measure_data[1][0] = list(p1)
+		self.panelvisual.measure_data[1][1] = list(p2)
+		probe = vtk.vtkProbeFilter()
+		probe.SetInputConnection(self.line.GetOutputPort())
+		if self.panelvisual.VTKIsNot6:
+			probe.SetSource(self.panelvisual.image_probe)
+		else:
+			probe.SetSourceData(self.panelvisual.image_probe)
+		probe.Update()
+		polydata = probe.GetPolyDataOutput()
+		scalars = polydata.GetPointData().GetScalars()
+		self.data  = []
+		for i in range(self.nopoints):
+			self.data.append(scalars.GetComponent(i,0))
+		x = (self.linerep.GetDistance() / float(self.nopoints)) * numpy.arange(self.nopoints)
+		y = numpy.array(self.data)
+		graphdata = numpy.vstack((x,y)).T
+		line = PolyLine(graphdata, colour='blue', width=2.5)
+		if (self.panelvisual.image_probe == self.panelvisual.image_phase_real) or\
+			(self.panelvisual.image_probe == self.panelvisual.image2D_phase_real) or\
+			(self.panelvisual.image_probe == self.panelvisual.object_phase):
+			graphic_y_axis = "Phase"
+			self.chkbox_log.Enable(False)
+		else:
+			graphic_y_axis = "Amplitude"
+			self.chkbox_log.Enable(True)
+		graphic = PlotGraphics([line],"", "Distance", graphic_y_axis)
+		if self.chkbox_log.GetValue() == True:
+			self.canvas.setLogScale((False,True))
+			ymin = numpy.min(y[numpy.nonzero(y)])
+			ymax = y.max()
+			if ymin < 1e-6:
+				ymin = 1e-6
+			if ymax > 1e300:
+				ymax = 1e300
+			self.canvas.Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(ymin, ymax))
+		else:
+			self.canvas.setLogScale((False,False))
+			self.canvas.Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(y.min(), y.max()))
+		self.Refresh()
+class MeasureAngle(wx.Panel):
+	def __init__(self,parent):
+		wx.Panel.__init__(self, parent)
+		self.panelvisual = self.GetParent().GetParent().GetParent()
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+		self.vbox.Add((-1, 10))
+		self.info = wx.StaticText(self, -1, label="First, select three points in free "+os.linesep+"space to create an angle.", style=wx.ALIGN_CENTER, size=(320,50) )
+		self.vbox.Add(self.info, 0, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=160)
+		self.vbox.Add((-1, 10))
+		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		txtp1label = wx.StaticText(self, -1, label="Point 1:", style=wx.ALIGN_RIGHT, size=(80,30))
+		self.hbox1.Add(txtp1label, 0, flag=wx.LEFT | wx.RIGHT, border=0)
+		self.txtp1 = wx.TextCtrl(self, value="", style=wx.TE_READONLY, size=(550,30))
+		self.txtp1.SetEditable(False)
+		self.hbox1.Add(self.txtp1, 0, flag=wx.LEFT | wx.RIGHT, border=0)
+		self.vbox.Add(self.hbox1, 1, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=5)
+		self.vbox.Add((-1, 10))
+		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		txtp2label = wx.StaticText(self, -1, label="Point 2:", style=wx.ALIGN_RIGHT, size=(80,30))
+		self.hbox2.Add(txtp2label, 0, flag=wx.LEFT | wx.RIGHT, border=0)
+		self.txtp2 = wx.TextCtrl(self, value="", style=wx.TE_READONLY, size=(550,30))
+		self.txtp2.SetEditable(False)
+		self.hbox2.Add(self.txtp2, 0, flag=wx.LEFT | wx.RIGHT, border=0)
+		self.vbox.Add(self.hbox2, 1, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=5)
+		self.vbox.Add((-1, 10))
+		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+		txtc0label = wx.StaticText(self, -1, label="Centre:", style=wx.ALIGN_RIGHT, size=(80,30))
+		self.hbox3.Add(txtc0label, 0, flag=wx.LEFT | wx.RIGHT, border=0)
+		self.txtc0 = wx.TextCtrl(self, value="", style=wx.TE_READONLY, size=(550,30))
+		self.txtc0.SetEditable(False)
+		self.hbox3.Add(self.txtc0, 0, flag=wx.LEFT | wx.RIGHT, border=0)
+		self.vbox.Add(self.hbox3, 1, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=5)
+		self.vbox.Add((-1, 10))
+		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+		txtanglelabel = wx.StaticText(self, -1, label="Angle:", style=wx.ALIGN_RIGHT, size=(80,30))
+		self.hbox4.Add(txtanglelabel, 0, flag=wx.LEFT | wx.RIGHT, border=0)
+		self.txtangle = wx.TextCtrl(self, value="", style=wx.TE_READONLY , size=(550,30))
+		self.txtangle.SetEditable(False)
+		self.hbox4.Add(self.txtangle, 0, flag=wx.LEFT | wx.RIGHT, border=0)
+		self.vbox.Add(self.hbox4, 1, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=5)
+		self.vbox.Add((-1, 10))
+		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
+		self.chkbox_enable = wx.CheckBox(self, -1, 'Enable', size=(120, 25))
+		self.chkbox_enable.SetToolTipString("Enable Widget")
+		self.chkbox_enable.SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, self.chkbox_enable)
+		self.hbox_btn.Add(self.chkbox_enable, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=260)
+		self.vbox.Add(self.hbox_btn, 0, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.TOP | wx.EXPAND, border=5)
+		self.SetSizer(self.vbox)
+		self.Fit()
+		bounds = self.panelvisual.image_probe.GetBounds()
+		if (self.panelvisual.measure_data[2] == list(bounds)):
+			p1 = self.panelvisual.measure_data[3][0]
+			p2 = self.panelvisual.measure_data[3][1]
+			c0 = self.panelvisual.measure_data[3][2]
+		else:
+			self.panelvisual.measure_data[2] = list(bounds)
+			p1 = [bounds[0],bounds[2],bounds[4]]
+			p2 = [bounds[1],bounds[3],bounds[5]]
+			c0 = [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
+			self.panelvisual.measure_data[3][0] = p1
+			self.panelvisual.measure_data[3][1] = p2
+			self.panelvisual.measure_data[3][2] = c0
+		self.handle = vtk.vtkPointHandleRepresentation3D()
+		self.handle.PlaceWidget(bounds)
+		self.handle.SetHandleSize(20)
+		self.anglerep = vtk.vtkAngleRepresentation3D()
+		self.anglerep.SetHandleRepresentation(self.handle)
+		self.anglerep.InstantiateHandleRepresentation()
+		self.anglerep.SetPoint1WorldPosition(p1)
+		self.anglerep.SetPoint2WorldPosition(p2)
+		self.anglerep.SetCenterWorldPosition(c0)
+		self.anglerep.GetPoint1Representation().GetProperty().SetColor(1,0,0)
+		self.anglerep.GetPoint1Representation().GetProperty().SetLineWidth(4)
+		self.anglerep.GetPoint2Representation().GetProperty().SetColor(1,0,0)
+		self.anglerep.GetPoint2Representation().GetProperty().SetLineWidth(4)
+		self.anglerep.GetCenterRepresentation().GetProperty().SetColor(1,0,0)
+		self.anglerep.GetCenterRepresentation().GetProperty().SetLineWidth(4)
+		self.anglerep.GetRay1().GetProperty().SetLineWidth(1)
+		self.anglerep.GetRay2().GetProperty().SetLineWidth(1)
+		self.anglerep.GetArc().GetProperty().SetLineWidth(1)
+		self.anglerep.GetRay1().GetProperty().SetColor(1,1,1)
+		self.anglerep.GetRay2().GetProperty().SetColor(1,1,1)
+		self.anglerep.GetArc().GetProperty().SetColor(1,1,1)
+		self.anglerep.GetTextActor().GetProperty().SetColor(1,1,1)
+		self.anglerep.GetTextActor().GetProperty().SetLineWidth(1)
+		self.anglerep.BuildRepresentation()
+		self.anglerep2D = vtk.vtkAngleRepresentation2D()
+		self.anglerep2D.InstantiateHandleRepresentation()
+		self.anglerep2D.SetPoint1DisplayPosition(p1)
+		self.anglerep2D.SetPoint2DisplayPosition(p2)
+		self.anglerep2D.SetCenterDisplayPosition(c0)
+		self.anglerep2D.ArcVisibilityOff()
+		self.anglerep2D.GetPoint1Representation().GetProperty().SetColor(1,0,0)
+		self.anglerep2D.GetPoint1Representation().GetProperty().SetLineWidth(2)
+		self.anglerep2D.GetPoint2Representation().GetProperty().SetColor(1,0,0)
+		self.anglerep2D.GetPoint2Representation().GetProperty().SetLineWidth(2)
+		self.anglerep2D.GetCenterRepresentation().GetProperty().SetColor(1,0,0)
+		self.anglerep2D.GetCenterRepresentation().GetProperty().SetLineWidth(2)
+		self.anglerep2D.GetRay1().SetArrowLength(5)
+		self.anglerep2D.GetRay2().SetArrowLength(5)
+		self.anglerep2D.GetArc().GetProperty().SetLineWidth(1)
+		self.anglerep2D.GetArc().GetLabelTextProperty().BoldOff()
+		self.anglerep2D.GetArc().GetLabelTextProperty().SetFontSize(6)
+		self.anglerep2D.GetArc().SetLabelFactor(0.5)
+		self.anglerep2D.BuildRepresentation()
+		self.anglewidget = vtk.vtkAngleWidget()
+		self.anglewidget.SetInteractor(self.panelvisual.renWin)
+		self.anglewidget.CreateDefaultRepresentation()
+		if hasattr(self.panelvisual.data, 'shape'):
+			if self.panelvisual.data.shape[2] == 1:
+				self.anglewidget.SetRepresentation(self.anglerep2D)
+			else:
+				self.anglewidget.SetRepresentation(self.anglerep)
+		else:
+			self.anglewidget.SetRepresentation(self.anglerep)
+		self.anglewidget.AddObserver("EndInteractionEvent", self.UpdatePanel)
+		self.anglewidget.SetEnabled(0)
+	def UpdatePanel(self,object, event):
+		p1 = self.anglewidget.GetRepresentation().GetPoint1Representation().GetWorldPosition()
+		p2 = self.anglewidget.GetRepresentation().GetPoint2Representation().GetWorldPosition()
+		c0 = self.anglewidget.GetRepresentation().GetCenterRepresentation().GetWorldPosition()
+		angle = self.anglewidget.GetRepresentation().GetAngle()
+		self.txtp1.Clear()
+		self.txtp1.WriteText(str(p1))
+		self.txtp2.Clear()
+		self.txtp2.WriteText(str(p2))
+		self.txtc0.Clear()
+		self.txtc0.WriteText(str(c0))
+		self.txtangle.Clear()
+		self.txtangle.WriteText(str(angle))
+	def OnChkbox(self, event):
+		if(event.GetEventObject().GetValue() == True):
+			self.anglewidget.SetEnabled(1)
+			self.panelvisual.ancestor.GetParent().Refresh()
+		else:
+			self.anglewidget.SetEnabled(0)
+			self.panelvisual.ancestor.GetParent().Refresh()
+class DataRangeDialog(wx.Dialog):
+	def __init__(self, parent):
+		wx.Dialog.__init__(self, parent, title="Set lookup table data range", size=(410,308))
+		self.SetSizeHints(410,308,-1,-1)
+		from math import floor, log10, pi
+		self.parent = parent
+		self.scalebars = []
+		self.actors = []
+		self.props = None
+		self.actor_list3D = ["vtkOpenGLActor", "vtkActor", "vtkMesaActor"]
+		self.actor_list2D = ["vtkOpenGLImageActor", "vtkImageActor"]
+		self.scalebar_ranges = []
+		self.style = self.parent.renWin.GetInteractorStyle()
+		self.renderers = self.parent.renWin.GetRenderWindow().GetRenderers()
+		self.renderers.InitTraversal()
+		no_renderers = self.renderers.GetNumberOfItems()
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+		self.vbox.Add((-1, 5))
+		self.sbox = []
+		self.sboxs = []
+		self.shbox = []
+		self.chkbox_log = []
+		self.valuemax = []
+		self.valuemin = []
+		ii = 0
+		if self.style.GetClassName() == "vtkInteractorStyleSwitch":
+			for i in range(no_renderers):
+				self.props = self.renderers.GetItemAsObject(i).GetViewProps()
+				self.props.InitTraversal()
+				no_props = self.props.GetNumberOfItems()
+				for j in range(no_props):
+					prop = self.props.GetItemAsObject(j)
+					if any(x == prop.GetClassName() for x in self.actor_list3D):
+						self.actors.append(prop)
+					elif "vtkScalarBarActor" in prop.GetClassName():
+						self.scalebars.append(prop)
+						self.scalebar_ranges.append(list(prop.GetLookupTable().GetTableRange()))
+						if i%2 < 1:
+							self.MakeRange(ii, inc=1)
+							self.MakeLogOption(ii)
+						else:
+							self.MakeRange(ii, inc=0.01)
+						ii+=1
+		elif self.style.GetClassName() == "vtkInteractorStyleImage":
+			for i in range(no_renderers):
+				self.props = self.renderers.GetItemAsObject(i).GetViewProps()
+				self.props.InitTraversal()
+				no_props = self.props.GetNumberOfItems()
+				for j in range(no_props):
+					prop = self.props.GetItemAsObject(j)
+					if "vtkScalarBarActor" in prop.GetClassName():
+						self.scalebars.append(prop)
+						self.scalebar_ranges.append(list(prop.GetLookupTable().GetTableRange()))
+						if i%2 < 1:
+							self.MakeRange(ii, inc=1)
+							self.MakeLogOption(ii)
+						else:
+							self.MakeRange(ii, inc=0.01)
+						ii+=1
+		self.button_update = wx.Button(self, label="Update Scale", size=(200, 30))
+		self.vbox.Add(self.button_update, 1, wx.EXPAND)
+		self.Bind(wx.EVT_BUTTON, self.OnClick,self.button_update)
+		self.SetAutoLayout(True)
+		self.SetSizer( self.vbox )
+		self.Fit()
+		self.Layout()
+		self.Show()
+	def MakeRange(self, i, inc=1.0):
+		if len(self.parent.datarangelist) < (i+1):
+			min = self.scalebar_ranges[i][0]
+			max = self.scalebar_ranges[i][1]
+			self.parent.datarangelist.append( [min, max] )
+			current_min = min
+			current_max = max
+		else:
+			min = self.parent.datarangelist[i][0]
+			max = self.parent.datarangelist[i][1]
+			current_min = self.scalebar_ranges[i][0]
+			current_max = self.scalebar_ranges[i][1]
+		label= "Range %d"%((i+1))
+		range = abs(max - min)
+		if range > MAX_INT:
+			newinc = range/MAX_INT
+		else:
+			newinc = inc
+		self.sbox.append( wx.StaticBox(self, label=label, style=wx.SUNKEN_BORDER) )
+		self.sboxs.append( wx.StaticBoxSizer(self.sbox[-1],wx.VERTICAL) )
+		self.shbox.append( wx.BoxSizer(wx.HORIZONTAL) )
+		self.valuemax.append( SpinnerObject(self,"Max:",max,min,newinc,current_max,50,150) )
+		self.shbox[-1].Add(self.valuemax[-1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.shbox[-1].Add((5, -1))
+		self.valuemin.append( SpinnerObject(self,"Min:",max,min,newinc,current_min,50,150) )
+		self.shbox[-1].Add(self.valuemin[-1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sboxs[-1].Add(self.shbox[-1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add(self.sboxs[-1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+	def MakeLogOption(self, i):
+		self.vbox.Add((-1, 5))
+		self.chkbox_log.append( wx.CheckBox(self, -1, 'Log Scale (when: Min > 0)', size=(300, 30)) )
+		self.chkbox_log[-1].SetToolTipString("Log Scale")
+		if self.scalebars[i].GetLookupTable().GetScale() > 0:
+			self.chkbox_log[-1].SetValue(True)
+		else:
+			self.chkbox_log[-1].SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLogLUT, self.chkbox_log[-1])
+		self.vbox.Add(self.chkbox_log[-1], 1, wx.EXPAND)
+	def OnClick(self, event):
+		if self.style.GetClassName() == "vtkInteractorStyleSwitch":
+			for i in range(len(self.actors)):
+				min = float(self.valuemin[i].value.GetValue())
+				max = float(self.valuemax[i].value.GetValue())
+				if min >= max:
+					self.GetParent().ancestor.GetPage(0).queue_info.put("Data amplitude range: Maximum value must be greater than the minimum value.")
+					return
+				self.actors[i].GetMapper().SetScalarRange((min,max))
+				self.actors[i].GetMapper().Modified()
+				self.scalebars[i].GetLookupTable().SetTableRange((min,max))
+				self.scalebars[i].Modified()
+				self.GetParent().ancestor.GetParent().Refresh()
+				self.RefreshVisualDialog()
+				self.scalebar_ranges[i][0] = min
+				self.scalebar_ranges[i][1] = max
+		elif self.style.GetClassName() == "vtkInteractorStyleImage":
+			for i in range(len(self.scalebars)):
+				min = float(self.valuemin[i].value.GetValue())
+				max = float(self.valuemax[i].value.GetValue())
+				if min >= max:
+					self.GetParent().ancestor.GetPage(0).queue_info.put("Data amplitude range: Maximum value must be greater than the minimum value.")
+					return
+				self.scalebars[i].GetLookupTable().SetTableRange((min,max))
+				self.scalebars[i].Modified()
+				self.GetParent().ancestor.GetParent().Refresh()
+				self.RefreshVisualDialog()
+				self.scalebar_ranges[i][0] = min
+				self.scalebar_ranges[i][1] = max
+	def OnChkboxLogLUT(self, event):
+		ii = 0
+		for i in range(len(self.scalebars)):
+			if i%2 < 1:
+				min = self.scalebar_ranges[i][0]
+				if self.chkbox_log[ii].GetValue() == True and min > 0:
+					self.scalebars[i].GetLookupTable().SetScaleToLog10()
+					self.scalebars[i].GetLookupTable().Modified()
+					self.GetParent().ancestor.GetParent().Refresh()
+					self.RefreshVisualDialog()
+				else:
+					self.scalebars[i].GetLookupTable().SetScaleToLinear()
+					self.scalebars[i].GetLookupTable().Modified()
+					self.GetParent().ancestor.GetParent().Refresh()
+					self.RefreshVisualDialog()
+				ii+=1
+	def RefreshVisualDialog(self):
+		try:
+			self.GetParent().ancestor.GetParent().visualdialog
+		except AttributeError:
+			pass
+		else:
+			self.GetParent().ancestor.GetParent().visualdialog.Refresh()
+class LUTDialog(wx.Dialog):
+	def __init__(self, parent):
+		wx.Dialog.__init__(self, parent, title="Lookup Table", size=(720,480))
+		self.SetSizeHints(720,480,-1,-1)
+		self.parent = parent
+		self.Bind(wx.EVT_CLOSE, self.OnExit)
+		self.panelphase = parent.GetParent().GetPage(0)
+		self.actor_list3D = ["vtkOpenGLActor", "vtkActor", "vtkMesaActor"]
+		self.actor_list2D = ["vtkOpenGLImageActor", "vtkImageActor"]
+		self.sizer = wx.BoxSizer(wx.VERTICAL)
+		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.vbox1 = wx.BoxSizer(wx.VERTICAL)
+		self.vbox2 = wx.BoxSizer(wx.VERTICAL)
+		self.font = wx.Font(14, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		self.panels = []
+		self.listtitles = ["Real Amp","Real Phase", "Fourier Amp","Fourier Phase"]
+		self.list = wx.ListCtrl(self,wx.ID_ANY,style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.LC_HRULES|wx.SUNKEN_BORDER, size=(200,-1))
+		self.list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelectListItem)
+		self.list.InsertColumn(0,'Settings', width = 200)
+		self.list.SetFont(self.font)
+		for i in range(len(self.listtitles)):
+			self.list.InsertStringItem(i,self.listtitles[i],i)
+			self.list.SetItemFont(i, self.font)
+			self.panels.append(ColourDialog(self))
+			self.panels[-1].Hide()
+			self.panels[-1].Layout()
+			self.GetRadioChoice(i)
+			self.vbox2.Add(self.panels[-1], 1, wx.EXPAND)
+		self.vbox1.Add(self.list, 1, wx.EXPAND)
+		self.panel_hld = wx.StaticText(self, label='')
+		self.vbox2.Add(self.panel_hld, 1, wx.EXPAND)
+		self.hbox.Add(self.vbox1, 0, wx.EXPAND,2)
+		self.hbox.Add(self.vbox2, 1, wx.EXPAND,2)
+		self.sizer.Add(self.hbox, 1, wx.EXPAND,2)
+		self.button_update = wx.Button(self, label="Update Scale", size=(720, 30))
+		self.sizer.Add(self.button_update, 0, wx.EXPAND, 2)
+		self.Bind(wx.EVT_BUTTON, self.OnClickUpdate,self.button_update)
+		self.SetSizer(self.sizer)
+		self.Fit()
+		self.Layout()
+		self.Show()
+	def GetRadioChoice(self, idx):
+		choice = self.panelphase.cmls[idx][0]
+		reverse = self.panelphase.cmls[idx][1]
+		self.panels[idx].rb[choice].SetValue(True)
+		if reverse == 0:
+			self.panels[idx].chkb[choice].SetValue(False)
+		else:
+			self.panels[idx].chkb[choice].SetValue(True)
+	def SetRadioChoice(self, idx):
+		for i in range(len(self.panels[idx].rb)):
+			if self.panels[idx].rb[i].GetValue() == True:
+				self.panelphase.cmls[idx] = i
+				reverse = self.panels[idx].chkb[i].GetValue()
+				if reverse == True:
+					self.panelphase.cmls[idx][1] = 1
+				else:
+					self.panelphase.cmls[idx][1] = 0
+	def OnSelectListItem(self, event):
+		self.CurrentListItem = event.m_itemIndex
+		self.panel_hld.Hide()
+		for  i in range(len(self.panels)):
+			if i == self.CurrentListItem:
+				self.panels[i].Show();
+			else:
+				self.panels[i].Hide()
+		self.Layout()
+	def OnClickUpdate(self, event):
+		for i in range(len(self.listtitles)):
+			self.SetRadioChoice( i )
+		self.renderers = self.parent.renWin.GetRenderWindow().GetRenderers()
+		self.renderers.InitTraversal()
+		no_renderers = self.renderers.GetNumberOfItems()
+		for i in range(no_renderers):
+			self.props = self.renderers.GetItemAsObject(i).GetViewProps()
+			self.props.InitTraversal()
+			no_props = self.props.GetNumberOfItems()
+			for j in range(no_props):
+				prop = self.props.GetItemAsObject(j)
+				if "vtkScalarBarActor" in prop.GetClassName():
+					lut = prop.GetLookupTable()
+					lutsource = self.panelphase.cms[self.panelphase.cmls[i][0]][1]
+					if self.panelphase.cmls[i][1] == 0:
+						for k in range(256):
+							lut.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+					else:
+						for k in range(256):
+							lut.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+					lut.Modified()
+		self.panelphase.ancestor.GetParent().Refresh()
+		try:
+			self.panelphase.ancestor.GetParent().visualdialog
+		except AttributeError:
+			pass
+		else:
+			self.panelphase.ancestor.GetParent().visualdialog.Refresh()
+	def OnExit(self,event):
+		for i in range(len(self.listtitles)):
+			self.SetRadioChoice( i )
+		self.panelphase.ancestor.GetParent().Refresh()
+		self.Hide()
+class ColourDialog(wx.ScrolledWindow):
+	def __init__(self, parent):
+		self.panel = wx.ScrolledWindow.__init__(self, parent)
+		self.SetScrollRate(5, 5)
+		self.panelphase = self.GetParent().panelphase
+		self.cmvbox = wx.BoxSizer(wx.VERTICAL)
+		self.cmhbox = []
+		self.imglist = []
+		self.sellist = []
+		self.rb = []
+		self.chkb = []
+		array = self.panelphase.cms[0][1]
+		height = 20
+		image = wx.EmptyImage(array.shape[0],height)
+		newarray = numpy.zeros((height, array.shape[0], 3), dtype=numpy.uint8)
+		for i in range(self.panelphase.cms.shape[0]):
+			self.cmhbox.append( wx.BoxSizer(wx.HORIZONTAL) )
+			name = self.panelphase.cms[i][0]
+			array = self.panelphase.cms[i][1]
+			for j in range(height):
+				newarray[j,:,:] = numpy.uint8(255.0*array)
+			image.SetData( newarray.tostring())
+			bmp = image.ConvertToBitmap()
+			self.imglist.append(wx.StaticBitmap(self, -1, bmp))
+			self.rb.append( wx.RadioButton(self, -1, label=name, size=(120, height) ) )
+			self.cmhbox[-1].Add(self.rb[-1], 0)
+			self.cmhbox[-1].Add((5, -1))
+			self.cmhbox[-1].Add(self.imglist[-1], 1, wx.EXPAND)
+			self.chkb.append( wx.CheckBox(self, -1, 'Reverse', size=(80, height)) )
+			self.cmhbox[-1].Add(self.chkb[-1], 0, wx.EXPAND)
+			self.cmvbox.Add(self.cmhbox[-1], 1, wx.EXPAND)
+		self.SetSizer(self.cmvbox)
+		self.Fit()
+		self.Layout()
+		self.Show()
+class PanelVisual(wx.Panel,wx.App):
+	def __init__(self,parent):
+		self.ancestor = parent
+		def ParseStart(event):
+			self.ancestor.GetPage(0).OnClickStart(self.ancestor.GetPage(0))
+		def ParsePause(event):
+			self.ancestor.GetPage(0).OnClickPause(self.ancestor.GetPage(0))
+		def ParseStop(event):
+			self.ancestor.GetPage(0).OnClickStop(self.ancestor.GetPage(0))
+		self.panel = wx.Panel.__init__(self, parent)
+		self.VTKIsNot6 = IsNotVTK6()
+		self.nblock_dialogs = 0
+		self.flat_data = None
+		self.flat_data_phase = None
+		self.vtk_data_array = None
+		self.vtk_data_array_phase = None
+		self.vtk_coordarray = None
+		self.vtk_points = None
+		self.data = None
+		self.data_max = 0.0
+		self.data_max_recip = 0.0
+		self.coords = None
+		self.image_probe = None
+		self.image = vtk.vtkImageData()
+		self.object_amp = vtk.vtkStructuredGrid()
+		self.object_phase = vtk.vtkStructuredGrid()
+		self.object_amp_points = vtk.vtkPoints()
+		self.image_amp_real = vtk.vtkImageData()
+		self.image_phase_real = vtk.vtkImageData()
+		self.image_amp_recip = vtk.vtkImageData()
+		self.image_phase_recip = vtk.vtkImageData()
+		self.image_support = vtk.vtkImageData()
+		self.image_amp_real_vtk = None
+		self.image_phase_real_vtk = None
+		self.measure_data = [None, [None, None], None, [None,None,None]]
+		self.image2D_amp_real = vtk.vtkImageData()
+		self.image2D_phase_real = vtk.vtkImageData()
+		self.image2D_amp_real_vtk = None
+		self.image2D_phase_real_vtk = None
+		self.lut_amp_real = vtk.vtkLookupTable()
+		self.lut_phase_real = vtk.vtkLookupTable()
+		self.scalebar_amp_real=vtk.vtkScalarBarActor()
+		self.scalebar_phase_real=vtk.vtkScalarBarActor()
+		self.lut_amp_recip = vtk.vtkLookupTable()
+		self.lut_phase_recip = vtk.vtkLookupTable()
+		self.scalebar_amp_recip=vtk.vtkScalarBarActor()
+		self.scalebar_phase_recip=vtk.vtkScalarBarActor()
+		self.color_amp_real = vtk.vtkImageMapToColors()
+		self.color_phase_real = vtk.vtkImageMapToColors()
+		self.color_amp_recip = vtk.vtkImageMapToColors()
+		self.color_phase_recip = vtk.vtkImageMapToColors()
+		self.mapper2D_amp_real = vtk.vtkImageMapper()
+		self.mapper2D_phase_real = vtk.vtkImageMapper()
+		self.mapper2D_amp_recip = vtk.vtkImageMapper()
+		self.mapper2D_phase_recip = vtk.vtkImageMapper()
+		self.style2D = vtk.vtkInteractorStyleImage()
+		self.filter_amp_real = vtk.vtkContourFilter()
+		self.filter_amp_recip = vtk.vtkContourFilter()
+		self.filter_support = vtk.vtkContourFilter()
+		self.filter_march_amp_real = vtk.vtkImageMarchingCubes()
+		self.smooth_filter_real = vtk.vtkSmoothPolyDataFilter()
+		self.smooth_filter_recip = vtk.vtkSmoothPolyDataFilter()
+		self.smooth_filter_support = vtk.vtkSmoothPolyDataFilter()
+		self.normals_amp_real = vtk.vtkPolyDataNormals()
+		self.normals_amp_recip = vtk.vtkPolyDataNormals()
+		self.normals_support = vtk.vtkPolyDataNormals()
+		self.triangles_amp_real = vtk.vtkTriangleFilter()
+		self.triangles_phase_real = vtk.vtkTriangleFilter()
+		self.triangles_amp_recip = vtk.vtkTriangleFilter()
+		self.triangles_phase_recip = vtk.vtkTriangleFilter()
+		self.triangles_support = vtk.vtkTriangleFilter()
+		self.strips_amp_real = vtk.vtkStripper()
+		self.strips_amp_recip = vtk.vtkStripper()
+		self.strips_phase_real = vtk.vtkStripper()
+		self.strips_phase_recip = vtk.vtkStripper()
+		self.strips_support = vtk.vtkStripper()
+		self.plane = vtk.vtkPlane()
+		self.cutter = vtk.vtkCutter()
+		self.mapper_amp_real = vtk.vtkPolyDataMapper()
+		self.mapper_phase_real = vtk.vtkPolyDataMapper()
+		self.mapper_amp_recip = vtk.vtkPolyDataMapper()
+		self.mapper_phase_recip = vtk.vtkPolyDataMapper()
+		self.mapper_support = vtk.vtkPolyDataMapper()
+		self.textMapper_amp_real = vtk.vtkTextMapper()
+		self.actor_amp_real = vtk.vtkActor()
+		self.actor_phase_real = vtk.vtkActor()
+		self.actor_amp_recip = vtk.vtkActor()
+		self.actor_phase_recip = vtk.vtkActor()
+		self.actor_support = vtk.vtkActor()
+		self.actor2D_amp_real = vtk.vtkImageActor()
+		self.actor2D_phase_real = vtk.vtkImageActor()
+		self.actor2D_amp_recip = vtk.vtkImageActor()
+		self.actor2D_phase_recip = vtk.vtkImageActor()
+		self.actor2D_support = vtk.vtkImageActor()
+		self.textActor = vtk.vtkActor2D()
+		self.picker_amp_real = vtk.vtkCellPicker()
+		self.picker_observer = None
+		self.style = None
+		self.style3D = vtk.vtkInteractorStyleSwitch()
+		self.style3D.SetCurrentStyleToTrackballCamera()
+		self.renderers = None
+		self.renderer_amp_real = vtk.vtkRenderer()
+		self.renderer_phase_real = vtk.vtkRenderer()
+		self.renderer_amp_recip = vtk.vtkRenderer()
+		self.renderer_phase_recip = vtk.vtkRenderer()
+		self.renderer_amp_real.SetBackground(0.0, 0.0, 0.0)
+		self.renderer_phase_real.SetBackground(0.0, 0.0, 0.0)
+		self.renderer_amp_recip.SetBackground(0.0, 0.0, 0.0)
+		self.renderer_phase_recip.SetBackground(0.0, 0.0, 0.0)
+		self.picker = None
+		self.cube = vtk.vtkCubeSource()
+		self.cube.SetXLength(1)
+		self.cube.SetYLength(1)
+		self.cube.SetZLength(1)
+		self.cube.SetCenter(0.0,0.0,0.0)
+		self.cubemapper = vtk.vtkPolyDataMapper()
+		self.cubemapper.SetInputConnection(self.cube.GetOutputPort())
+		self.cubeactor = vtk.vtkActor()
+		self.cubeactor.PickableOff()
+		self.cubeactor.SetMapper(self.cubemapper)
+		self.cubeactor.GetProperty().SetColor(0,1,0)
+		self.cubeactor.GetProperty().SetOpacity(0.3)
+		self.cubecircle = vtk.vtkRegularPolygonSource()
+		self.cubecircle.GeneratePolygonOff()
+		self.cubecircle.SetNumberOfSides(25)
+		self.cubecircle.SetRadius(9)
+		self.cubecircle.SetCenter(0.0,0.0,0.0)
+		self.cubecirclemapper = vtk.vtkPolyDataMapper()
+		self.cubecirclemapper.SetInputConnection(self.cubecircle.GetOutputPort())
+		self.cubecircleactor = vtk.vtkActor()
+		self.cubecircleactor.PickableOff()
+		self.cubecircleactor.SetMapper(self.cubecirclemapper)
+		self.cubecircleactor.GetProperty().SetColor(0,1,0)
+		self.cubecircleactor.GetProperty().SetOpacity(1.0)
+		self.xyza_kxyz = []
+		self.axis = vtk.vtkCubeAxesActor2D()
+		self.axis2D = vtk.vtkCubeAxesActor2D()
+		self.axis2D_phase = vtk.vtkCubeAxesActor2D()
+		self.axes = vtk.vtkAxesActor()
+		self.widget = vtk.vtkOrientationMarkerWidget()
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+		self.hboxrender = wx.BoxSizer(wx.HORIZONTAL)
+		self.vtkpanel_holder = wx.StaticText(self, label=' ')
+		self.vtkpanel_holder.Hide()
+		self.vtkpanel = wx.Panel(self, wx.ID_ANY)
+		self.vtkpanelId = self.vtkpanel.GetId()
+		self.renWinMain = wxVTKRenderWindowInteractor(self.vtkpanel, wx.ID_ANY)
+		self.renWinMain.Enable(1)
+		self.renWin = self.renWinMain
+		self.vtkvbox = wx.BoxSizer(wx.VERTICAL)
+		self.vtkvbox.Add(self.renWinMain, 1, wx.EXPAND)
+		self.vtkpanel.SetSizer(self.vtkvbox)
+		self.vtkpanel.Fit()
+		self.vtkpanel.Layout()
+		self.vtkpanel.Show()
+		self.hboxrender.Add(self.vtkpanel_holder, 1, wx.EXPAND)
+		self.hboxrender.Add(self.vtkpanel, 1, wx.EXPAND)
+		self.vbox.Add(self.hboxrender,1 ,wx.EXPAND)
+		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
+		self.button_start = wx.BitmapButton(self, -1, getstartBitmap(), size=(30, 30))
+		self.button_start.SetToolTipString('Start pipline execution')
+		self.hbox_btn.Add(self.button_start, flag=wx.LEFT, border=10)
+		self.Bind(wx.EVT_BUTTON, ParseStart, self.button_start)
+		self.hbox_btn.Add((2, -1))
+		self.button_pause = wx.BitmapButton(self, -1, getpauseBitmap(), size=(30, 30))
+		self.button_pause.SetToolTipString('Pause pipline execution')
+		self.hbox_btn.Add(self.button_pause)
+		self.Bind(wx.EVT_BUTTON, ParsePause, self.button_pause)
+		self.hbox_btn.Add((2, -1))
+		self.button_stop = wx.BitmapButton(self, -1, getstopBitmap(), size=(30, 30))
+		self.button_stop.SetToolTipString('Stop pipline execution')
+		self.hbox_btn.Add(self.button_stop)
+		self.Bind(wx.EVT_BUTTON, ParseStop, self.button_stop)
+		self.hbox_btn.Add((2, -1))
+		self.button_save = wx.BitmapButton(self, -1, wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE), size=(30, 30))
+		self.button_save.SetToolTipString('Save scene')
+		self.hbox_btn.Add(self.button_save)
+		self.Bind(wx.EVT_BUTTON, self.SaveScene, self.button_save)
+		self.hbox_btn.Add((2, -1))
+		self.button_animate = wx.BitmapButton(self, -1, getanimateBitmap(), size=(30, 30))
+		self.button_animate.SetToolTipString('Animate scene')
+		self.hbox_btn.Add(self.button_animate)
+		self.Bind(wx.EVT_BUTTON, self.AnimateScene, self.button_animate)
+		self.button_animate.Enable(False)
+		self.hbox_btn.Add((2, -1))
+		self.button_measure = wx.BitmapButton(self, -1, getrulerBitmap(), size=(30, 30))
+		self.button_measure.SetToolTipString('Measure scene')
+		self.hbox_btn.Add(self.button_measure)
+		self.Bind(wx.EVT_BUTTON, self.MeasureScene, self.button_measure)
+		self.button_measure.Enable(False)
+		self.hbox_btn.Add((2, -1))
+		self.button_vremove = wx.BitmapButton(self, -1, getvcutBitmap(), size=(30, 30))
+		self.button_vremove.Hide()
+		self.hbox_btn.Add(self.button_vremove)
+		self.button_vremove.Enable(False)
+		self.button_rgb = wx.BitmapButton(self, -1, getcolorpickBitmap(), size=(30, 30))
+		self.button_rgb.SetToolTipString('Scene background colour')
+		self.Bind(wx.EVT_BUTTON, self.OnColourSelect, self.button_rgb)
+		self.hbox_btn.Add(self.button_rgb)
+		self.button_spectrum = wx.BitmapButton(self, -1, getspectrumBitmap(), size=(30, 30))
+		self.button_spectrum.SetToolTipString('Lookup table')
+		self.Bind(wx.EVT_BUTTON, self.OnLUTSelect, self.button_spectrum)
+		self.hbox_btn.Add(self.button_spectrum)
+		self.button_scalerange = wx.BitmapButton(self, -1, getsliderBitmap(), size=(30, 30))
+		self.button_scalerange.SetToolTipString('Lookup table data range')
+		self.button_scalerange.Enable(False)
+		self.Bind(wx.EVT_BUTTON, self.DataRange, self.button_scalerange)
+		self.hbox_btn.Add(self.button_scalerange)
+		self.button_contour = wx.BitmapButton(self, -1, getsphereBitmap(), size=(30, 30))
+		self.button_contour.SetToolTipString('Isosurfaces for 3D phasing')
+		self.button_contours_shown = 0
+		self.Bind(wx.EVT_BUTTON, self.OnContourSelect, self.button_contour)
+		self.hbox_btn.Add(self.button_contour)
+		self.hbox_btn.Add((2, -1))
+		self.contour_real = SpinnerObject(self,"RSI:",MAX_INT,MIN_INT,1,100,30,60)
+		self.contour_real.label.SetToolTipString("Real space isosurface")
+		self.contour_real.label.Disable()
+		self.Bind(wx.EVT_SPIN, self.OnContourReal, self.contour_real.spin)
+		self.Bind(wx.EVT_TEXT, self.OnContourReal, self.contour_real.value)
+		self.hbox_btn.Add(self.contour_real,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.contour_real.Hide()
+		self.hbox_btn.Add((5, -1))
+		self.contour_recip = SpinnerObject(self,"FSI:",MAX_INT,MIN_INT,1,100,30,60)
+		self.contour_recip.label.SetToolTipString("Fourier space isosurface")
+		self.contour_recip.label.Disable()
+		self.Bind(wx.EVT_SPIN, self.OnContourRecip, self.contour_recip.spin)
+		self.Bind(wx.EVT_TEXT, self.OnContourRecip, self.contour_recip.value)
+		self.hbox_btn.Add(self.contour_recip,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.contour_recip.Hide()
+		self.hbox_btn.Add((5, -1))
+		self.datarangelist = []
+		self.r = 255.0
+		self.g = 255.0
+		self.b = 255.0
+		self.vbox.Add(self.hbox_btn, 0, wx.EXPAND)
+		self.SetSizer(self.vbox)
+		self.Fit()
+		self.Layout()
+		self.Show()
+		self.InitRender()
+	def EnablePanelPhase(self, enable=True):
+		if enable==True:
+			self.nblock_dialogs -= 1
+			if self.nblock_dialogs <= 0:
+				self.ancestor.GetPage(0).EnablePanel(enable=True)
+				self.button_start.Enable(True)
+				self.button_pause.Enable(True)
+				self.button_stop.Enable(True)
+				self.ancestor.GetPage(0).button_start.Enable(True)
+				self.ancestor.GetPage(0).button_pause.Enable(True)
+				self.ancestor.GetPage(0).button_stop.Enable(True)
+				self.ancestor.GetPage(0).Refresh()
+				self.nblock_dialogs = 0
+		elif enable==False:
+			self.ancestor.GetPage(0).EnablePanel(enable=False)
+			self.button_start.Enable(False)
+			self.button_pause.Enable(False)
+			self.button_stop.Enable(False)
+			self.ancestor.GetPage(0).button_start.Enable(False)
+			self.ancestor.GetPage(0).button_pause.Enable(False)
+			self.ancestor.GetPage(0).button_stop.Enable(False)
+			self.ancestor.GetPage(0).Refresh()
+			self.nblock_dialogs += 1
+	def RefreshScene(self, gotovisual=False):
+		if self.ancestor.GetParent().visualdialog_docked == True:
+			self.ancestor.GetParent().Refresh()
+			if gotovisual:
+				self.ancestor.SetSelection(1)
+		else:
+			self.ancestor.GetParent().visualdialog.Refresh()
+	def ReleaseVisualButtons(self, gotovisual=False):
+		self.button_scalerange.Enable(True)
+		self.button_measure.Enable(True)
+		self.button_vremove.Enable(True)
+		try:
+			panelvisual.meauredialog
+		except:
+			pass
+		else:
+			panelvisual.meauredialog.Update()
+		self.button_animate.Enable(True)
+		self.ancestor.GetParent().viewmenuundock.Enable(1)
+		self.ancestor.GetParent().viewmenudock.Enable(1)
+		self.RefreshScene(gotovisual)
+	def SetPhaseVisualButtons(self):
+		self.button_animate.Enable(True)
+		self.button_measure.Enable(False)
+		self.button_scalerange.Enable(False)
+		self.button_vremove.Enable(False)
+		self.ancestor.GetParent().viewmenuundock.Enable(1)
+		self.ancestor.GetParent().viewmenudock.Enable(1)
+	def PickCoords(self, object, event):
+		if self.picker_amp_real.GetCellId() < 0:
+			self.textActor.VisibilityOff()
+		else:
+			selectedpoint = self.picker_amp_real.GetSelectionPoint()
+			selectedposition = self.picker_amp_real.GetPickPosition()
+			self.textMapper_amp_real.SetInput("(%.6f, %.6f, %.6f)"%selectedposition)
+			self.textMapper_amp_real.Modified()
+			self.textActor.SetPosition(selectedpoint[:2])
+			self.textActor.VisibilityOn()
+			self.textActor.Modified()
+			self.RefreshScene()
+			self.ancestor.GetPage(0).queue_info.put("Picked point: (%.6f, %.6f, %.6f)"%selectedposition)
+			self.ancestor.GetPage(4).UpdateLog(self,)
+	def SetPicker(self):
+		textprop = self.textMapper_amp_real.GetTextProperty()
+		textprop.SetFontFamilyToArial()
+		textprop.SetFontSize(12)
+		textprop.BoldOn()
+		textprop.ShadowOn()
+		textprop.SetColor(0, 0, 0)
+		self.textActor.VisibilityOff()
+		self.textActor.SetMapper(self.textMapper_amp_real)
+		if not self.picker_amp_real.HasObserver("EndPickEvent"):
+			self.picker_amp_real.AddObserver("EndPickEvent", self.PickCoords)
+	def InitRender(self):
+		self.renderer_amp_real.SetBackground(1.0, 1.0, 1.0)
+		self.renWin.GetRenderWindow().AddRenderer(self.renderer_amp_real)
+		self.renWin.SetInteractorStyle(self.style3D)
+		self.renderer_amp_real.ResetCamera()
+		self.renderer_amp_real.SetViewport(0,0,1,1)
+		self.renderer_amp_recip.SetViewport(1,1,1,1)
+		self.Layout()
+		self.Show()
+	def SaveScene(self,event):
+		w2if = vtk.vtkWindowToImageFilter()
+		w2if.SetInput(self.renWin.GetRenderWindow())
+		w2if.Update()
+		writer = vtk.vtkPNGWriter()
+		datestr = strftime("%Y-%m-%d_%H.%M.%S")
+		writer.SetFileName("image_"+datestr+".png")
+		if self.VTKIsNot6:
+			writer.SetInput(w2if.GetOutput())
+		else:
+			writer.SetInputData(w2if.GetOutput())
+		writer.Write()
+	def AnimateScene(self,event):
+		dialog = AnimateDialog(self)
+		dialog.ShowModal()
+		dialog.Destroy()
+	def MeasureScene(self,event):
+		try:
+			self.meauredialog
+		except AttributeError:
+			self.EnablePanelPhase(enable=False)
+			self.meauredialog = MeasureDialog(self)
+			self.meauredialog.Show()
+	def OnColourSelect(self, event):
+		cdata = wx.ColourData()
+		cdata.SetColour((self.r,self.g,self.b))
+		dlg = wx.ColourDialog(self, data=cdata)
+		dlg.GetColourData().SetChooseFull(True)
+		if dlg.ShowModal() == wx.ID_OK:
+			self.r,self.g,self.b = dlg.GetColourData().GetColour().Get(includeAlpha=False)
+			r = float(self.r)/255.0
+			g = float(self.g)/255.0
+			b = float(self.b)/255.0
+			renderers = self.renWin.GetRenderWindow().GetRenderers()
+			renderers.InitTraversal()
+			no_renderers = renderers.GetNumberOfItems()
+			for i in range(no_renderers):
+				renderers.GetItemAsObject(i).SetBackground(r, g, b)
+			self.RefreshScene()
+		dlg.Destroy()
+	def OnContourSelect(self, event, forceshow=False):
+		if self.button_contours_shown and not forceshow:
+			self.button_contour.SetBitmapLabel(getsphereBitmap())
+			self.contour_real.Hide()
+			self.contour_recip.Hide()
+			self.button_contours_shown = 0
+		else:
+			self.button_contour.SetBitmapLabel(getsphere2Bitmap())
+			self.contour_real.Show()
+			self.contour_recip.Show()
+			self.Layout()
+			self.button_contours_shown = 1
+	def OnContourReal(self, event):
+		if self.filter_amp_real.GetTotalNumberOfInputConnections() > 0:
+			try:
+				contour = float(self.contour_real.value.GetValue())
+			except:
+				return
+			if self.data is None:
+				max = self.ancestor.GetPage(0).seqdata_max
+			else:
+				max = self.data_max
+			if contour > max: contour = 0.999*max;
+			self.filter_amp_real.SetValue( 0, contour)
+			self.filter_amp_real.Modified()
+			self.filter_amp_real.Update()
+			if event is not None:
+				event.Skip()
+				self.RefreshScene()
+	def OnContourRecip(self, event):
+		if self.filter_amp_recip.GetTotalNumberOfInputConnections() > 0:
+			try:
+				contour = float(self.contour_recip.value.GetValue())
+			except:
+				return
+			if self.data is None:
+				max = self.ancestor.GetPage(0).seqdata_max_recip
+			else:
+				max = self.data_max
+			if contour > max: contour = 0.999*max;
+			self.filter_amp_recip.SetValue( 0, contour)
+			self.filter_amp_recip.Modified()
+			self.filter_amp_recip.Update()
+			if event is not None:
+				event.Skip()
+				self.RefreshScene()
+	def OnLUTSelect(self, event):
+		try:
+			self.LUTdialog
+		except AttributeError:
+			self.LUTdialog = LUTDialog(self)
+		else:
+			self.LUTdialog.Show()
+	def DataRange(self, event):
+		dialog = DataRangeDialog(self)
+		dialog.ShowModal()
+		dialog.Destroy()
+	def UpdateReal(self):
+		if self.ancestor.GetPage(0).visual_amp_real.shape[2] == 1:
+			try:
+				self.flat_data_amp_real = (self.ancestor.GetPage(0).visual_amp_real).transpose(2,1,0).flatten();
+				self.vtk_data_array_amp_real = numpy_support.numpy_to_vtk(self.flat_data_amp_real)
+				self.image_amp_real.GetPointData().SetScalars(self.vtk_data_array_amp_real)
+				self.image_amp_real.Modified()
+				self.lut_amp_real.SetTableRange(self.image_amp_real.GetPointData().GetScalars().GetRange())
+				self.lut_amp_real.Build()
+				self.Layout()
+				self.Show()
+				self.RefreshScene()
+			except:
+				pass
+			if self.ancestor.GetPage(0).citer_flow[6] > 0:
+				try:
+					self.flat_data_phase_real = (self.ancestor.GetPage(0).visual_phase_real).transpose(2,1,0).flatten();
+					self.vtk_data_array_phase_real = numpy_support.numpy_to_vtk(self.flat_data_phase_real)
+					self.image_phase_real.GetPointData().SetScalars(self.vtk_data_array_phase_real)
+					self.image_phase_real.Modified()
+					self.lut_phase_real.SetTableRange(self.image_phase_real.GetPointData().GetScalars().GetRange())
+					self.lut_phase_real.Build()
+					self.Layout()
+					self.Show()
+					self.RefreshScene()
+				except:
+					pass
+		else:
+			try:
+				self.flat_data_amp_real = (self.ancestor.GetPage(0).visual_amp_real).transpose(2,1,0).flatten();
+				self.vtk_data_array_amp_real = numpy_support.numpy_to_vtk(self.flat_data_amp_real)
+				self.image_amp_real.GetPointData().SetScalars(self.vtk_data_array_amp_real)
+				self.image_amp_real.Modified()
+				self.ancestor.GetPage(0).seqdata_max = self.ancestor.GetPage(0).visual_amp_real.max()
+				if self.ancestor.GetPage(0).citer_flow[6] > 0:
+					self.flat_data_phase_real = (self.ancestor.GetPage(0).visual_phase_real).transpose(2,1,0).flatten()
+					self.vtk_data_array_phase_real = numpy_support.numpy_to_vtk(self.flat_data_phase_real)
+					self.vtk_data_array_phase_real.SetName("mapscalar")
+					points_amp_real = self.image_amp_real.GetPointData()
+					points_amp_real.AddArray(self.vtk_data_array_phase_real)
+					self.image_amp_real.Modified()
+				self.OnContourReal(None)
+				if self.ancestor.GetPage(0).citer_flow[6] > 0:
+					self.mapper_amp_real.SetScalarRange(self.image_amp_real.GetPointData().GetArray("mapscalar").GetRange())
+					self.mapper_amp_real.ColorByArrayComponent("mapscalar",0)
+					self.mapper_amp_real.SetScalarModeToUsePointFieldData()
+					self.mapper_amp_real.Modified()
+					self.mapper_amp_real.Update()
+				else:
+					self.mapper_amp_real.SetScalarRange(self.image_amp_real.GetPointData().GetScalars().GetRange())
+					self.mapper_amp_real.Modified()
+					self.mapper_amp_real.Update()
+				#self.renderer_amp_real.ResetCamera()
+				self.RefreshScene()
+			except:
+				pass
+	def UpdateRecip(self):
+		if self.ancestor.GetPage(0).visual_amp_recip.shape[2] == 1:
+			try:
+				array = WrapArrayAmp(self.ancestor.GetPage(0).visual_amp_recip)
+				self.flat_data_amp_recip = (array).transpose(2,1,0).flatten();
+				self.vtk_data_array_amp_recip = numpy_support.numpy_to_vtk(self.flat_data_amp_recip)
+				self.image_amp_recip.GetPointData().SetScalars(self.vtk_data_array_amp_recip)
+				self.image_amp_recip.Modified()
+				self.lut_amp_recip.SetTableRange(self.image_amp_recip.GetPointData().GetScalars().GetRange())
+				self.lut_amp_recip.Build()
+				self.Layout()
+				self.Show()
+				self.RefreshScene()
+			except:
+				pass
+			if self.ancestor.GetPage(0).citer_flow[6] > 0:
+				try:
+					array = WrapArrayAmp(self.ancestor.GetPage(0).visual_phase_recip)
+					self.flat_data_phase_recip = (array).transpose(2,1,0).flatten();
+					self.vtk_data_array_phase_recip = numpy_support.numpy_to_vtk(self.flat_data_phase_recip)
+					self.image_phase_recip.GetPointData().SetScalars(self.vtk_data_array_phase_recip)
+					self.image_phase_recip.Modified()
+					self.lut_phase_recip.SetTableRange(self.image_phase_recip.GetPointData().GetScalars().GetRange())
+					self.lut_phase_recip.Build()
+					self.Layout()
+					self.Show()
+					self.RefreshScene()
+				except:
+					pass
+		else:
+			try:
+				array = WrapArrayAmp(self.ancestor.GetPage(0).visual_amp_recip)
+				self.flat_data_amp_recip = (array).transpose(2,1,0).flatten();
+				self.vtk_data_array_amp_recip = numpy_support.numpy_to_vtk(self.flat_data_amp_recip)
+				self.image_amp_recip.GetPointData().SetScalars(self.vtk_data_array_amp_recip)
+				self.image_amp_recip.Modified()
+				self.ancestor.GetPage(0).seqdata_max_recip = self.ancestor.GetPage(0).visual_amp_recip.max()
+				if self.ancestor.GetPage(0).citer_flow[6] > 0:
+					array2 = WrapArrayAmp(self.ancestor.GetPage(0).visual_phase_recip)
+					self.flat_data_phase_recip = (array2).transpose(2,1,0).flatten()
+					self.vtk_data_array_phase_recip = numpy_support.numpy_to_vtk(self.flat_data_phase_recip)
+					self.vtk_data_array_phase_recip.SetName("mapscalar")
+					points_amp_recip = self.image_amp_recip.GetPointData()
+					points_amp_recip.AddArray(self.vtk_data_array_phase_recip)
+					self.image_amp_recip.Modified()
+				self.OnContourRecip(None)
+				if self.ancestor.GetPage(0).citer_flow[6] > 0:
+					self.mapper_amp_recip.SetScalarRange(self.image_amp_recip.GetPointData().GetArray("mapscalar").GetRange())
+					self.mapper_amp_recip.ColorByArrayComponent("mapscalar",0)
+					self.mapper_amp_recip.SetScalarModeToUsePointFieldData()
+					self.mapper_amp_recip.Modified()
+					self.mapper_amp_recip.Update()
+				else:
+					self.mapper_amp_recip.SetScalarRange(self.image_amp_recip.GetPointData().GetScalars().GetRange())
+					self.mapper_amp_recip.Modified()
+					self.mapper_amp_recip.Update()
+				self.renderer_amp_recip.ResetCamera()
+				self.RefreshScene()
+			except:
+				pass
+	def UpdateSupport(self):
+		if self.ancestor.GetPage(0).visual_support.shape[2] == 1:
+			pass
+		else:
+			try:
+				self.flat_data_support = (self.ancestor.GetPage(0).visual_support).transpose(2,1,0).flatten();
+				self.vtk_data_array_support = numpy_support.numpy_to_vtk(self.flat_data_support)
+				self.image_support.GetPointData().SetScalars(self.vtk_data_array_support)
+				self.image_support.Modified()
+				#self.mapper_support.SetScalarRange(self.image_support.GetPointData().GetScalars().GetRange())
+				self.mapper_support.SetScalarRange(0.0, 1.0)
+				self.mapper_support.Modified()
+				self.mapper_support.Update()
+				self.filter_support.SetValue( 0, 1.0)
+				self.filter_support.Modified()
+				self.filter_support.Update()
+				#self.renderer_support.ResetCamera()
+				self.RefreshScene()
+			except:
+				pass

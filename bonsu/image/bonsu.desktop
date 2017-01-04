@@ -1,0 +1,10 @@
+[Desktop Entry]
+Comment=The Interactive Phase Retrieval Suite
+Name=Bonsu
+Version=1.4
+Exec=bonsu %f
+Icon=bonsu
+Terminal=false
+MimeType=application/fin;
+Type=Application
+Categories=Education;Graphics;GTK;
