@@ -1197,7 +1197,7 @@ class PanelVisual(wx.Panel,wx.App):
 				max = self.ancestor.GetPage(0).seqdata_max
 			else:
 				max = self.data_max
-			if contour > max: contour = 0.999*max;
+			if contour > max: contour = CNTR_CLIP*max;
 			self.filter_amp_real.SetValue( 0, contour)
 			self.filter_amp_real.Modified()
 			self.filter_amp_real.Update()
@@ -1214,7 +1214,7 @@ class PanelVisual(wx.Panel,wx.App):
 				max = self.ancestor.GetPage(0).seqdata_max_recip
 			else:
 				max = self.data_max
-			if contour > max: contour = 0.999*max;
+			if contour > max: contour = CNTR_CLIP*max;
 			self.filter_amp_recip.SetValue( 0, contour)
 			self.filter_amp_recip.Modified()
 			self.filter_amp_recip.Update()

@@ -41,6 +41,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.queue_info = Queue()
 		self.seqdata = None
 		self.seqdata_max = 0.0
+		self.seqdata_max_recip = 0.0
 		self.support = None
 		self.residual = None
 		self.coordarray = None

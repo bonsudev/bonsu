@@ -20,7 +20,18 @@
 #############################################
 import numpy
 import os
+from sys import platform
+import ctypes
 MEMARRAY = ['memory0', 'memory1', 'memory2', 'memory3', 'memory4', 'memory5', 'memory6', 'memory7', 'memory8', 'memory9', 'memorysequence']
+def FreeSpace(path):
+	if platform.startswith('win'):
+		free = ctypes.c_ulonglong(0)
+		ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(path), None, None, ctypes.pointer(free))
+		return free.value
+	else:
+		stat = os.statvfs(path)
+		free = stat.f_frsize * stat.f_bavail
+		return free
 def LoadArray(self, filename):
 	from numpy import newaxis
 	if filename in MEMARRAY:
@@ -132,11 +143,15 @@ def SaveArray(self, filename, array):
 		elif filename == 'memory9':
 			self.memory9 = array
 	else:
-		path = os.path.dirname(filename)
+		pathname = os.path.dirname(filename)
 		base = os.path.basename(filename)
+		cwd = os.getcwd()
+		if not pathname:
+			path = cwd
+		else:
+			path = pathname
 		if os.access(path, os.W_OK):
-			stat = os.statvfs(path)
-			free = stat.f_bsize * stat.f_bavail
+			free = FreeSpace(path)
 			fsize = array.nbytes
 			if free > fsize:
 				numpy.save(filename, array)
