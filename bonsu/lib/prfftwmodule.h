@@ -152,14 +152,18 @@ void CSHIO(double* seqdata,	double* expdata, double* support, double* mask,
 void HIOMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
 						double gammaHWHM, int gammaRS, int numiterRL, int startiterRL, int waititerRL, int zex, int zey, int zez,
 						double beta, int startiter, int numiter, int ndim,
-						double* rho_m1, int32_t* nn, double* residual, int32_t* citer_flow,
+						double* rho_m1, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
 						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog);
+						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2);
 
 void MaskedSetPCAmplitudes( double* seqdata, double* expdata, double* itnsty, double* mask, int32_t* nn );
 void lorentz_ft_fill( double* data, int32_t* nn, double gammaHWHM );
 void SumArray( double* data, int32_t* nn, double* sum );
-int update_gamma(double* expdata, double* rho, double* rhom1, double* gamma, double* mask, int32_t ndim, int32_t* nn, int32_t* nnh, int numiter, double* tmpdata1, double* tmpdata2, fftw_plan* torecip, fftw_plan* toreal);
+
+void update_gamma(double* expdata, double* rho, double* rhom1, double* gamma, double* mask, int32_t ndim, int32_t* nn, int32_t* nnh, 
+	int32_t* citer_flow, int numiter, double* residualRL, double* pca_Idm_iter, double* pca_Idmdiv_iter,	double* pca_IdmdivId_iter, 
+	double* tmpdata1, double* tmpdata2, fftw_plan* torecip, fftw_plan* toreal, PyThreadState* tstate, PyObject* updatelog2);
+	
 void divide_I_Id_iter( double* expdata, double* pca_Idm_iter, double* mask, double* pca_Idmdiv_iter, int32_t* nn);
 void CopySquare( double* rho, double* itnsty, int32_t* nn);
 void make_Id_iter( double* rho, double* rhom1, double* pca_Id_iter, int32_t* nn);

@@ -25,6 +25,7 @@ class PanelScript(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 		self.shell = Shell(parent = self, id = wx.ID_ANY)
+		self.shell.zoom(2)
 		self.shell.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown, self.shell)
 		self.ih = 0
 		sizer = wx.BoxSizer(wx.VERTICAL)

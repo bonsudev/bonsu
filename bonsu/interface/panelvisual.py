@@ -29,6 +29,8 @@ from .plot import PlotCanvas, PolyLine, PlotGraphics
 from .common import *
 from ..operations.wrap import WrapArray
 from ..operations.wrap import WrapArrayAmp
+import threading, time
+from Queue import Queue
 class AnimateDialog(wx.Dialog):
 	def __init__(self, parent):
 		wx.Dialog.__init__(self, parent, title="Animate Scene", size=(450,300))
@@ -823,8 +825,10 @@ class PanelVisual(wx.Panel,wx.App):
 		self.VTKIsNot6 = IsNotVTK6()
 		self.nblock_dialogs = 0
 		self.flat_data = None
+		self.flat_data2 = None
 		self.flat_data_phase = None
 		self.vtk_data_array = None
+		self.vtk_data_array2 = None
 		self.vtk_data_array_phase = None
 		self.vtk_coordarray = None
 		self.vtk_points = None
@@ -832,6 +836,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.data_max = 0.0
 		self.data_max_recip = 0.0
 		self.coords = None
+		self.inputdata = None
 		self.image_probe = None
 		self.image = vtk.vtkImageData()
 		self.object_amp = vtk.vtkStructuredGrid()
@@ -944,7 +949,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.cubecircleactor.SetMapper(self.cubecirclemapper)
 		self.cubecircleactor.GetProperty().SetColor(0,1,0)
 		self.cubecircleactor.GetProperty().SetOpacity(1.0)
-		self.xyza_kxyz = []
+		self.xyza_kxyz = Queue()
 		self.axis = vtk.vtkCubeAxesActor2D()
 		self.axis2D = vtk.vtkCubeAxesActor2D()
 		self.axis2D_phase = vtk.vtkCubeAxesActor2D()
@@ -1002,9 +1007,11 @@ class PanelVisual(wx.Panel,wx.App):
 		self.button_measure.Enable(False)
 		self.hbox_btn.Add((2, -1))
 		self.button_vremove = wx.BitmapButton(self, -1, getvcutBitmap(), size=(30, 30))
+		self.button_vremove.SetToolTipString('Voxel Remove')
 		self.button_vremove.Hide()
 		self.hbox_btn.Add(self.button_vremove)
 		self.button_vremove.Enable(False)
+		self.hbox_btn.Add((2, -1))
 		self.button_rgb = wx.BitmapButton(self, -1, getcolorpickBitmap(), size=(30, 30))
 		self.button_rgb.SetToolTipString('Scene background colour')
 		self.Bind(wx.EVT_BUTTON, self.OnColourSelect, self.button_rgb)
@@ -1024,7 +1031,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.Bind(wx.EVT_BUTTON, self.OnContourSelect, self.button_contour)
 		self.hbox_btn.Add(self.button_contour)
 		self.hbox_btn.Add((2, -1))
-		self.contour_real = SpinnerObject(self,"RSI:",MAX_INT,MIN_INT,1,100,30,60)
+		self.contour_real = SpinnerObject(self,"RSI:",MAX_INT,0,1,100,30,60)
 		self.contour_real.label.SetToolTipString("Real space isosurface")
 		self.contour_real.label.Disable()
 		self.Bind(wx.EVT_SPIN, self.OnContourReal, self.contour_real.spin)
@@ -1032,7 +1039,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.hbox_btn.Add(self.contour_real,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.contour_real.Hide()
 		self.hbox_btn.Add((5, -1))
-		self.contour_recip = SpinnerObject(self,"FSI:",MAX_INT,MIN_INT,1,100,30,60)
+		self.contour_recip = SpinnerObject(self,"FSI:",MAX_INT,0,1,100,30,60)
 		self.contour_recip.label.SetToolTipString("Fourier space isosurface")
 		self.contour_recip.label.Disable()
 		self.Bind(wx.EVT_SPIN, self.OnContourRecip, self.contour_recip.spin)
@@ -1198,6 +1205,7 @@ class PanelVisual(wx.Panel,wx.App):
 			else:
 				max = self.data_max
 			if contour > max: contour = CNTR_CLIP*max;
+			if contour <= 0.0: contour = (1.0-CNTR_CLIP);
 			self.filter_amp_real.SetValue( 0, contour)
 			self.filter_amp_real.Modified()
 			self.filter_amp_real.Update()
@@ -1213,8 +1221,9 @@ class PanelVisual(wx.Panel,wx.App):
 			if self.data is None:
 				max = self.ancestor.GetPage(0).seqdata_max_recip
 			else:
-				max = self.data_max
+				max = self.data_max_recip
 			if contour > max: contour = CNTR_CLIP*max;
+			if contour <= 0.0: contour = (1.0-CNTR_CLIP);
 			self.filter_amp_recip.SetValue( 0, contour)
 			self.filter_amp_recip.Modified()
 			self.filter_amp_recip.Update()

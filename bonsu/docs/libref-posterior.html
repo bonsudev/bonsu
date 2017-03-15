@@ -6,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Library Reference - Phasing Operations &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation</title>
+    <title>Library Reference - Phasing Operations &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.0.1',
+        VERSION:     '2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,12 +24,12 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation" href="index.html" />
+    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation" href="bonsu.html" />
     <link rel="up" title="Library Reference" href="libref.html" />
     <link rel="prev" title="Library Reference – Phasing Algorithms" href="libref-algorithms.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -38,21 +38,21 @@
         <li class="right" >
           <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
              accesskey="P">previous</a> |</li>
-        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation</a> &raquo;</li>
-          <li><a href="libref.html" accesskey="U">Library Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="library-reference-phasing-operations">
 <span id="libref-posterior"></span><h1>Library Reference - Phasing Operations<a class="headerlink" href="#library-reference-phasing-operations" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="save-sequence">
 <h2>Save Sequence<a class="headerlink" href="#save-sequence" title="Permalink to this headline">¶</a></h2>
-<p id="index-0">Save <tt class="docutils literal"><span class="pre">sequence</span> <span class="pre">data</span></tt> to a NumPy file.</p>
+<p id="index-0">Save <code class="docutils literal"><span class="pre">sequence</span> <span class="pre">data</span></code> to a NumPy file.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Output file</strong></dt>
@@ -61,7 +61,7 @@
 </div>
 <div class="section" id="save-support">
 <h2>Save Support<a class="headerlink" href="#save-support" title="Permalink to this headline">¶</a></h2>
-<p id="index-1">Save <tt class="docutils literal"><span class="pre">Support</span></tt> data to a NumPy file.</p>
+<p id="index-1">Save <code class="docutils literal"><span class="pre">Support</span></code> data to a NumPy file.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Output file</strong></dt>
@@ -70,7 +70,7 @@
 </div>
 <div class="section" id="save-residual">
 <span id="libref-posterior-res"></span><h2>Save Residual<a class="headerlink" href="#save-residual" title="Permalink to this headline">¶</a></h2>
-<p id="index-2">Save <tt class="docutils literal"><span class="pre">Residual</span></tt> data to a NumPy file.</p>
+<p id="index-2">Save <code class="docutils literal"><span class="pre">Residual</span></code> data to a NumPy file.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Output file</strong></dt>
@@ -79,8 +79,8 @@
 </div>
 <div class="section" id="co-ordinate-transformation">
 <span id="libref-posterior-coord"></span><h2>Co-ordinate Transformation<a class="headerlink" href="#co-ordinate-transformation" title="Permalink to this headline">¶</a></h2>
-<p id="index-3">Perform a co-ordinate transformation on either <tt class="docutils literal"><span class="pre">sequence</span> <span class="pre">data</span></tt> or an input array.  The transformation is derived using the principles as demonstrated by <a class="reference external" href="https://www.ideals.illinois.edu/handle/2142/8859/browse?value=Pfeifer%2C+Mark+August&amp;type=author">Pfeifer, M.A.</a> .
-The generated co-ordinate array is stored internally and is accessible for  <a class="reference internal" href="libref-prephasing.html#libref-prephasing-viewobject"><em>viewing</em></a> with the <a class="reference internal" href="usage.html#usage-arrays"><em>memory array</em></a> keyword <tt class="docutils literal"><span class="pre">memorycoords</span></tt>.</p>
+<p id="index-3">Perform a co-ordinate transformation on either <code class="docutils literal"><span class="pre">sequence</span> <span class="pre">data</span></code> or an input array.  The transformation is derived using the principles as demonstrated by <a class="reference external" href="https://www.ideals.illinois.edu/handle/2142/8859/browse?value=Pfeifer%2C+Mark+August&amp;type=author">Pfeifer, M.A.</a> .
+The generated co-ordinate array is stored internally and is accessible for  <a class="reference internal" href="libref-prephasing.html#libref-prephasing-viewobject"><span>viewing</span></a> with the <a class="reference internal" href="usage.html#usage-arrays"><span>memory array</span></a> keyword <code class="docutils literal"><span class="pre">memorycoords</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Transform from</strong></dt>
@@ -96,7 +96,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
 <dt><strong>Rocking curve type</strong></dt>
 <dd>Theta (<img class="math" src="_images/math/a9cfbeb8ebee1f365919e147a79e242dcb67ee5d.png" alt="\theta"/>) or Phi (<img class="math" src="_images/math/10e009bdb83f96c5f47c58b34d5d4b12ef268d5b.png" alt="\phi"/>) rocking curve measurement.</dd>
 <dt><strong>Array binning</strong></dt>
-<dd>Amount by which the array was <tt class="docutils literal"><span class="pre">binned</span></tt>.  See the section on <a class="reference internal" href="libref-prephasing.html#libref-prephasing-bin"><em>binning</em></a> for further details.</dd>
+<dd>Amount by which the array was <code class="docutils literal"><span class="pre">binned</span></code>.  See the section on <a class="reference internal" href="libref-prephasing.html#libref-prephasing-bin"><span>binning</span></a> for further details.</dd>
 <dt><strong>2theta</strong></dt>
 <dd><img class="math" src="_images/math/b17e72f8e256e3b826a540f277c29f00346e0240.png" alt="2 \theta"/> angle.</dd>
 <dt><strong>d theta</strong></dt>
@@ -120,7 +120,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
 </div>
 <div class="section" id="save-co-ordinates">
 <h2>Save Co-ordinates<a class="headerlink" href="#save-co-ordinates" title="Permalink to this headline">¶</a></h2>
-<p id="index-4">Save <tt class="docutils literal"><span class="pre">Co-ordinates</span></tt> data to a NumPy file.</p>
+<p id="index-4">Save <code class="docutils literal"><span class="pre">Co-ordinates</span></code> data to a NumPy file.</p>
 <dl class="docutils">
 <dt><strong>Output file</strong></dt>
 <dd>User provided path string for the output NumPy file.</dd>
@@ -136,7 +136,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="bonsu.html">
               <img class="logo" src="_static/bonsu.png" alt="Logo"/>
@@ -156,7 +156,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
   <h4>Previous topic</h4>
   <p class="topless"><a href="libref-algorithms.html"
                         title="previous chapter">Library Reference – Phasing Algorithms</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -173,7 +173,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -182,11 +182,11 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
         <li class="right" >
           <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
              >previous</a> |</li>
-        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation</a> &raquo;</li>
-          <li><a href="libref.html" >Library Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2011 - 2017, Marcus C. Newton.
     </div>
   </body>

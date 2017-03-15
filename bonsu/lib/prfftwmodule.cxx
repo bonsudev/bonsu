@@ -1025,16 +1025,16 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 	int zex, zey, zez;
 	double beta; int startiter, numiter, ndim;
 	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
-	PyObject *updatereal, *updaterecip, *updatelog;
+	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
+	PyObject *updatereal, *updaterecip, *updatelog, *updatelog2;
 
-    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiidiiiOOOOOOOOOOO",
+    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiidiiiOOOOOOOOOOOOO",
 		&arg1, &arg2, &arg3, &arg4,
 		&gammaHWHM, &gammaRS, &numiterRL, &startiterRL, &waititerRL,
 		&zex, &zey, &zez,
 		&beta, &startiter, &numiter, &ndim,
-		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
-		&arg16, &updatereal, &updaterecip, &updatelog))
+		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
+		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2))
         return NULL;
 	
 	double *seqdata = (double*) PyArray_DATA(arg1);
@@ -1045,12 +1045,13 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 	double *rho_m1 = (double*) PyArray_DATA(arg9);
 	int32_t *nn = (int32_t*) PyArray_DATA(arg10);
 	double *residual = (double*) PyArray_DATA(arg11);
-	int32_t *citer_flow = (int32_t*) PyArray_DATA(arg12);
+	double *residualRL = (double*) PyArray_DATA(arg12);
+	int32_t *citer_flow = (int32_t*) PyArray_DATA(arg13);
 	
-	double *visual_amp_real = (double*) PyArray_DATA(arg13);
-	double *visual_phase_real = (double*) PyArray_DATA(arg14);
-	double *visual_amp_recip = (double*) PyArray_DATA(arg15);
-	double *visual_phase_recip = (double*) PyArray_DATA(arg16);
+	double *visual_amp_real = (double*) PyArray_DATA(arg14);
+	double *visual_phase_real = (double*) PyArray_DATA(arg15);
+	double *visual_amp_recip = (double*) PyArray_DATA(arg16);
+	double *visual_phase_recip = (double*) PyArray_DATA(arg17);
 	
 	if (!PyCallable_Check(updatereal))
 	{
@@ -1070,14 +1071,15 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 	Py_XINCREF(updatereal);
 	Py_XINCREF(updaterecip);
 	Py_XINCREF(updatelog);
+	Py_XINCREF(updatelog2);
 	
 	HIOMaskPC(seqdata, expdata, support, mask,
 					gammaHWHM, gammaRS, numiterRL, startiterRL, waititerRL,
 					zex, zey, zez,
 					beta, startiter, numiter, ndim, 
-					rho_m1, nn, residual, citer_flow,
+					rho_m1, nn, residual, residualRL, citer_flow,
 					visual_amp_real, visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog);
+					updatereal, updaterecip, updatelog, updatelog2);
 
 	Py_INCREF(Py_None);
 	return Py_None;

@@ -6,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation</title>
+    <title>Installation &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.0.1',
+        VERSION:     '2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,12 +24,12 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation" href="index.html" />
+    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation" href="bonsu.html" />
     <link rel="next" title="History and Licence" href="licence.html" />
     <link rel="prev" title="General Usage" href="usage.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -41,14 +41,14 @@
         <li class="right" >
           <a href="usage.html" title="General Usage"
              accesskey="P">previous</a> |</li>
-        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="installation">
 <span id="setup"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
@@ -71,7 +71,7 @@
 <li><a class="reference external" href="http://www.h5py.org/">H5Py</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 1.8</li>
 </ul>
 <p>As most Linux systems and services require Python natively, it is likely that Python is already provided in your distribution. Also, many distributions package all of the above prerequisites.  Please check your distributions repositories.</p>
-<p>It is also possible to install a stand alone python distribution such as that provided by <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought</a>. This will include most of the above prerequisites. In order to compile and use any additional packages (such as FFTW) into the stand alone distribution, a number of environmental variables should be set. If you are using the <em>Bourne-again</em> (BASH) shell, append something akin to the following in your <tt class="docutils literal"><span class="pre">.bashrc</span></tt> profile:</p>
+<p>It is also possible to install a stand alone python distribution such as that provided by <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought</a>. This will include most of the above prerequisites. In order to compile and use any additional packages (such as FFTW) into the stand alone distribution, a number of environmental variables should be set. If you are using the <em>Bourne-again</em> (BASH) shell, append something akin to the following in your <code class="docutils literal"><span class="pre">.bashrc</span></code> profile:</p>
 <div class="highlight-python"><div class="highlight"><pre>export EPD=&quot;/path/to/python/installation/&quot;
 export PYVER=&quot;2.7&quot;
 export PYTHONSITE=$EPD/lib/python$PYVER/site-packages
@@ -129,7 +129,7 @@ export FCFLAGS=${CFLAGS}
 <div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python setup.py install --home<span class="o">=</span>/my/install/path
 </pre></div>
 </div>
-<p>The <em class="xref std std-option">--home</em> option defines the installation base directory.  Files are installed to the following directories under the installation base as follows</p>
+<p>The <code class="xref std std-option docutils literal"><span class="pre">--home</span></code> option defines the installation base directory.  Files are installed to the following directories under the installation base as follows</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="20%" />
@@ -142,16 +142,16 @@ export FCFLAGS=${CFLAGS}
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>modules</td>
-<td><tt class="file docutils literal"><em><span class="pre">home</span></em><span class="pre">/lib/python</span></tt></td>
+<td><code class="file docutils literal"><em><span class="pre">home</span></em><span class="pre">/lib/python</span></code></td>
 </tr>
 <tr class="row-odd"><td>scripts</td>
-<td><tt class="file docutils literal"><em><span class="pre">home</span></em><span class="pre">/bin</span></tt></td>
+<td><code class="file docutils literal"><em><span class="pre">home</span></em><span class="pre">/bin</span></code></td>
 </tr>
 <tr class="row-even"><td>data</td>
-<td><tt class="file docutils literal"><em><span class="pre">home</span></em></tt></td>
+<td><code class="file docutils literal"><em><span class="pre">home</span></em></code></td>
 </tr>
 <tr class="row-odd"><td>C headers</td>
-<td><tt class="file docutils literal"><em><span class="pre">home</span></em><span class="pre">/include/python/</span><em><span class="pre">distname</span></em></tt></td>
+<td><code class="file docutils literal"><em><span class="pre">home</span></em><span class="pre">/include/python/</span><em><span class="pre">distname</span></em></code></td>
 </tr>
 </tbody>
 </table>
@@ -186,7 +186,7 @@ export FCFLAGS=${CFLAGS}
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="bonsu.html">
               <img class="logo" src="_static/bonsu.png" alt="Logo"/>
@@ -211,7 +211,7 @@ export FCFLAGS=${CFLAGS}
   <h4>Next topic</h4>
   <p class="topless"><a href="licence.html"
                         title="next chapter">History and Licence</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -228,7 +228,7 @@ export FCFLAGS=${CFLAGS}
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -240,10 +240,10 @@ export FCFLAGS=${CFLAGS}
         <li class="right" >
           <a href="usage.html" title="General Usage"
              >previous</a> |</li>
-        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2011 - 2017, Marcus C. Newton.
     </div>
   </body>

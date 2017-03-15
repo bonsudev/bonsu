@@ -111,7 +111,7 @@ void divide_I_Id_iter( double* expdata, double* pca_Idm_iter, double* mask, doub
 	}
 }
 
-int update_gamma
+void update_gamma
 (
 	double* expdata,
 	double* rho,
@@ -121,47 +121,46 @@ int update_gamma
 	int32_t ndim,
 	int32_t* nn,
 	int32_t* nnh,
+	int32_t* citer_flow,
 	int numiter,
+	double* residualRL,
+	double* pca_Idm_iter,
+	double* pca_Idmdiv_iter,
+	double* pca_IdmdivId_iter,
 	double* tmpdata1,
 	double* tmpdata2,
 	fftw_plan* torecip,
-	fftw_plan* toreal
+	fftw_plan* toreal,
+	PyThreadState* tstate,
+	PyObject* updatelog2
 )
 {
 	int i;
 	int len = nn[0] * nn[1] * nn[2];
-	double* pca_Id_iter = (double*) fftw_malloc( 2*len * sizeof(double));
-	double* pca_Idm_iter;
-	double* pca_Idmdiv_iter = (double*) fftw_malloc( 2*len * sizeof(double));
-	double* pca_IdmdivId_iter = (double*) fftw_malloc( 2*len * sizeof(double));
-	if (!pca_Id_iter || !pca_Idmdiv_iter || !pca_IdmdivId_iter)
-	{
-		free(pca_Id_iter);
-		free(pca_Idmdiv_iter);
-		free(pca_IdmdivId_iter);
-		return 1;
-	}
-	pca_Idm_iter = pca_Id_iter;
-
 	double itnsty_sum = 0.0;
+	double gamma_sum = 0.0;
 	
+	citer_flow[8] = 0;
 	
 	for(i=0; i<numiter; i++)
 	{
+		if( citer_flow[1] == 2 ) break;
 		ZeroArray(pca_Idmdiv_iter, nn);
-		make_Id_iter(rho, rhom1, pca_Id_iter, nn);
-		SumArray(pca_Id_iter, nn, &itnsty_sum);
+		make_Id_iter(rho, rhom1, pca_Idm_iter, nn);
+		SumArray(pca_Idm_iter, nn, &itnsty_sum);
 		
 		
 		
-		CopyArray(pca_Id_iter, pca_IdmdivId_iter, nn);
+		CopyArray(pca_Idm_iter, pca_IdmdivId_iter, nn);
 		conj_reflect(pca_IdmdivId_iter, nn);
 		
-		wrap_array(pca_Id_iter, nn, -1);
+		wrap_array(pca_Idm_iter, nn, -1);
 		wrap_array(gamma, nn, -1);
-		convolve_nomem2(pca_Id_iter, gamma, ndim, nn, tmpdata1, tmpdata2, torecip, toreal);
-		wrap_array(pca_Id_iter, nn, 1);
+		convolve_nomem2(pca_Idm_iter, gamma, ndim, nn, tmpdata1, tmpdata2, torecip, toreal);
+		wrap_array(pca_Idm_iter, nn, 1);
 		wrap_array(gamma, nn, 1);
+		
+		if( citer_flow[1] == 2 ) break;
 		
 		divide_I_Id_iter(expdata, pca_Idm_iter, mask, pca_Idmdiv_iter, nn);
 		
@@ -171,20 +170,26 @@ int update_gamma
 		wrap_array(pca_IdmdivId_iter, nn, 1);
 		wrap_array(pca_Idmdiv_iter, nn, 1);
 		
+		if( citer_flow[1] == 2 ) break;
+		
 		ScaleArray(pca_IdmdivId_iter, nn, (1.0/itnsty_sum));
 		MultiplyArray(gamma, pca_IdmdivId_iter, gamma, nn);
 		
 		mask_gamma(gamma, nn, nnh); 
 		
+		SumArray(pca_IdmdivId_iter, nn, &residualRL[0]);
+		residualRL[0] = residualRL[0]/((double) len);
+		
+		PyEval_RestoreThread(tstate);
+		PyObject_CallObject(updatelog2, NULL);
+		tstate = PyEval_SaveThread();
+		
+		citer_flow[8] += 1;
 		
 		
-		
+		SumArray(gamma, nn, &gamma_sum);
+		ScaleArray(gamma, nn, (1.0/gamma_sum));
 	}
-	
-	free(pca_Id_iter);
-	free(pca_Idmdiv_iter);
-	free(pca_IdmdivId_iter);
-	return 0;
 }
 
 void SumArray
@@ -211,6 +216,8 @@ void lorentz_ft_fill
 )
 {
 	int i,j,k,ii;
+	double r;
+	double rmax = sqrt((double) (nn[0]/2)*(nn[0]/2)+(nn[1]/2)*(nn[1]/2)+(nn[2]/2)*(nn[2]/2));
 	for(i=0;i<nn[0]; i++)
 	{
 		for(j=0;j<nn[1]; j++)
@@ -218,11 +225,10 @@ void lorentz_ft_fill
 			for(k=0;k<nn[2]; k++)
 			{
 				ii = (k+nn[2]*(j+nn[1]*i));
-				data[2*ii] = exp(- fabs(gammaHWHM)*
-									sqrt((double) (i-nn[0]/2)*(i-nn[0]/2)
-									+(j-nn[1]/2)*(j-nn[1]/2)
-									+(k-nn[2]/2)*(k-nn[2]/2))
-									);
+				r = sqrt((double) (i-nn[0]/2)*(i-nn[0]/2)+(j-nn[1]/2)*(j-nn[1]/2)+(k-nn[2]/2)*(k-nn[2]/2));
+				
+				data[2*ii] = fabs(gammaHWHM) * exp(- fabs(gammaHWHM)*r) / 
+				(-2.0 *( exp(-fabs(gammaHWHM)*rmax) - 1.0)) ;
 				data[2*ii+1] = 0.0;
 			}
 		}
@@ -278,6 +284,7 @@ void HIOMaskPC
 	double* rho_m1,
 	int32_t* nn,
 	double* residual,
+	double* residualRL,
 	int32_t* citer_flow,
 	double* visual_amp_real,
 	double* visual_phase_real,
@@ -285,7 +292,8 @@ void HIOMaskPC
 	double* visual_phase_recip,
 	PyObject* updatereal,
 	PyObject* updaterecip,
-	PyObject* updatelog
+	PyObject* updatelog,
+	PyObject* updatelog2
 )
 {
 	Py_BEGIN_ALLOW_THREADS;
@@ -320,6 +328,18 @@ void HIOMaskPC
 		return;
 	}
 	double gamma_sum;
+	
+	
+	double* pca_Idm_iter = (double*) fftw_malloc( 2*len * sizeof(double));
+	double* pca_Idmdiv_iter = (double*) fftw_malloc( 2*len * sizeof(double));
+	double* pca_IdmdivId_iter = (double*) fftw_malloc( 2*len * sizeof(double));
+	if (!pca_Idm_iter || !pca_Idmdiv_iter || !pca_IdmdivId_iter)
+	{
+		free(pca_Idm_iter);
+		free(pca_Idmdiv_iter);
+		free(pca_IdmdivId_iter);
+		return;
+	}
 	
 	int32_t nnh[3] = {(nn[0] - zex), (nn[1] - zey), (nn[2] - zez)};
 	if( nnh[0] < 1)
@@ -379,14 +399,14 @@ void HIOMaskPC
 		CopyArray( seqdata, rho_m1, nn );
 		
 		FFTStride(seqdata, nn, &torecip);
-		if( (iter - startiter) == startiterRL )
+		if( (iter - startiter+1) == startiterRL )
 		{
 			CopyArray( seqdata, pca_rho_m1_ft, nn );
 		}
-		if( gamma_count > waititerRL &&  (iter - startiter) > startiterRL)
+		if( gamma_count > waititerRL &&  (iter - startiter+1) > startiterRL)
 		{
 			
-			if( (iter - startiter) == (startiterRL+1) || gammaRS > 0)
+			if( (iter - startiter+1) == (startiterRL+1) || gammaRS > 0)
 			{
 				lorentz_ft_fill(pca_gamma_ft, nn, gammaHWHM);
 				SumArray(pca_gamma_ft, nn, &gamma_sum);
@@ -394,7 +414,8 @@ void HIOMaskPC
 				wrap_array(pca_gamma_ft, nn, 1);
 			}
 			
-			update_gamma(expdata, seqdata, pca_rho_m1_ft, pca_gamma_ft, mask, ndim, nn, nnh, numiterRL, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp); 
+			update_gamma(expdata, seqdata, pca_rho_m1_ft, pca_gamma_ft, mask, ndim, nn, nnh, citer_flow, numiterRL, residualRL, 
+			pca_Idm_iter, pca_Idmdiv_iter,	pca_IdmdivId_iter, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp, _save, updatelog2); 
 			
 			SumArray(pca_gamma_ft, nn, &gamma_sum);
 			ScaleArray(pca_gamma_ft, nn, (1.0/gamma_sum));
@@ -402,6 +423,9 @@ void HIOMaskPC
 			
 			CopyArray( seqdata, pca_rho_m1_ft, nn );
 		}
+		
+		if( citer_flow[1] == 2 ) break; 
+		
 		
 		if( citer_flow[5] > 0 && update_count_recip == citer_flow[5] ) 
 		{
@@ -469,6 +493,10 @@ void HIOMaskPC
 	free(tmpdata2);
 	free(pca_gamma_ft);
 	free(pca_inten);
+	
+	free(pca_Idm_iter);
+	free(pca_Idmdiv_iter);
+	free(pca_IdmdivId_iter);
 	
 	fftw_destroy_plan( torecip_tmp );
 	fftw_destroy_plan( toreal_tmp );

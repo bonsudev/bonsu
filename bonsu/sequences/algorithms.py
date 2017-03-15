@@ -218,6 +218,7 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.mapper_amp_recip.Modified()
 		panelvisual.mapper_amp_recip.Update()
 		panelvisual.actor_amp_recip.SetMapper(panelvisual.mapper_amp_recip)
+		panelvisual.actor_amp_recip.GetProperty().SetOpacity(1.0)
 		panelvisual.renderer_amp_recip.AddActor(panelvisual.actor_amp_recip)
 		panelvisual.renderer_amp_recip.AddActor2D(panelvisual.scalebar_amp_recip)
 		panelvisual.renderer_amp_recip.GetActiveCamera().SetPosition(0,0,1)

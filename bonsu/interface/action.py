@@ -244,19 +244,27 @@ def OnClickStopAction(self, event):
 			self.citer_flow[3] = 0
 			self.citer_flow[4] = 0
 			self.citer_flow[5] = 0
-			while len(enumerate()) > 1:
-				sleep(0.1)
-			self.sequence_timer.Stop()
-			self.ancestor.GetPage(2).data_poll_timer.Stop()
-			self.ancestor.GetPage(4).data_poll_timer.Stop()
-			self.maintree.Enable(True)
-			self.maintree.Refresh()
-			self.mainlist.Enable(True)
-			self.mainlist.Refresh()
-			self.spin_up.Enable(True)
-			self.spin_down.Enable(True)
-			self.spin_up.Refresh()
-			self.spin_down.Refresh()
-			for i in range(len(self.pipelineitems)):
-				self.pipelineitems[i].Enable(True)
-				self.pipelineitems[i].Refresh()
+			def ThreadClean(self):
+				while len(enumerate()) > 2:
+					sleep(0.1)
+				wx.CallAfter(self.OnClickFinal,)
+			self.thread = threading.Thread(target=ThreadClean, args=(self,))
+			self.thread.daemon = True
+			self.thread.start()
+def OnClickFinalAction(self):
+	self.sequence_timer.Stop()
+	self.ancestor.GetPage(2).data_poll_timer.Stop()
+	self.ancestor.GetPage(4).data_poll_timer.Stop()
+	self.maintree.Enable(True)
+	self.maintree.Refresh()
+	self.mainlist.Enable(True)
+	self.mainlist.Refresh()
+	self.spin_up.Enable(True)
+	self.spin_down.Enable(True)
+	self.spin_up.Refresh()
+	self.spin_down.Refresh()
+	for i in range(len(self.pipelineitems)):
+		self.pipelineitems[i].Enable(True)
+		self.pipelineitems[i].Refresh()
+	self.queue_info.put("Sequence halted.")
+	self.ancestor.GetPage(4).UpdateLog(None)

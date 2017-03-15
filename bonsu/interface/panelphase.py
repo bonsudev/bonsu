@@ -33,7 +33,7 @@ from .common import getmainhoverBitmap
 class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 	def __init__(self,parent):
 		self.ancestor = parent
-		self.citer_flow = numpy.zeros((8), dtype=numpy.int32)
+		self.citer_flow = numpy.zeros((10), dtype=numpy.int32)
 		self.pipeline_started = False
 		self.pipelineitems=[]
 		self.thread = None
@@ -44,6 +44,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.seqdata_max_recip = 0.0
 		self.support = None
 		self.residual = None
+		self.residualRL = numpy.zeros((2), dtype=numpy.double)
 		self.coordarray = None
 		self.memory0 = None
 		self.memory1 = None
@@ -159,30 +160,44 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.vbox_chk = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox_chk1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox_chk2 = wx.BoxSizer(wx.HORIZONTAL)
-		self.chkbox_amp_real = wx.CheckBox(self.panel3, -1, 'Real Space', size=(120, 25))
+		rstext = 'Real'
+		fstext = 'Fourier'
+		sstext ='Support'
+		dc = wx.ScreenDC()
+		dc.SetFont(self.font)
+		rstextw,rstexth = dc.GetTextExtent(rstext)
+		fstextw,fstexth = dc.GetTextExtent(fstext)
+		sstextw,sstexth = dc.GetTextExtent(sstext)
+		rschkw =140
+		fschkw =140
+		sschkw =140
+		if rstextw > rschkw-25: rschkw = rstextw+35;
+		if fstextw > fschkw-25: fschkw = fstextw+35;
+		if sstextw > sschkw-25: sschkw = sstextw+35;
+		self.chkbox_amp_real = wx.CheckBox(self.panel3, -1, rstext, size=(rschkw, 25))
 		self.chkbox_amp_real.SetFont(self.font)
 		self.chkbox_amp_real.SetToolTipString("Visualise")
 		self.chkbox_amp_real.SetValue(True)
 		self.amp_real_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
-		self.amp_real_update_interval.value.SetToolTipString("Update interval")
-		self.chkbox_amp_recip = wx.CheckBox(self.panel3, -1, 'Fourier Space', size=(130, 25))
+		self.amp_real_update_interval.value.SetToolTipString("Real space update interval")
+		self.chkbox_amp_recip = wx.CheckBox(self.panel3, -1, fstext, size=(fschkw, 25))
 		self.chkbox_amp_recip.SetFont(self.font)
 		self.chkbox_amp_recip.SetToolTipString("Visualise")
 		self.chkbox_amp_recip.SetValue(False)
 		self.amp_recip_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
-		self.amp_recip_update_interval.value.SetToolTipString("Update interval")
+		self.amp_recip_update_interval.value.SetToolTipString("Fourier space update interval")
 		self.hbox_chk1.Add(self.chkbox_amp_real , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add(self.amp_real_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add((20, -1))
 		self.hbox_chk1.Add(self.chkbox_amp_recip , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add(self.amp_recip_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
-		self.chkbox_support = wx.CheckBox(self.panel3, -1, 'Support', size=(120, 25))
+		self.chkbox_support = wx.CheckBox(self.panel3, -1, sstext, size=(sschkw , 25))
 		self.chkbox_support.SetFont(self.font)
 		self.chkbox_support.SetToolTipString("Visualise")
 		self.chkbox_support.SetValue(True)
 		self.support_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
 		self.support_update_interval.value.SetToolTipString("Update interval")
-		self.chkbox_phase = wx.CheckBox(self.panel3, -1, 'Phase', size=(200, 25))
+		self.chkbox_phase = wx.CheckBox(self.panel3, -1, 'Phase', size=(150, 25))
 		self.chkbox_phase.SetFont(self.font)
 		self.chkbox_phase.SetToolTipString("Visualise")
 		self.chkbox_phase.SetValue(False)
@@ -207,6 +222,9 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.panel3.font = self.font
 		self.vbox.Add(self.panel3, 0, flag=wx.ALIGN_LEFT|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.SetSizer(self.vbox)
+		self.Fit()
+		self.Layout()
+		self.Show()
 	def EnablePanel(self, enable=True):
 		if enable==False:
 			self.maintree.Enable(False)
@@ -364,3 +382,5 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		OnClickPauseAction(self, event)
 	def OnClickStop(self, event):
 		OnClickStopAction(self, event)
+	def OnClickFinal(self):
+		OnClickFinalAction(self)

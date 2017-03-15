@@ -40,10 +40,10 @@ class PanelGraph(wx.Panel):
 		self.paused = False
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox_btn.AddSpacer(20)
-		self.button_pause =wx.Button(self, label="Pause Graph", size=(120, 30))
+		self.button_pause =wx.Button(self, label="Pause Graph", size=(140, 30))
 		self.Bind(wx.EVT_BUTTON, self.OnClickPauseButton, self.button_pause)
 		self.hbox_btn.Add(self.button_pause)
-		self.button_save =wx.Button(self, label="Save Data", size=(120, 30))
+		self.button_save =wx.Button(self, label="Save Data", size=(140, 30))
 		self.Bind(wx.EVT_BUTTON, self.OnClickSaveButton, self.button_save)
 		self.hbox_btn.Add(self.button_save)
 		self.vbox.Add(self.hbox_btn, 0, wx.EXPAND)

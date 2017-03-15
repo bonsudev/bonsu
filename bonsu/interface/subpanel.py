@@ -1277,6 +1277,60 @@ class SubPanel_ObjecttoVTK(wx.Panel):
 		vbox.Add(self.rbampphase,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+class SubPanel_View_Support(wx.ScrolledWindow):
+	treeitem = {'name':  'View Support' , 'type': 'operpreview'}
+	def sequence(self, selff, pipelineitem):
+		pass
+	def __init__(self,parent,ancestor):
+		from math import pi
+		self.ancestor = ancestor
+		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = wx.StaticText(self, label="View Support array")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.support = TextPanelObject(self, "Support: ", "",100,'*.npy')
+		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.input_filename = TextPanelObject(self, "Data array: ", "",100,'*.npy')
+		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 5))
+		self.sbox1 = wx.StaticBox(self, label="Isosurface", style=wx.SUNKEN_BORDER)
+		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
+		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.contour_support = SpinnerObject(self,"Support:",1.0,0.0,0.1,0.5,100,100)
+		self.hbox1.Add(self.contour_support,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.hbox1.Add((20, -1))
+		self.opacity = SpinnerObject(self,"Opacity:",1.0,0.0,0.1,0.5,130,100)
+		self.hbox1.Add(self.opacity,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sboxs1.Add(self.hbox1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.contour = SpinnerObject(self,"Data:",MAX_INT,MIN_INT,1,100,100,100)
+		self.hbox2.Add(self.contour,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.hbox2.Add((20, -1))
+		self.feature_angle = SpinnerObject(self,"Feature Angle:",180,0,1,90,130,100)
+		self.hbox2.Add(self.feature_angle,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sboxs1.Add(self.hbox2,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sboxs1.Add((-1, 5))
+		vbox.Add(self.sboxs1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 5))
+		self.hbox6 = wx.BoxSizer(wx.HORIZONTAL)
+		self.chkbox_axes = wx.CheckBox(self, -1, 'View axes', size=(200, 20))
+		self.chkbox_axes.SetValue(False)
+		self.hbox6.Add(self.chkbox_axes, 1,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox6.Add((-1, 5))
+		self.axes_fontfactor = SpinnerObject(self,"Font Factor:",MAX_INT,1,1,2,100,100)
+		self.hbox6.Add(self.axes_fontfactor, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		vbox.Add(self.hbox6, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		vbox.Add((-1, 5))
+		button_view = wx.Button(self, label="View", size=(70, 30))
+		button_view.Bind(wx.EVT_BUTTON, self.SeqParser )
+		vbox.Add(button_view,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+		self.FitInside()
+		self.SetScrollRate(5, 5)
+	def SeqParser(self,event):
+		Sequence_View_Support(self, self.ancestor)
+		self.ancestor.GetPage(4).data_poll_timer.Start(1000)
 class SubPanel_View_Array(wx.ScrolledWindow):
 	treeitem = {'name':  'View Array' , 'type': 'operpreview'}
 	def sequence(self, selff, pipelineitem):

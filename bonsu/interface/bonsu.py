@@ -19,10 +19,10 @@
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
 __author__ = "Marcus C. Newton"
-__copyright__ = "Copyright 2011-2015 Marcus C. Newton"
+__copyright__ = "Copyright 2011-2017 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "current"
+__version__ = "2.1.0"
 __maintainer__ = "Marcus C. Newton"
 __email__ = "Bonsu.Devel@gmail.com"
 __status__ = "Production"
@@ -84,7 +84,8 @@ class MainWindow(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
 		self.Bind(wx.EVT_MENU, self.OnHelp, menuDoc)
 		self.Bind(wx.EVT_CLOSE, self.OnExit)
-		self.font = wx.Font(11, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		self.font = wx.Font(fontpointsize, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
 		self.SetFont(self.font)
 		icon = wx.Icon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'image',  'bonsu.ico'), wx.BITMAP_TYPE_ICO)
 		wx.Frame.SetIcon(self, icon)
@@ -92,6 +93,9 @@ class MainWindow(wx.Frame):
 		tbicon.SetIcon(icon, "Bonsu")
 		self.nb = None
 		self.sizer = wx.BoxSizer(wx.VERTICAL)
+		self.Fit()
+		self.Layout()
+		self.Show()
 	def OnAbout(self,e):
 		description =\
 		"""Bonsu is a collection of tools and algorithms primarily for the reconstruction of phase information from diffraction intensity measurements."""

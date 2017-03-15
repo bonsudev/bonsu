@@ -454,9 +454,17 @@ class TextPanelObject(wx.BoxSizer):
 			dlg.Destroy()
 		def OnEdit(event):
 			self.objectpath.ChangeValue(event.GetString())
-		self.font = wx.Font(11, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		self.font = wx.Font(fontpointsize, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		dc = wx.ScreenDC()
+		dc.SetFont(self.font)
+		textw,texth = dc.GetTextExtent(name)
+		if textw > textwidth:
+			labelw = textw
+		else:
+			labelw = textwidth
 		wx.BoxSizer.__init__(self, wx.HORIZONTAL)
-		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(textwidth,-1) )
+		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(labelw,-1) )
 		self.label.SetFont(self.font)
 		self.Add( self.label, 0, wx.CENTER )
 		self.objectpath = wx.TextCtrl(parent, -1)
@@ -478,6 +486,14 @@ class TextPanelObject(wx.BoxSizer):
 		self.label.Show()
 		self.objectpath.Show()
 		self.button.Show()
+	def Enable(self):
+		self.label.Enable(True)
+		self.objectpath.Enable(True)
+		self.button.Enable(True)
+	def Disable(self):
+		self.label.Enable(False)
+		self.objectpath.Enable(False)
+		self.button.Enable(False)
 class SpinnerObject(wx.BoxSizer):
 	def __init__(self, parent, name, smax, smin, sinc, sinit, stextwidth, swidth):
 		def OnSpin(event):
@@ -500,9 +516,17 @@ class SpinnerObject(wx.BoxSizer):
 				except:
 					pass
 				event.Skip()
-		self.font = wx.Font(11, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		self.font = wx.Font(fontpointsize, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		dc = wx.ScreenDC()
+		dc.SetFont(self.font)
+		textw,texth = dc.GetTextExtent(name)
+		if textw > stextwidth:
+			labelw = textw
+		else:
+			labelw = stextwidth
 		wx.BoxSizer.__init__(self, wx.HORIZONTAL)
-		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(stextwidth,-1) )
+		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(labelw,-1) )
 		self.label.SetFont(self.font)
 		self.Add( self.label, 0, wx.CENTER )
 		self.value = wx.TextCtrl(parent, value=str(sinit),size=(swidth, -1))
@@ -551,9 +575,17 @@ class NumberObject(wx.BoxSizer):
 				self.value.SetForegroundColour(wx.NullColour)
 				self.value.ChangeValue(text)
 				self.value.SetInsertionPoint(point)
-		self.font = wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		self.font = wx.Font(fontpointsize, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
 		wx.BoxSizer.__init__(self, wx.HORIZONTAL)
-		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(stextwidth,-1) )
+		dc = wx.ScreenDC()
+		dc.SetFont(self.font)
+		textw,texth = dc.GetTextExtent(name)
+		if textw > stextwidth:
+			labelw = textw
+		else:
+			labelw = stextwidth
+		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(labelw,-1) )
 		self.label.SetFont(self.font)
 		self.Add( self.label, 0, wx.CENTER )
 		self.value = wx.TextCtrl(parent, value=str(init), style=wx.TE_PROCESS_ENTER)

@@ -240,11 +240,19 @@ def HIOMaskPC\
 			self.ancestor.GetPage(0).queue_info.put(string)
 		except:
 			pass
+	def updatelog2():
+		try:
+			n = self.citer_flow[8]
+			string = " R-L iteration: %03d, mean scaling factor: %1.6f" %(n,residualRL[0])
+			self.ancestor.GetPage(0).queue_info.put(string)
+		except:
+			pass
 	seqdata = self.seqdata
 	expdata = self.expdata
 	support = self.support
 	mask = self.mask
 	residual = self.residual
+	residualRL = self.residualRL
 	citer_flow = self.citer_flow
 	visual_amp_real = self.visual_amp_real
 	visual_amp_recip = self.visual_amp_recip
@@ -256,6 +264,6 @@ def HIOMaskPC\
 	from ..lib.prfftw import hiomaskpc
 	hiomaskpc(seqdata,expdata,support, mask,\
 	gammaHWHM, reset_gamma, niterrl, niterrlpre, niterrlinterval, zex, zey, zez,
-	beta,startiter,numiter,ndim,rho_m1,nn,residual,citer_flow,\
+	beta,startiter,numiter,ndim,rho_m1,nn,residual,residualRL,citer_flow,\
 	visual_amp_real,visual_phase_real,visual_amp_recip,visual_phase_recip,\
-	updatereal,updaterecip, updatelog)
+	updatereal,updaterecip, updatelog, updatelog2)

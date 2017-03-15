@@ -6,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Library Reference - Functions &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation</title>
+    <title>Library Reference - Functions &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.0.1',
+        VERSION:     '2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,13 +24,13 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation" href="index.html" />
+    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation" href="bonsu.html" />
     <link rel="up" title="Library Reference" href="libref.html" />
     <link rel="next" title="Library Reference – Phasing Algorithms" href="libref-algorithms.html" />
     <link rel="prev" title="Library Reference" href="libref.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -42,15 +42,15 @@
         <li class="right" >
           <a href="libref.html" title="Library Reference"
              accesskey="P">previous</a> |</li>
-        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation</a> &raquo;</li>
-          <li><a href="libref.html" accesskey="U">Library Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="library-reference-functions">
 <span id="libref-prephasing"></span><h1>Library Reference - Functions<a class="headerlink" href="#library-reference-functions" title="Permalink to this headline">¶</a></h1>
@@ -110,7 +110,7 @@
 </div>
 <div class="section" id="median-filter">
 <h2>Median Filter<a class="headerlink" href="#median-filter" title="Permalink to this headline">¶</a></h2>
-<p id="index-4">Applies a median filter to the amplitude of the input array.  Voxels are only replaced in the array if they deviate from the median filtered equivalent by an amount greater than the <tt class="docutils literal"><span class="pre">Normal</span> <span class="pre">deviation</span></tt>.</p>
+<p id="index-4">Applies a median filter to the amplitude of the input array.  Voxels are only replaced in the array if they deviate from the median filtered equivalent by an amount greater than the <code class="docutils literal"><span class="pre">Normal</span> <span class="pre">deviation</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -120,7 +120,7 @@
 <dt><strong>Filter kernel dimensions</strong></dt>
 <dd>Dimensions of the median filtering kernel.</dd>
 <dt><strong>Normal deviation</strong></dt>
-<dd>Median filter voxel replace cut-off value.  This value is compared element-wise to the normalised difference in amplitude of voxels from the input array and from the median filtered equivalent, i.e. the magnitude of  (<tt class="docutils literal"><span class="pre">median</span> <span class="pre">filtered</span> <span class="pre">array</span></tt> - <tt class="docutils literal"><span class="pre">array</span></tt>)/ <tt class="docutils literal"><span class="pre">array</span></tt>. Voxels that exceeed this cut-off are replaced with their median-filtered equivalent.</dd>
+<dd>Median filter voxel replace cut-off value.  This value is compared element-wise to the normalised difference in amplitude of voxels from the input array and from the median filtered equivalent, i.e. the magnitude of  (<code class="docutils literal"><span class="pre">median</span> <span class="pre">filtered</span> <span class="pre">array</span></code> - <code class="docutils literal"><span class="pre">array</span></code>)/ <code class="docutils literal"><span class="pre">array</span></code>. Voxels that exceeed this cut-off are replaced with their median-filtered equivalent.</dd>
 </dl>
 </div>
 <div class="section" id="blank-line-fill-array">
@@ -131,7 +131,7 @@
 <dt><strong>Input file</strong></dt>
 <dd>User provided path string to the input NumPy file.</dd>
 <dt><strong>ROI path</strong></dt>
-<dd>Region of interest within the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">HDF</span> <span class="pre">file</span></tt>.</dd>
+<dd>Region of interest within the <code class="docutils literal"><span class="pre">input</span> <span class="pre">HDF</span> <span class="pre">file</span></code>.</dd>
 <dt><strong>Output File</strong></dt>
 <dd>User provided path string for the output NumPy file.</dd>
 <dt><strong>Filter kernel dimensions</strong></dt>
@@ -146,14 +146,14 @@
 <dt><strong>Input HDF file</strong></dt>
 <dd>User provided path string to the input HDF file.</dd>
 <dt><strong>HDF key path</strong></dt>
-<dd>Comma separated list of HDF keys found within the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">HDF</span> <span class="pre">file</span></tt>.</dd>
+<dd>Comma separated list of HDF keys found within the <code class="docutils literal"><span class="pre">input</span> <span class="pre">HDF</span> <span class="pre">file</span></code>.</dd>
 <dt><strong>Output File</strong></dt>
 <dd>User provided path string for the output NumPy file.</dd>
 </dl>
 </div>
 <div class="section" id="spe-to-numpy">
 <h2>SPE to Numpy<a class="headerlink" href="#spe-to-numpy" title="Permalink to this headline">¶</a></h2>
-<p id="index-7">Provides a means to import data from <a class="reference external" href="http://www.princetoninstruments.com">SPE</a> format into NumPy format. During conversion, additional information is provided and appears in the <a class="reference internal" href="usage.html#usage-log"><em>Log</em></a>.</p>
+<p id="index-7">Provides a means to import data from <a class="reference external" href="http://www.princetoninstruments.com">SPE</a> format into NumPy format. During conversion, additional information is provided and appears in the <a class="reference internal" href="usage.html#usage-log"><span>Log</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input SPE file</strong></dt>
@@ -175,7 +175,7 @@
 </div>
 <div class="section" id="array-to-memory">
 <span id="libref-prephasing-arraytomem"></span><h2>Array to Memory<a class="headerlink" href="#array-to-memory" title="Permalink to this headline">¶</a></h2>
-<p id="index-9">Provides a means to load a NumPy array from disk directly into a memory by using either of the 10 keywords <tt class="docutils literal"><span class="pre">memory0</span></tt>, <tt class="docutils literal"><span class="pre">memory1</span></tt>, ... , <tt class="docutils literal"><span class="pre">memory9</span></tt> as a string in place of a NumPy file path.  See <a class="reference internal" href="usage.html#usage-arrays"><em>Array Creation and Storage</em></a> for furthr details.</p>
+<p id="index-9">Provides a means to load a NumPy array from disk directly into a memory by using either of the 10 keywords <code class="docutils literal"><span class="pre">memory0</span></code>, <code class="docutils literal"><span class="pre">memory1</span></code>, ... , <code class="docutils literal"><span class="pre">memory9</span></code> as a string in place of a NumPy file path.  See <a class="reference internal" href="usage.html#usage-arrays"><span>Array Creation and Storage</span></a> for furthr details.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -186,7 +186,7 @@
 </div>
 <div class="section" id="memory-to-array">
 <h2>Memory to Array<a class="headerlink" href="#memory-to-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-10">Provides a means to save to disk a NumPy array stored in memory.  See <a class="reference internal" href="#libref-prephasing-arraytomem"><em>Array to Memory</em></a> for furthr details.</p>
+<p id="index-10">Provides a means to save to disk a NumPy array stored in memory.  See <a class="reference internal" href="#libref-prephasing-arraytomem"><span>Array to Memory</span></a> for furthr details.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -216,44 +216,44 @@
 </div>
 <div class="section" id="cuboid-support">
 <h2>Cuboid Support<a class="headerlink" href="#cuboid-support" title="Permalink to this headline">¶</a></h2>
-<p id="index-12">Creates a <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><em>support</em></a> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/> inside the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><em>support</em></a> and zero everywhere else.  The support is automatically centred within the array.</p>
-<p>If any array is supplied in the <tt class="docutils literal"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></tt> field, the dimensions of this array will be used for the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><em>support</em></a> array. Otherwise, the specified dimensions will be used.</p>
+<p id="index-12">Creates a <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span>support</span></a> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/> inside the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span>support</span></a> and zero everywhere else.  The support is automatically centred within the array.</p>
+<p>If any array is supplied in the <code class="docutils literal"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field, the dimensions of this array will be used for the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span>support</span></a> array. Otherwise, the specified dimensions will be used.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Support file</strong></dt>
-<dd>User provided path string for the output <tt class="docutils literal"><span class="pre">support</span></tt> NumPy file.</dd>
+<dd>User provided path string for the output <code class="docutils literal"><span class="pre">support</span></code> NumPy file.</dd>
 <dt><strong>(xyz) from array</strong></dt>
-<dd>Optional user provided path string for NumPy file used to provide the <tt class="docutils literal"><span class="pre">support</span></tt> array dimensions.</dd>
+<dd>Optional user provided path string for NumPy file used to provide the <code class="docutils literal"><span class="pre">support</span></code> array dimensions.</dd>
 <dt><strong>(xyz) from dimensions {x,y,z}</strong></dt>
-<dd>Dimensions of the <tt class="docutils literal"><span class="pre">support</span></tt> array.  This is overridden if the <tt class="docutils literal"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></tt> field is used.</dd>
+<dd>Dimensions of the <code class="docutils literal"><span class="pre">support</span></code> array.  This is overridden if the <code class="docutils literal"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field is used.</dd>
 <dt><strong>Support size {x,y,z}</strong></dt>
 <dd>Dimensions of the support. This must be smaller than the size of the array.</dd>
 </dl>
 </div>
 <div class="section" id="mask">
 <span id="libref-prephasing-mask"></span><h2>Mask<a class="headerlink" href="#mask" title="Permalink to this headline">¶</a></h2>
-<p id="index-13">Creates a <tt class="docutils literal"><span class="pre">mask</span></tt> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/> if the corresponding voxel of the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt> is inside the range of <tt class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></tt> to <tt class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></tt>.  Voxels outside the same range are set to zero.</p>
+<p id="index-13">Creates a <code class="docutils literal"><span class="pre">mask</span></code> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/> if the corresponding voxel of the <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code> is inside the range of <code class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></code>.  Voxels outside the same range are set to zero.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
-<dd>User provided path string to the input NumPy file from which <tt class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></tt> and <tt class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></tt> are obtained.</dd>
+<dd>User provided path string to the input NumPy file from which <code class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></code> and <code class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are obtained.</dd>
 <dt><strong>Output File</strong></dt>
-<dd>User provided path string for the output <tt class="docutils literal"><span class="pre">mask</span></tt> NumPy file.</dd>
+<dd>User provided path string for the output <code class="docutils literal"><span class="pre">mask</span></code> NumPy file.</dd>
 <dt><strong>Maximum Value</strong></dt>
-<dd>Values above (equal or below) <tt class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></tt> in the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt> will result in a corresponding voxel value of zero (<img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/>) in the <tt class="docutils literal"><span class="pre">mask</span></tt>.</dd>
+<dd>Values above (equal or below) <code class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></code> in the <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code> will result in a corresponding voxel value of zero (<img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/>) in the <code class="docutils literal"><span class="pre">mask</span></code>.</dd>
 <dt><strong>Minimum Value</strong></dt>
-<dd>Values below (equal or above) <tt class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></tt> in the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt> will result in a corresponding voxel value of zero (<img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/>) in the <tt class="docutils literal"><span class="pre">mask</span></tt>.</dd>
+<dd>Values below (equal or above) <code class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></code> in the <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code> will result in a corresponding voxel value of zero (<img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/>) in the <code class="docutils literal"><span class="pre">mask</span></code>.</dd>
 </dl>
 </div>
 <div class="section" id="bin">
 <span id="libref-prephasing-bin"></span><h2>Bin<a class="headerlink" href="#bin" title="Permalink to this headline">¶</a></h2>
-<p id="index-14">Creates an array in which each voxel results from the grouping and addition of neighbouring voxels of the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt>.  The dimensions used (in each {x,y,z} direction) for each voxel group is dictated by the <tt class="docutils literal"><span class="pre">Bin</span> <span class="pre">dimensions</span></tt> parameter.</p>
+<p id="index-14">Creates an array in which each voxel results from the grouping and addition of neighbouring voxels of the <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code>.  The dimensions used (in each {x,y,z} direction) for each voxel group is dictated by the <code class="docutils literal"><span class="pre">Bin</span> <span class="pre">dimensions</span></code> parameter.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
-<dd>User provided path string to the input NumPy file from which <tt class="docutils literal"><span class="pre">bin</span></tt> groups are defined.</dd>
+<dd>User provided path string to the input NumPy file from which <code class="docutils literal"><span class="pre">bin</span></code> groups are defined.</dd>
 <dt><strong>Output File</strong></dt>
-<dd>User provided path string for the output <tt class="docutils literal"><span class="pre">bin</span></tt> NumPy file.</dd>
+<dd>User provided path string for the output <code class="docutils literal"><span class="pre">bin</span></code> NumPy file.</dd>
 <dt><strong>Bin dimensions {x,y,z}</strong></dt>
 <dd>Dimensions used for grouping voxels.</dd>
 </dl>
@@ -338,22 +338,22 @@
 </div>
 <div class="section" id="threshold-data">
 <h2>Threshold Data<a class="headerlink" href="#threshold-data" title="Permalink to this headline">¶</a></h2>
-<p id="index-21">Creates an array using data from the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt> for which voxels outside the range of <tt class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></tt> to <tt class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></tt> are set to zero.</p>
+<p id="index-21">Creates an array using data from the <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code> for which voxels outside the range of <code class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are set to zero.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
-<dd>User provided path string to the input NumPy file from which <tt class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></tt> and <tt class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></tt> are obtained.</dd>
+<dd>User provided path string to the input NumPy file from which <code class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></code> and <code class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are obtained.</dd>
 <dt><strong>Output File</strong></dt>
-<dd>User provided path string for the output <tt class="docutils literal"><span class="pre">mask</span></tt> NumPy file.</dd>
+<dd>User provided path string for the output <code class="docutils literal"><span class="pre">mask</span></code> NumPy file.</dd>
 <dt><strong>Maximum Value</strong></dt>
-<dd>Values above <tt class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></tt> in the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt> will result in a corresponding voxel value of zero in the <tt class="docutils literal"><span class="pre">output</span> <span class="pre">file</span></tt>.</dd>
+<dd>Values above <code class="docutils literal"><span class="pre">Maximum</span> <span class="pre">Value</span></code> in the <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code> will result in a corresponding voxel value of zero in the <code class="docutils literal"><span class="pre">output</span> <span class="pre">file</span></code>.</dd>
 <dt><strong>Minimum Value</strong></dt>
-<dd>Values below <tt class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></tt> in the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt> will result in a corresponding voxel value of zero in the <tt class="docutils literal"><span class="pre">output</span> <span class="pre">file</span></tt>.</dd>
+<dd>Values below <code class="docutils literal"><span class="pre">Minimum</span> <span class="pre">Value</span></code> in the <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code> will result in a corresponding voxel value of zero in the <code class="docutils literal"><span class="pre">output</span> <span class="pre">file</span></code>.</dd>
 </dl>
 </div>
 <div class="section" id="voxel-replace">
 <h2>Voxel Replace<a class="headerlink" href="#voxel-replace" title="Permalink to this headline">¶</a></h2>
-<p id="index-22">Replaces all voxels with indices in the range of <tt class="docutils literal"><span class="pre">Start</span> <span class="pre">dimensions</span></tt> and <tt class="docutils literal"><span class="pre">End</span> <span class="pre">dimensions</span></tt> with the specified <tt class="docutils literal"><span class="pre">complex</span> <span class="pre">value</span></tt>.</p>
+<p id="index-22">Replaces all voxels with indices in the range of <code class="docutils literal"><span class="pre">Start</span> <span class="pre">dimensions</span></code> and <code class="docutils literal"><span class="pre">End</span> <span class="pre">dimensions</span></code> with the specified <code class="docutils literal"><span class="pre">complex</span> <span class="pre">value</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -365,12 +365,12 @@
 <dt><strong>End dimensions: {i,j,k}</strong></dt>
 <dd>Final indices for which the replacement will end.</dd>
 <dt><strong>Complex Value</strong></dt>
-<dd>Real and imaginary parts of a complex number used repeatedly to replace voxel data in the <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt>.</dd>
+<dd>Real and imaginary parts of a complex number used repeatedly to replace voxel data in the <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code>.</dd>
 </dl>
 </div>
 <div class="section" id="id1">
 <h2>Median Filter<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p id="index-23">Applies a median filter to the amplitude of the input NumPy file.  Voxels are only replaced if they deviate in amplitude by an amount greater than the <tt class="docutils literal"><span class="pre">Normal</span> <span class="pre">deviation</span></tt> between the input NumPy array and the median filtered NumPy array.</p>
+<p id="index-23">Applies a median filter to the amplitude of the input NumPy file.  Voxels are only replaced if they deviate in amplitude by an amount greater than the <code class="docutils literal"><span class="pre">Normal</span> <span class="pre">deviation</span></code> between the input NumPy array and the median filtered NumPy array.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -393,7 +393,7 @@
 <dt><strong>Output File</strong></dt>
 <dd>User provided path string for the output VTK file.</dd>
 <dt><strong>Type</strong></dt>
-<dd>Use either the amplitude or the phase of the complex <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt> in order to construct a VTK array.</dd>
+<dd>Use either the amplitude or the phase of the complex <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code> in order to construct a VTK array.</dd>
 </dl>
 </div>
 <div class="section" id="object-to-vtk">
@@ -404,22 +404,22 @@
 <dt><strong>Input file</strong></dt>
 <dd>User provided path string to the input NumPy file.</dd>
 <dt><strong>Co-ord&#8217;s File</strong></dt>
-<dd>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><em>Coordinate transformation</em></a> operation.</dd>
+<dd>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><span>Coordinate transformation</span></a> operation.</dd>
 <dt><strong>Output File</strong></dt>
 <dd>User provided path string for the output VTK file.</dd>
 <dt><strong>Type</strong></dt>
-<dd>Use either the amplitude or the phase of the complex <tt class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></tt> in order to construct a VTK array.</dd>
+<dd>Use either the amplitude or the phase of the complex <code class="docutils literal"><span class="pre">input</span> <span class="pre">file</span></code> in order to construct a VTK array.</dd>
 </dl>
 </div>
 <div class="section" id="interpolate-object">
 <h2>Interpolate Object<a class="headerlink" href="#interpolate-object" title="Permalink to this headline">¶</a></h2>
-<p id="index-26">Interpolates an input NumPy array and it&#8217;s corresponding co-ordinates onto regular grid NumPy array with dimensions dictated by <tt class="docutils literal"><span class="pre">Array</span> <span class="pre">grid</span> <span class="pre">size</span></tt>. <a class="reference external" href="http://dx.doi.org/10.1145/800186.810616">Shepards famous algorithm</a> is used for the interpolation.</p>
+<p id="index-26">Interpolates an input NumPy array and it&#8217;s corresponding co-ordinates onto regular grid NumPy array with dimensions dictated by <code class="docutils literal"><span class="pre">Array</span> <span class="pre">grid</span> <span class="pre">size</span></code>. <a class="reference external" href="http://dx.doi.org/10.1145/800186.810616">Shepards famous algorithm</a> is used for the interpolation.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
 <dd>User provided path string to the input NumPy file.</dd>
 <dt><strong>Co-ord&#8217;s File</strong></dt>
-<dd>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><em>Coordinate transformation</em></a> operation.</dd>
+<dd>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><span>Coordinate transformation</span></a> operation.</dd>
 <dt><strong>Output File</strong></dt>
 <dd>User provided path string for the output NumPy file.</dd>
 <dt><strong>Array grid size</strong></dt>
@@ -430,7 +430,7 @@
 </div>
 <div class="section" id="view-array">
 <span id="libref-prephasing-view"></span><h2>View Array<a class="headerlink" href="#view-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-27">Render an image of the two or three-dimensional input Numpy array to the <a class="reference internal" href="usage.html#usage-visual"><em>Visualisation tab</em></a>.</p>
+<p id="index-27">Render an image of the two or three-dimensional input Numpy array to the <a class="reference internal" href="usage.html#usage-visual"><span>Visualisation tab</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -447,7 +447,7 @@
 <dt><strong>Amplitude</strong></dt>
 <dd><ul class="first last simple">
 <li><strong>Iso-surface</strong> - Scalar value for the rendered iso-surface.</li>
-<li><strong>Opacity</strong> - Opacity of the isosurface when viewing <tt class="docutils literal"><span class="pre">Amplitude</span> <span class="pre">and</span> <span class="pre">Phase</span></tt>.</li>
+<li><strong>Opacity</strong> - Opacity of the isosurface when viewing <code class="docutils literal"><span class="pre">Amplitude</span> <span class="pre">and</span> <span class="pre">Phase</span></code>.</li>
 <li><strong>Feature angle</strong> - Minimum angle between two surface normals of the rendered object.</li>
 </ul>
 </dd>
@@ -469,13 +469,13 @@
 </div>
 <div class="section" id="view-object">
 <span id="libref-prephasing-viewobject"></span><h2>View Object<a class="headerlink" href="#view-object" title="Permalink to this headline">¶</a></h2>
-<p id="index-28">Render an object of the three-dimensional input Numpy array with it&#8217;s corresponding co-ordinates array to the <a class="reference internal" href="usage.html#usage-visual"><em>Visualisation tab</em></a>.</p>
+<p id="index-28">Render an object of the three-dimensional input Numpy array with it&#8217;s corresponding co-ordinates array to the <a class="reference internal" href="usage.html#usage-visual"><span>Visualisation tab</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
 <dd>User provided path string to the input NumPy file.</dd>
 <dt><strong>Co-ord&#8217;s File</strong></dt>
-<dd>User provided path string to the corresponding co-ordinates NumPy array file. Alternatively, the <a class="reference internal" href="usage.html#usage-arrays"><em>memory array</em></a> keyword <tt class="docutils literal"><span class="pre">memorycoords</span></tt> provides access to the internally stored coordinate array.  Generating a coordinate array is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><em>Coordinate transformation</em></a> operation.</dd>
+<dd>User provided path string to the corresponding co-ordinates NumPy array file. Alternatively, the <a class="reference internal" href="usage.html#usage-arrays"><span>memory array</span></a> keyword <code class="docutils literal"><span class="pre">memorycoords</span></code> provides access to the internally stored coordinate array.  Generating a coordinate array is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><span>Coordinate transformation</span></a> operation.</dd>
 <dt><strong>Type</strong></dt>
 <dd><ul class="first last simple">
 <li><strong>Amplitude</strong> - An iso-surface of the object amplitude.</li>
@@ -488,7 +488,7 @@
 <dt><strong>Amplitude</strong></dt>
 <dd><ul class="first last simple">
 <li><strong>Iso-surface</strong> - Scalar value for the rendered iso-surface.</li>
-<li><strong>Opacity</strong> - Opacity of the isosurface when viewing <tt class="docutils literal"><span class="pre">Amplitude</span> <span class="pre">and</span> <span class="pre">Phase</span></tt>.</li>
+<li><strong>Opacity</strong> - Opacity of the isosurface when viewing <code class="docutils literal"><span class="pre">Amplitude</span> <span class="pre">and</span> <span class="pre">Phase</span></code>.</li>
 <li><strong>Feature angle</strong> - Minimum angle between two surface normals of the rendered object.</li>
 </ul>
 </dd>
@@ -508,7 +508,7 @@
 </div>
 <div class="section" id="view-vtk-array">
 <h2>View VTK Array<a class="headerlink" href="#view-vtk-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-29">Render an input VTK array to the <a class="reference internal" href="usage.html#usage-visual"><em>Visualisation tab</em></a>.</p>
+<p id="index-29">Render an input VTK array to the <a class="reference internal" href="usage.html#usage-visual"><span>Visualisation tab</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -540,9 +540,30 @@
 <dd>Optionally view the axes of the array.</dd>
 </dl>
 </div>
+<div class="section" id="view-support">
+<h2>View Support<a class="headerlink" href="#view-support" title="Permalink to this headline">¶</a></h2>
+<p id="index-30">Render an image of a three-dimensional input Numpy data array and its Support array to the <a class="reference internal" href="usage.html#usage-visual"><span>Visualisation tab</span></a>.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="docutils">
+<dt><strong>Support file</strong></dt>
+<dd>User provided path string to the NumPy array file.</dd>
+<dt><strong>Data array file</strong></dt>
+<dd>User provided path string to the NumPy array file.</dd>
+<dt><strong>Isosurface options</strong></dt>
+<dd><ul class="first last simple">
+<li><strong>Support iso-surface</strong> - Scalar value for the rendered iso-surface on the interval [0,1].</li>
+<li><strong>Opacity</strong> - Opacity of the support isosurface.</li>
+<li><strong>Data file iso-surface</strong> - Scalar value for the rendered iso-surface.</li>
+<li><strong>Feature angle</strong> - Minimum angle between two surface normals of the rendered object.</li>
+</ul>
+</dd>
+<dt><strong>View Axes</strong></dt>
+<dd>Optionally view the axes of the array.</dd>
+</dl>
+</div>
 <div class="section" id="comments">
 <h2>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h2>
-<p id="index-30">Input comments into the pipeline.</p>
+<p id="index-31">Input comments into the pipeline.</p>
 </div>
 </div>
 
@@ -550,7 +571,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="bonsu.html">
               <img class="logo" src="_static/bonsu.png" alt="Logo"/>
@@ -588,6 +609,7 @@
 <li><a class="reference internal" href="#view-array">View Array</a></li>
 <li><a class="reference internal" href="#view-object">View Object</a></li>
 <li><a class="reference internal" href="#view-vtk-array">View VTK Array</a></li>
+<li><a class="reference internal" href="#view-support">View Support</a></li>
 <li><a class="reference internal" href="#comments">Comments</a></li>
 </ul>
 </li>
@@ -599,7 +621,7 @@
   <h4>Next topic</h4>
   <p class="topless"><a href="libref-algorithms.html"
                         title="next chapter">Library Reference – Phasing Algorithms</a></p>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -616,7 +638,7 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -628,11 +650,11 @@
         <li class="right" >
           <a href="libref.html" title="Library Reference"
              >previous</a> |</li>
-        <li><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.0.1 documentation</a> &raquo;</li>
-          <li><a href="libref.html" >Library Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2011 - 2017, Marcus C. Newton.
     </div>
   </body>
