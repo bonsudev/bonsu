@@ -42,8 +42,10 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.seqdata = None
 		self.seqdata_max = 0.0
 		self.seqdata_max_recip = 0.0
+		self.seqdata_max_support = 1.0
 		self.support = None
 		self.residual = None
+		self.psf = None
 		self.residualRL = numpy.zeros((2), dtype=numpy.double)
 		self.coordarray = None
 		self.memory0 = None

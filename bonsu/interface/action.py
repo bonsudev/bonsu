@@ -164,7 +164,8 @@ def OnClickStartAction(self, event):
 					self.pipelineitems[j].Enable(True)
 					self.pipelineitems[j].Refresh()
 				self.ancestor.GetPage(2).data_poll_timer.Stop()
-				self.queue_info.put("Pipeline Complete.")
+				if self.citer_flow[1] < 2:
+					self.queue_info.put("Pipeline Complete.")
 				self.ancestor.GetPage(4).UpdateLog(None)
 				return
 			def RunUnthreaded(objectsequence, self, object):
@@ -267,4 +268,5 @@ def OnClickFinalAction(self):
 		self.pipelineitems[i].Enable(True)
 		self.pipelineitems[i].Refresh()
 	self.queue_info.put("Sequence halted.")
+	self.queue_info.put("Pipeline Complete.")
 	self.ancestor.GetPage(4).UpdateLog(None)

@@ -179,6 +179,8 @@ class MeasureDialog(wx.Dialog):
 	def OnExit(self,event):
 		self.nb.GetPage(0).linewidget.SetEnabled(0)
 		self.nb.GetPage(1).anglewidget.SetEnabled(0)
+		self.panelvisual.linewidget = None
+		self.panelvisual.anglewidget = None
 		del self.panelvisual.meauredialog
 		self.Destroy()
 		self.panelvisual.EnablePanelPhase(enable=True)
@@ -268,6 +270,7 @@ class MeasureLine(wx.Panel):
 		self.linewidget.SetRepresentation(self.linerep)
 		self.linewidget.AddObserver("EndInteractionEvent", self.DrawGraph)
 		self.linewidget.SetEnabled(0)
+		self.panelvisual.linewidget = self.linewidget
 	def OnDataPoints(self, event):
 		self.nopoints = int(self.pointcount.value.GetValue())
 		if self.nopoints < 1:
@@ -499,6 +502,7 @@ class MeasureAngle(wx.Panel):
 			self.anglewidget.SetRepresentation(self.anglerep)
 		self.anglewidget.AddObserver("EndInteractionEvent", self.UpdatePanel)
 		self.anglewidget.SetEnabled(0)
+		self.panelvisual.anglewidget = self.anglewidget
 	def UpdatePanel(self,object, event):
 		p1 = self.anglewidget.GetRepresentation().GetPoint1Representation().GetWorldPosition()
 		p2 = self.anglewidget.GetRepresentation().GetPoint2Representation().GetWorldPosition()
@@ -835,6 +839,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.data = None
 		self.data_max = 0.0
 		self.data_max_recip = 0.0
+		self.data_max_support = 1.0
 		self.coords = None
 		self.inputdata = None
 		self.image_probe = None
@@ -878,6 +883,9 @@ class PanelVisual(wx.Panel,wx.App):
 		self.smooth_filter_real = vtk.vtkSmoothPolyDataFilter()
 		self.smooth_filter_recip = vtk.vtkSmoothPolyDataFilter()
 		self.smooth_filter_support = vtk.vtkSmoothPolyDataFilter()
+		self.smooth_filter_real.AddObserver(vtk.vtkCommand.ErrorEvent, self.SmoothFilterObserver)
+		self.smooth_filter_recip.AddObserver(vtk.vtkCommand.ErrorEvent, self.SmoothFilterObserver)
+		self.smooth_filter_support.AddObserver(vtk.vtkCommand.ErrorEvent, self.SmoothFilterObserver)
 		self.normals_amp_real = vtk.vtkPolyDataNormals()
 		self.normals_amp_recip = vtk.vtkPolyDataNormals()
 		self.normals_support = vtk.vtkPolyDataNormals()
@@ -964,6 +972,9 @@ class PanelVisual(wx.Panel,wx.App):
 		self.renWinMain = wxVTKRenderWindowInteractor(self.vtkpanel, wx.ID_ANY)
 		self.renWinMain.Enable(1)
 		self.renWin = self.renWinMain
+		self.RefreshSceneCMD = self.renWin.Render
+		self.linewidget = None
+		self.anglewidget = None
 		self.vtkvbox = wx.BoxSizer(wx.VERTICAL)
 		self.vtkvbox.Add(self.renWinMain, 1, wx.EXPAND)
 		self.vtkpanel.SetSizer(self.vtkvbox)
@@ -1047,6 +1058,14 @@ class PanelVisual(wx.Panel,wx.App):
 		self.hbox_btn.Add(self.contour_recip,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.contour_recip.Hide()
 		self.hbox_btn.Add((5, -1))
+		self.contour_support = SpinnerObject(self,"SI:",1.0,0.0,0.1,0.5,30,60)
+		self.contour_support.label.SetToolTipString("Support isosurface")
+		self.contour_support.label.Disable()
+		self.Bind(wx.EVT_SPIN, self.OnContourSupport, self.contour_support.spin)
+		self.Bind(wx.EVT_TEXT, self.OnContourSupport, self.contour_support.value)
+		self.hbox_btn.Add(self.contour_support,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.contour_support.Hide()
+		self.hbox_btn.Add((5, -1))
 		self.datarangelist = []
 		self.r = 255.0
 		self.g = 255.0
@@ -1057,6 +1076,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.Layout()
 		self.Show()
 		self.InitRender()
+		self.ancestor.GetParent().Refresh()
 	def EnablePanelPhase(self, enable=True):
 		if enable==True:
 			self.nblock_dialogs -= 1
@@ -1080,13 +1100,17 @@ class PanelVisual(wx.Panel,wx.App):
 			self.ancestor.GetPage(0).button_stop.Enable(False)
 			self.ancestor.GetPage(0).Refresh()
 			self.nblock_dialogs += 1
-	def RefreshScene(self, gotovisual=False):
+	def RefreshSceneFull(self, gotovisual=False):
 		if self.ancestor.GetParent().visualdialog_docked == True:
 			self.ancestor.GetParent().Refresh()
 			if gotovisual:
 				self.ancestor.SetSelection(1)
 		else:
 			self.ancestor.GetParent().visualdialog.Refresh()
+	def RefreshScene(self, gotovisual=False):
+		self.RefreshSceneCMD()
+		if gotovisual:
+			self.ancestor.SetSelection(1)
 	def ReleaseVisualButtons(self, gotovisual=False):
 		self.button_scalerange.Enable(True)
 		self.button_measure.Enable(True)
@@ -1100,7 +1124,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.button_animate.Enable(True)
 		self.ancestor.GetParent().viewmenuundock.Enable(1)
 		self.ancestor.GetParent().viewmenudock.Enable(1)
-		self.RefreshScene(gotovisual)
+		self.RefreshSceneFull(gotovisual)
 	def SetPhaseVisualButtons(self):
 		self.button_animate.Enable(True)
 		self.button_measure.Enable(False)
@@ -1165,6 +1189,8 @@ class PanelVisual(wx.Panel,wx.App):
 			self.EnablePanelPhase(enable=False)
 			self.meauredialog = MeasureDialog(self)
 			self.meauredialog.Show()
+	def SmoothFilterObserver(self, obj, event):
+		pass
 	def OnColourSelect(self, event):
 		cdata = wx.ColourData()
 		cdata.SetColour((self.r,self.g,self.b))
@@ -1187,11 +1213,13 @@ class PanelVisual(wx.Panel,wx.App):
 			self.button_contour.SetBitmapLabel(getsphereBitmap())
 			self.contour_real.Hide()
 			self.contour_recip.Hide()
+			self.contour_support.Hide()
 			self.button_contours_shown = 0
 		else:
 			self.button_contour.SetBitmapLabel(getsphere2Bitmap())
 			self.contour_real.Show()
 			self.contour_recip.Show()
+			self.contour_support.Show()
 			self.Layout()
 			self.button_contours_shown = 1
 	def OnContourReal(self, event):
@@ -1227,6 +1255,24 @@ class PanelVisual(wx.Panel,wx.App):
 			self.filter_amp_recip.SetValue( 0, contour)
 			self.filter_amp_recip.Modified()
 			self.filter_amp_recip.Update()
+			if event is not None:
+				event.Skip()
+				self.RefreshScene()
+	def OnContourSupport(self, event):
+		if self.filter_support.GetTotalNumberOfInputConnections() > 0:
+			try:
+				contour = float(self.contour_support.value.GetValue())
+			except:
+				return
+			if self.data is None:
+				max = self.ancestor.GetPage(0).seqdata_max_support
+			else:
+				max = self.data_max_support
+			if contour > max: contour = CNTR_CLIP*max;
+			if contour <= 0.0: contour = (1.0-CNTR_CLIP);
+			self.filter_support.SetValue( 0, contour)
+			self.filter_support.Modified()
+			self.filter_support.Update()
 			if event is not None:
 				event.Skip()
 				self.RefreshScene()

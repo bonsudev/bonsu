@@ -452,6 +452,44 @@ def Sequence_Memory_to_Array(\
 			wx.CallAfter(self.UserMessage, title, msg)
 			self.pipeline_started = False
 			return
+def Sequence_Load_PSF(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Preparing PSF in memory...")
+		filename_in = pipelineitem.input_filename.objectpath.GetValue()
+		try:
+			array = LoadArray(self, filename_in)
+		except:
+			msg = "Could not load array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+		try:
+			self.psf = array
+			self.ancestor.GetPage(0).queue_info.put("done.")
+		except:
+			msg = "Could not save array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+def Sequence_Save_PSF(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Saving PSF data...")
+		filename_out = pipelineitem.output_filename.objectpath.GetValue()
+		try:
+			SaveArray(self, filename_out,self.psf)
+		except:
+			msg = "Could not save array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
 def Sequence_Mask(\
 	self,
 	pipelineitem
@@ -2108,15 +2146,15 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.scalebar_amp_real.Modified()
 		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_recip.SetInput(panelvisual.image_phase_real)
+			panelvisual.filter_support.SetInput(panelvisual.image_phase_real)
 		else:
-			panelvisual.filter_amp_recip.SetInputData(panelvisual.image_phase_real)
-		panelvisual.filter_amp_recip.ComputeNormalsOn()
-		panelvisual.filter_amp_recip.ComputeScalarsOn()
-		panelvisual.filter_amp_recip.SetNumberOfContours(1)
-		panelvisual.filter_amp_recip.SetValue( 0, contour_support)
-		panelvisual.filter_amp_recip.Modified()
-		panelvisual.filter_amp_recip.Update()
+			panelvisual.filter_support.SetInputData(panelvisual.image_phase_real)
+		panelvisual.filter_support.ComputeNormalsOn()
+		panelvisual.filter_support.ComputeScalarsOn()
+		panelvisual.filter_support.SetNumberOfContours(1)
+		panelvisual.filter_support.SetValue( 0, contour_support)
+		panelvisual.filter_support.Modified()
+		panelvisual.filter_support.Update()
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
 		else:
@@ -2127,26 +2165,26 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.filter_amp_real.SetValue(0, contour)
 		panelvisual.filter_amp_real.Modified()
 		panelvisual.filter_amp_real.Update()
-		panelvisual.smooth_filter_recip.SetInputConnection(panelvisual.filter_amp_recip.GetOutputPort())
-		panelvisual.smooth_filter_recip.SetNumberOfIterations(15)
-		panelvisual.smooth_filter_recip.SetRelaxationFactor(0.1)
-		panelvisual.smooth_filter_recip.FeatureEdgeSmoothingOff()
-		panelvisual.smooth_filter_recip.BoundarySmoothingOn()
-		panelvisual.smooth_filter_recip.Update()
+		panelvisual.smooth_filter_support.SetInputConnection(panelvisual.filter_support.GetOutputPort())
+		panelvisual.smooth_filter_support.SetNumberOfIterations(15)
+		panelvisual.smooth_filter_support.SetRelaxationFactor(0.1)
+		panelvisual.smooth_filter_support.FeatureEdgeSmoothingOff()
+		panelvisual.smooth_filter_support.BoundarySmoothingOn()
+		panelvisual.smooth_filter_support.Update()
 		panelvisual.smooth_filter_real.SetInputConnection(panelvisual.filter_amp_real.GetOutputPort())
 		panelvisual.smooth_filter_real.SetNumberOfIterations(15)
 		panelvisual.smooth_filter_real.SetRelaxationFactor(0.1)
 		panelvisual.smooth_filter_real.FeatureEdgeSmoothingOff()
 		panelvisual.smooth_filter_real.BoundarySmoothingOn()
 		panelvisual.smooth_filter_real.Update()
-		panelvisual.normals_amp_recip.SetInputConnection(panelvisual.smooth_filter_recip.GetOutputPort())
-		panelvisual.normals_amp_recip.SetFeatureAngle(feature_angle)
-		panelvisual.normals_amp_recip.ConsistencyOff()
-		panelvisual.normals_amp_recip.SplittingOff()
-		panelvisual.normals_amp_recip.AutoOrientNormalsOff()
-		panelvisual.normals_amp_recip.ComputePointNormalsOn()
-		panelvisual.normals_amp_recip.ComputeCellNormalsOff()
-		panelvisual.normals_amp_recip.NonManifoldTraversalOff()
+		panelvisual.normals_support.SetInputConnection(panelvisual.smooth_filter_support.GetOutputPort())
+		panelvisual.normals_support.SetFeatureAngle(feature_angle)
+		panelvisual.normals_support.ConsistencyOff()
+		panelvisual.normals_support.SplittingOff()
+		panelvisual.normals_support.AutoOrientNormalsOff()
+		panelvisual.normals_support.ComputePointNormalsOn()
+		panelvisual.normals_support.ComputeCellNormalsOff()
+		panelvisual.normals_support.NonManifoldTraversalOff()
 		panelvisual.normals_amp_real.SetInputConnection(panelvisual.smooth_filter_real.GetOutputPort())
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
@@ -2155,18 +2193,18 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
-		panelvisual.triangles_amp_recip.SetInputConnection(panelvisual.normals_amp_recip.GetOutputPort())
-		panelvisual.strips_amp_recip.SetInputConnection(panelvisual.triangles_amp_recip.GetOutputPort())
+		panelvisual.triangles_support.SetInputConnection(panelvisual.normals_support.GetOutputPort())
+		panelvisual.strips_support.SetInputConnection(panelvisual.triangles_support.GetOutputPort())
 		panelvisual.triangles_amp_real.SetInputConnection(panelvisual.normals_amp_real.GetOutputPort())
 		panelvisual.strips_amp_real.SetInputConnection(panelvisual.triangles_amp_real.GetOutputPort())
-		panelvisual.mapper_amp_recip.SetInputConnection(panelvisual.strips_amp_recip.GetOutputPort())
-		panelvisual.mapper_amp_recip.SetScalarRange(panelvisual.image_phase_real.GetPointData().GetScalars().GetRange())
-		panelvisual.mapper_amp_recip.SetScalarModeToUsePointData()
-		panelvisual.mapper_amp_recip.ImmediateModeRenderingOn()
-		panelvisual.mapper_amp_recip.Modified()
-		panelvisual.mapper_amp_recip.Update()
-		panelvisual.actor_amp_recip.GetProperty().SetOpacity(opacity)
-		panelvisual.actor_amp_recip.SetMapper(panelvisual.mapper_amp_recip)
+		panelvisual.mapper_support.SetInputConnection(panelvisual.strips_support.GetOutputPort())
+		panelvisual.mapper_support.SetScalarRange(panelvisual.image_phase_real.GetPointData().GetScalars().GetRange())
+		panelvisual.mapper_support.SetScalarModeToUsePointData()
+		panelvisual.mapper_support.ImmediateModeRenderingOn()
+		panelvisual.mapper_support.Modified()
+		panelvisual.mapper_support.Update()
+		panelvisual.actor_support.GetProperty().SetOpacity(opacity)
+		panelvisual.actor_support.SetMapper(panelvisual.mapper_support)
 		panelvisual.mapper_amp_real.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
@@ -2187,7 +2225,7 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_phase_recip)
 		panelvisual.renWin.GetRenderWindow().Modified()
 		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_amp_real)
-		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_amp_recip)
+		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_support)
 		panelvisual.renderer_amp_real.AddActor2D(panelvisual.scalebar_amp_real)
 		panelvisual.renderer_amp_real.AddActor2D(panelvisual.textActor)
 		panelvisual.renderer_amp_real.SetBackground(r, g, b)
@@ -2220,14 +2258,14 @@ def Sequence_View_Support(self, ancestor):
 	input_file  = self.input_filename.objectpath.GetValue()
 	panelvisual = self.ancestor.GetPage(1)
 	panelvisual.contour_real.value.SetValue(self.contour.value.GetValue())
-	panelvisual.contour_recip.value.SetValue("0.5")
+	panelvisual.contour_support.value.SetValue(self.contour_support.value.GetValue())
 	panelvisual.OnContourSelect(None, forceshow=True)
 	r = float(panelvisual.r)/255.0
 	g = float(panelvisual.g)/255.0
 	b = float(panelvisual.b)/255.0
 	try:
 		panelvisual.data = LoadArray(self.ancestor.GetPage(0), data_file)
-		panelvisual.data_max_recip = numpy.abs(panelvisual.data).max()
+		panelvisual.data_max_support = numpy.abs(panelvisual.data).max()
 		panelvisual.inputdata = LoadArray(self.ancestor.GetPage(0), input_file)
 		panelvisual.data_max = numpy.abs(panelvisual.inputdata).max()
 	except:

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Library Reference &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</title>
+    <title>Library Reference &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.1',
+        VERSION:     '2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation" href="bonsu.html" />
+    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation" href="bonsu.html" />
     <link rel="next" title="Library Reference - Functions" href="libref-prephasing.html" />
     <link rel="prev" title="History and Licence" href="licence.html" /> 
   </head>
@@ -41,7 +41,7 @@
         <li class="right" >
           <a href="licence.html" title="History and Licence"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -92,6 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="libref-algorithms.html">Library Reference – Phasing Algorithms</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#random-start">Random Start</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#array-start">Array Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#load-psf">Load PSF</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hybrid-input-output-hio">Hybrid Input-Output (HIO)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hio-mask">HIO Mask</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hio-plus">HIO Plus</a></li>
@@ -104,6 +105,9 @@
 <li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hybrid-projection-reflection-hpr">Hybrid Projection Reflection (HPR)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#compressed-sensing-hio-cshio">Compressed Sensing HIO (CSHIO)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hio-mask-with-partial-coherence-optimisation-hio-mask-pc">HIO Mask with Partial Coherence Optimisation (HIO Mask PC)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#er-mask-with-partial-coherence-optimisation-er-mask-pc">ER Mask with Partial Coherence Optimisation (ER Mask PC)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hpr-mask-with-partial-coherence-optimisation-hpr-mask-pc">HPR Mask with Partial Coherence Optimisation (HPR Mask PC)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#raar-mask-with-partial-coherence-optimisation-raar-mask-pc">RAAR Mask with Partial Coherence Optimisation (RAAR Mask PC)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#shrink-wrap">Shrink Wrap</a></li>
 </ul>
 </li>
@@ -111,6 +115,7 @@
 <li class="toctree-l2"><a class="reference internal" href="libref-posterior.html#save-sequence">Save Sequence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-posterior.html#save-support">Save Support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-posterior.html#save-residual">Save Residual</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-posterior.html#save-psf">Save PSF</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-posterior.html#co-ordinate-transformation">Co-ordinate Transformation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="libref-posterior.html#save-co-ordinates">Save Co-ordinates</a></li>
 </ul>
@@ -163,7 +168,7 @@
         <li class="right" >
           <a href="licence.html" title="History and Licence"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

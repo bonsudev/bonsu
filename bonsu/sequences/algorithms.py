@@ -35,9 +35,12 @@ from ..operations.HIO import HIOMaskPC
 from ..operations.CSHIO import CSHIO
 from ..operations.ER import ER
 from ..operations.ER import ERMask
+from ..operations.ER import ERMaskPC
 from ..operations.POER import POER
 from ..operations.HPR import HPR
+from ..operations.HPR import HPRMaskPC
 from ..operations.RAAR import RAAR
+from ..operations.RAAR import RAARMaskPC
 from ..operations.wrap import WrapArray
 from ..operations.compact import CompactArray
 from ..operations.loadarray import LoadArray
@@ -318,6 +321,7 @@ def PrepareVisualisation(self,pipelineitem):
 	if (self.visual_amp_real is None and self.visual_support is None) and self.visual_amp_recip is not None:
 		panelvisual.renderer_amp_real.SetViewport(0,0,0,0)
 		panelvisual.renderer_amp_recip.SetViewport(0,0,1,1)
+	panelvisual.RefreshSceneFull(gotovisual=True)
 def PrepareVisualisation2D(self,pipelineitem):
 	panelvisual = self.ancestor.GetPage(1)
 	panelvisual.data = None
@@ -537,6 +541,7 @@ def PrepareVisualisation2D(self,pipelineitem):
 	elif (self.visual_amp_real is not None) and (self.visual_amp_recip is not None):
 		panelvisual.renderer_amp_real.SetViewport(0,0,0.5,1)
 		panelvisual.renderer_amp_recip.SetViewport(0.5,0,1,1)
+	panelvisual.RefreshSceneFull(gotovisual=True)
 def Sequence_HIO(\
 	self,
 	pipelineitem
@@ -765,6 +770,10 @@ def Sequence_ERMask(\
 			return
 		startiter = int(pipelineitem.start_iter)
 		numiter = int(pipelineitem.niter.value.GetValue())
+		if pipelineitem.chkbox.GetValue():
+			numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
+		else:
+			numiter_relax = 0
 		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
 			if self.expdata.shape[2] == 1:
 				PrepareVisualisation2D(self,pipelineitem)
@@ -773,7 +782,7 @@ def Sequence_ERMask(\
 		def threadERMask(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting ER Mask Algorithm...")
 			self.thread_register.acquire()
-			ERMask(self, startiter, numiter)
+			ERMask(self, startiter, numiter, numiter_relax)
 			self.thread_register.release()
 			return
 		self.thread = threading.Thread(target=threadERMask, args=(self,))
@@ -942,6 +951,10 @@ def Sequence_HPR(\
 		beta = float(pipelineitem.beta.value.GetValue())
 		startiter = int(pipelineitem.start_iter)
 		numiter = int(pipelineitem.niter.value.GetValue())
+		if pipelineitem.chkbox.GetValue():
+			numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
+		else:
+			numiter_relax = 0
 		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
 			if self.expdata.shape[2] == 1:
 				PrepareVisualisation2D(self,pipelineitem)
@@ -950,7 +963,7 @@ def Sequence_HPR(\
 		def threadHPR(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting HPR Algorithm...")
 			self.thread_register.acquire()
-			HPR(self, beta, startiter, numiter)
+			HPR(self, beta, startiter, numiter, numiter_relax)
 			self.thread_register.release()
 			return
 		self.thread = threading.Thread(target=threadHPR, args=(self,))
@@ -1031,6 +1044,10 @@ def Sequence_RAAR(\
 		beta = float(pipelineitem.beta.value.GetValue())
 		startiter = int(pipelineitem.start_iter)
 		numiter = int(pipelineitem.niter.value.GetValue())
+		if pipelineitem.chkbox.GetValue():
+			numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
+		else:
+			numiter_relax = 0
 		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
 			if self.expdata.shape[2] == 1:
 				PrepareVisualisation2D(self,pipelineitem)
@@ -1039,7 +1056,7 @@ def Sequence_RAAR(\
 		def threadRAAR(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting RAAR Algorithm...")
 			self.thread_register.acquire()
-			RAAR(self, beta, startiter, numiter)
+			RAAR(self, beta, startiter, numiter, numiter_relax)
 			self.thread_register.release()
 			return
 		self.thread = threading.Thread(target=threadRAAR, args=(self,))
@@ -1120,6 +1137,10 @@ def Sequence_HIOMask(\
 		beta = float(pipelineitem.beta.value.GetValue())
 		startiter = int(pipelineitem.start_iter)
 		numiter = int(pipelineitem.niter.value.GetValue())
+		if pipelineitem.chkbox.GetValue():
+			numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
+		else:
+			numiter_relax = 0
 		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
 			if self.expdata.shape[2] == 1:
 				PrepareVisualisation2D(self,pipelineitem)
@@ -1128,7 +1149,7 @@ def Sequence_HIOMask(\
 		def threadHIOMask(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting HIO Algorithm...")
 			self.thread_register.acquire()
-			HIOMask(self, beta, startiter, numiter)
+			HIOMask(self, beta, startiter, numiter, numiter_relax)
 			self.thread_register.release()
 			return
 		self.thread = threading.Thread(target=threadHIOMask, args=(self,))
@@ -1480,7 +1501,16 @@ def Sequence_ShrinkWrap(\
 			except:
 				pass
 			return
-		temparray = numpy.zeros(self.support.shape, dtype=numpy.cdouble, order='C')
+		try:
+			temparray = numpy.zeros(self.support.shape, dtype=numpy.cdouble, order='C')
+			temparray2 = numpy.zeros(self.support.shape, dtype=numpy.cdouble, order='C')
+		except:
+			msg = "Insufficient memory for temporary array."
+			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
+			dlg.ShowModal()
+			dlg.Destroy()
+			self.pipeline_started = False
+			return
 		beta = float(pipelineitem.beta.value.GetValue())
 		startiter = int(pipelineitem.start_iter)
 		numiter = int(pipelineitem.niter.value.GetValue())
@@ -1509,19 +1539,26 @@ def Sequence_ShrinkWrap(\
 			else:
 				PrepareVisualisation(self,pipelineitem)
 		RSConst =  pipelineitem.rbrs.GetStringSelection()
+		from ..lib.prfftw import gaussian_fill
+		from ..lib.prfftw import wrap
+		gaussian_fill(temparray, sigma)
+		wrap(temparray, 1)
 		def threadShrinkWrap(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting shrink wrap algorithm using "+RSConst +"..." )
 			self.thread_register.acquire()
 			from ..lib.prfftw import threshold
 			from ..lib.prfftw import rangereplace
-			from ..lib.prfftw import gaussian_filter
+			from ..lib.prfftw import convolve
+			from ..lib.prfftw import medianfilter
 			def UpdateSupport(self):
 				if self.ancestor.GetPage(0).citer_flow[4] > 0:
 					self.support[:] = numpy.abs(self.seqdata).copy()
 					maxvalue = numpy.abs(self.support).max()
 					threshold(self.support, (frac*maxvalue), maxvalue, 0.0)
-					gaussian_filter(self.support, temparray, sigma)
-					self.support[:] = WrapArray(self.support)
+					medianfilter(self.support, temparray2, 3,3,3, 0.0)
+					wrap(self.support, 1)
+					convolve(self.support, temparray)
+					wrap(self.support, -1)
 					rangereplace(self.support, (frac*maxvalue), sys.float_info.max, 0.0, 1.0)
 					self.visual_support[:] = numpy.abs(self.support)
 			def UpdateVisualSupport(self):
@@ -1570,7 +1607,7 @@ def Sequence_ShrinkWrap(\
 						sw_numiter =  numiter - (i * cycle)
 					else:
 						sw_numiter = cycle
-					HIOMask(self, beta, sw_startiter, sw_numiter)
+					HIOMask(self, beta, sw_startiter, sw_numiter,0)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
@@ -1606,7 +1643,7 @@ def Sequence_ShrinkWrap(\
 						sw_numiter =  numiter - (i * cycle)
 					else:
 						sw_numiter = cycle
-					HPR(self, beta, sw_startiter, sw_numiter)
+					HPR(self, beta, sw_startiter, sw_numiter,0)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
@@ -1618,7 +1655,7 @@ def Sequence_ShrinkWrap(\
 						sw_numiter =  numiter - (i * cycle)
 					else:
 						sw_numiter = cycle
-					RAAR(self, beta, sw_startiter, sw_numiter)
+					RAAR(self, beta, sw_startiter, sw_numiter,0)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
@@ -1739,7 +1776,7 @@ def Sequence_CSHIO(\
 		self.thread.daemon = True
 		self.thread.start()
 		return
-def Sequence_HIOMaskPC(\
+def Sequence_PhasePC(\
 	self,
 	pipelineitem
 	):
@@ -1790,7 +1827,20 @@ def Sequence_HIOMaskPC(\
 			dlg.Destroy()
 			self.pipeline_started = False
 			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
+		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
+		try:
+			from ..lib.prfftw import lorentzftfill
+			if self.psf is None:
+				self.psf = numpy.array( self.seqdata, copy=True, dtype=numpy.cdouble)
+				lorentzftfill(self.psf,gammaHWHM)
+		except MemoryError:
+			msg = "Could not load PSF array. Insufficient memory."
+			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
+			dlg.ShowModal()
+			dlg.Destroy()
+			self.pipeline_started = False
+			return
+		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape and self.expdata.shape == self.psf.shape)) == True:
 			msg = "Array dimensions are inconsistent."
 			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
 			dlg.ShowModal()
@@ -1810,12 +1860,25 @@ def Sequence_HIOMaskPC(\
 			except:
 				pass
 			return
-		beta = float(pipelineitem.beta.value.GetValue())
+		startiter = int(pipelineitem.start_iter)
+		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
+			if self.expdata.shape[2] == 1:
+				PrepareVisualisation2D(self,pipelineitem)
+			else:
+				PrepareVisualisation(self,pipelineitem)
+def Sequence_HIOMaskPC(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		if self.citer_flow[1] == 2: return;
 		startiter = int(pipelineitem.start_iter)
 		numiter = int(pipelineitem.niter.value.GetValue())
+		beta = float(pipelineitem.beta.value.GetValue())
 		niterrlpre = int(pipelineitem.niterrlpre.value.GetValue())
 		niterrl = int(pipelineitem.niterrl.value.GetValue())
 		niterrlinterval = int(pipelineitem.niterrlinterval.value.GetValue())
+		accel = int(pipelineitem.accel.value.GetValue())
 		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
 		zex =  int(pipelineitem.zedims[0].value.GetValue())
 		zey =  int(pipelineitem.zedims[1].value.GetValue())
@@ -1824,18 +1887,101 @@ def Sequence_HIOMaskPC(\
 			reset_gamma = 1
 		else:
 			reset_gamma = 0
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
-			else:
-				PrepareVisualisation(self,pipelineitem)
 		def threadHIOMaskPC(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting HIO Mask PC Algorithm...")
 			self.thread_register.acquire()
-			HIOMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma)
+			HIOMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
 			self.thread_register.release()
 			return
 		self.thread = threading.Thread(target=threadHIOMaskPC, args=(self,))
 		self.thread.daemon = True
 		self.thread.start()
-		return
+def Sequence_ERMaskPC(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		if self.citer_flow[1] == 2: return;
+		startiter = int(pipelineitem.start_iter)
+		numiter = int(pipelineitem.niter.value.GetValue())
+		niterrlpre = int(pipelineitem.niterrlpre.value.GetValue())
+		niterrl = int(pipelineitem.niterrl.value.GetValue())
+		niterrlinterval = int(pipelineitem.niterrlinterval.value.GetValue())
+		accel = int(pipelineitem.accel.value.GetValue())
+		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
+		zex =  int(pipelineitem.zedims[0].value.GetValue())
+		zey =  int(pipelineitem.zedims[1].value.GetValue())
+		zez =  int(pipelineitem.zedims[2].value.GetValue())
+		if pipelineitem.chkbox_reset_gamma.GetValue() == True:
+			reset_gamma = 1
+		else:
+			reset_gamma = 0
+		def threadERMaskPC(self):
+			self.ancestor.GetPage(0).queue_info.put("Starting ER Mask PC Algorithm...")
+			self.thread_register.acquire()
+			ERMaskPC(self, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
+			self.thread_register.release()
+			return
+		self.thread = threading.Thread(target=threadERMaskPC, args=(self,))
+		self.thread.daemon = True
+		self.thread.start()
+def Sequence_HPRMaskPC(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		if self.citer_flow[1] == 2: return;
+		startiter = int(pipelineitem.start_iter)
+		numiter = int(pipelineitem.niter.value.GetValue())
+		beta = float(pipelineitem.beta.value.GetValue())
+		niterrlpre = int(pipelineitem.niterrlpre.value.GetValue())
+		niterrl = int(pipelineitem.niterrl.value.GetValue())
+		niterrlinterval = int(pipelineitem.niterrlinterval.value.GetValue())
+		accel = int(pipelineitem.accel.value.GetValue())
+		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
+		zex =  int(pipelineitem.zedims[0].value.GetValue())
+		zey =  int(pipelineitem.zedims[1].value.GetValue())
+		zez =  int(pipelineitem.zedims[2].value.GetValue())
+		if pipelineitem.chkbox_reset_gamma.GetValue() == True:
+			reset_gamma = 1
+		else:
+			reset_gamma = 0
+		def threadHPRMaskPC(self):
+			self.ancestor.GetPage(0).queue_info.put("Starting HPR Mask PC Algorithm...")
+			self.thread_register.acquire()
+			HPRMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
+			self.thread_register.release()
+			return
+		self.thread = threading.Thread(target=threadHPRMaskPC, args=(self,))
+		self.thread.daemon = True
+		self.thread.start()
+def Sequence_RAARMaskPC(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		if self.citer_flow[1] == 2: return;
+		startiter = int(pipelineitem.start_iter)
+		numiter = int(pipelineitem.niter.value.GetValue())
+		beta = float(pipelineitem.beta.value.GetValue())
+		niterrlpre = int(pipelineitem.niterrlpre.value.GetValue())
+		niterrl = int(pipelineitem.niterrl.value.GetValue())
+		niterrlinterval = int(pipelineitem.niterrlinterval.value.GetValue())
+		accel = int(pipelineitem.accel.value.GetValue())
+		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
+		zex =  int(pipelineitem.zedims[0].value.GetValue())
+		zey =  int(pipelineitem.zedims[1].value.GetValue())
+		zez =  int(pipelineitem.zedims[2].value.GetValue())
+		if pipelineitem.chkbox_reset_gamma.GetValue() == True:
+			reset_gamma = 1
+		else:
+			reset_gamma = 0
+		def threadRAARMaskPC(self):
+			self.ancestor.GetPage(0).queue_info.put("Starting RAAR Mask PC Algorithm...")
+			self.thread_register.acquire()
+			RAARMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
+			self.thread_register.release()
+			return
+		self.thread = threading.Thread(target=threadRAARMaskPC, args=(self,))
+		self.thread.daemon = True
+		self.thread.start()

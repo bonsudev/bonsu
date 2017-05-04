@@ -195,6 +195,28 @@ void ScaleArray
 	}
 }
 
+void ExponentArray
+(
+    double* data,
+    int32_t* nn,
+    int factor
+)
+{
+    if (factor > 1)
+	{
+		int64_t len =  (int64_t) nn[0] * nn[1] * nn[2];
+		int64_t i;
+		double amp, phase;
+		for(i=0; i<len; i++)
+		{
+			amp = sqrt(data[2*i]*data[2*i]+data[2*i+1]*data[2*i+1]);
+			phase = atan2(data[2*i+1], data[2*i]);
+			data[2*i] = amp*cos(((double) factor)*phase);
+			data[2*i+1] = amp*sin(((double) factor)*phase);
+		}
+	}
+}
+
 void ConstantArray
 (
     double* data,
@@ -264,6 +286,22 @@ void FFTStride
 	{
 		data[2*i] *= inv_sqrt_n;
 		data[2*i+1] *= inv_sqrt_n;
+	}
+}
+
+void SumArray
+(
+	double* data,
+	int32_t* nn,
+	double* sum
+)
+{
+	int len = nn[0] * nn[1] * nn[2];
+	int i;
+	*sum = 0.0;
+	for(i=0; i<len; i++)
+	{
+		*sum += sqrt( data[2*i]*data[2*i] + data[2*i+1]*data[2*i+1] );
 	}
 }
 
@@ -479,4 +517,113 @@ void MaskedSetAmplitudesRelaxed
 	}
 }
 
+void MaskedSetAmplitudesIterRelaxed
+(
+	double* seqdata,
+	double* expdata,
+	double* mask,
+	int32_t* nn,
+	int niter,
+	int iter
+)
+{
+	int64_t len = (int64_t) nn[0] * nn[1] * nn[2];
+	int64_t i;
+	double amp, amp2, seqamp, phase;
+	double factor;
+	
+	if (iter <= niter)
+	{
+		factor = ((double) (niter - iter))/((double) niter);
+		for(i=0; i<len; i++)
+		{
+			if (mask[2*i] > 1e-6)
+			{
+				amp2 = expdata[2*i]*expdata[2*i] +
+							expdata[2*i+1]*expdata[2*i+1];
+				amp = sqrt(amp2);
+				seqamp = seqdata[2*i]*seqdata[2*i] +
+							seqdata[2*i+1]*seqdata[2*i+1];
+				if ( fabs(amp2 - seqamp) > (amp * factor) )
+				{
+					phase = atan2(seqdata[2*i+1], seqdata[2*i]);
+					seqdata[2*i] = amp*cos(phase);
+					seqdata[2*i+1] = amp*sin(phase);
+				}
+			}
+		}
+	}
+	else
+	{
+		for(i=0; i<len; i++)
+		{
+			if (mask[2*i] > 1e-6)
+			{
+				amp = sqrt( expdata[2*i]*expdata[2*i] +
+							expdata[2*i+1]*expdata[2*i+1]);
 
+				phase = atan2(seqdata[2*i+1], seqdata[2*i]);
+				seqdata[2*i] = amp*cos(phase);
+				seqdata[2*i+1] = amp*sin(phase);
+			}
+		}
+	}
+}
+
+void MaskedSetPCAmplitudesIterRelaxed
+(
+	double* seqdata,
+	double* expdata,
+	double* itnsty,
+	double* mask,
+	int32_t* nn,
+	int niter,
+	int iter
+)
+{
+	int64_t len = (int64_t) nn[0] * nn[1] * nn[2];
+	int64_t i;
+	double amp, amp2, expamp, expamp2, pcamp, phase;
+	double factor;
+	
+	if (iter <= niter)
+	{
+		factor = ((double) (niter - iter))/((double) niter);
+		for(i=0; i<len; i++)
+		{
+			if (mask[2*i] > 1e-6)
+			{
+				expamp2 = expdata[2*i]*expdata[2*i] +
+							expdata[2*i+1]*expdata[2*i+1];
+				expamp = sqrt(expamp2);
+				amp2 = seqdata[2*i]*seqdata[2*i] +
+							seqdata[2*i+1]*seqdata[2*i+1];
+				amp = sqrt(amp2);
+				if ( fabs(expamp2 - amp2) > (expamp * factor) )
+				{
+					pcamp = sqrt(sqrt( itnsty[2*i]*itnsty[2*i] + itnsty[2*i+1]*itnsty[2*i+1] ));
+					phase = atan2(seqdata[2*i+1], seqdata[2*i]);
+					seqdata[2*i] = (expamp*amp/pcamp)*cos(phase);
+					seqdata[2*i+1] = (expamp*amp/pcamp)*sin(phase);
+				}
+			}
+		}
+	}
+	else
+	{
+		for(i=0; i<len; i++)
+		{
+			if (mask[2*i] > 1e-6)
+			{
+				expamp = sqrt( expdata[2*i]*expdata[2*i] +
+					expdata[2*i+1]*expdata[2*i+1]);
+				amp = sqrt( seqdata[2*i]*seqdata[2*i] +
+					seqdata[2*i+1]*seqdata[2*i+1]);
+				pcamp = sqrt(sqrt( itnsty[2*i]*itnsty[2*i] + itnsty[2*i+1]*itnsty[2*i+1] ));
+				phase = atan2(seqdata[2*i+1], seqdata[2*i]);
+				seqdata[2*i] = (expamp*amp/pcamp)*cos(phase);
+				seqdata[2*i+1] = (expamp*amp/pcamp)*sin(phase);
+			}
+		}
+	}
+}

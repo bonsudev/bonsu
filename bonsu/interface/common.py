@@ -540,6 +540,7 @@ class SpinnerObject(wx.BoxSizer):
 		self.remainder = smin%sinc
 		self.spin.Bind(wx.EVT_SPIN, OnSpin, self.spin)
 		self.Add( self.spin, 0, wx.CENTER )
+		self.IsEnabled = True
 	def Hide(self):
 		self.label.Hide()
 		self.value.Hide()
@@ -555,6 +556,7 @@ class SpinnerObject(wx.BoxSizer):
 		self.value.Refresh()
 		self.spin.Enable(False)
 		self.spin.Refresh()
+		self.IsEnabled = False
 	def Enable(self):
 		self.label.Enable(True)
 		self.label.Refresh()
@@ -562,6 +564,7 @@ class SpinnerObject(wx.BoxSizer):
 		self.value.Refresh()
 		self.spin.Enable(True)
 		self.spin.Refresh()
+		self.IsEnabled = True
 class NumberObject(wx.BoxSizer):
 	def __init__(self, parent, name, init, stextwidth):
 		def OnEdit(event):

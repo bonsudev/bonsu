@@ -67,7 +67,8 @@ void RAAR
 	double* visual_phase_recip,
 	PyObject* updatereal,
 	PyObject* updaterecip,
-	PyObject* updatelog
+	PyObject* updatelog,
+	int numiter_relax
 )
 {
 	Py_BEGIN_ALLOW_THREADS;
@@ -115,7 +116,7 @@ void RAAR
 			update_count_recip ++;
 		}
 		MaskedCalculateResiduals(seqdata, expdata, mask, nn, &res);
-		MaskedSetAmplitudes(seqdata, expdata, mask, nn);
+		MaskedSetAmplitudesIterRelaxed(seqdata, expdata, mask, nn, numiter_relax, iter - startiter);
 		FFTStride(seqdata, nn, &toreal);
 		
 		residual[iter] = (double) ( (double) res/sos);

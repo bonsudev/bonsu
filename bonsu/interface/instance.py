@@ -64,6 +64,10 @@ def NewInstance(self):
 		except:
 			print( "Could not delete support data" )
 		try:
+			panelphase.psf = None
+		except:
+			print( "Could not delete point spread function data" )
+		try:
 			panelphase.residual = None
 		except:
 			print( "Could not delete residual data" )
@@ -228,6 +232,10 @@ def SaveInstance(self):
 		if subpanelname == 'Memory to Array':
 			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
+		if subpanelname == 'Load PSF':
+			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
+		if subpanelname == 'Save PSF':
+			object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
 		if subpanelname == 'Median Filter':
 			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
@@ -326,6 +334,9 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].mask.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].beta.value.GetValue() )
 			object.append( panelphase.pipelineitems[i].niter.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter_relax.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter_relax.IsEnabled)
 		if subpanelname == 'HPR':
 			object.append( panelphase.pipelineitems[i].exp_amps.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].chkbox_sqrt_expamps.GetValue() )
@@ -333,6 +344,9 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].mask.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].beta.value.GetValue() )
 			object.append( panelphase.pipelineitems[i].niter.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter_relax.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter_relax.IsEnabled)
 		if subpanelname == 'HIO Mask':
 			object.append( panelphase.pipelineitems[i].exp_amps.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].chkbox_sqrt_expamps.GetValue() )
@@ -340,6 +354,9 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].mask.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].beta.value.GetValue() )
 			object.append( panelphase.pipelineitems[i].niter.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter_relax.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter_relax.IsEnabled)
 		if subpanelname == 'HIO Plus':
 			object.append( panelphase.pipelineitems[i].exp_amps.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].chkbox_sqrt_expamps.GetValue() )
@@ -368,6 +385,9 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].support.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].mask.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].niter.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter_relax.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter_relax.IsEnabled)
 		if subpanelname == 'Shrink Wrap':
 			object.append( panelphase.pipelineitems[i].exp_amps.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].chkbox_sqrt_expamps.GetValue() )
@@ -438,6 +458,54 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].zedims[1].value.GetValue() )
 			object.append( panelphase.pipelineitems[i].zedims[2].value.GetValue() )
 			object.append( panelphase.pipelineitems[i].chkbox_reset_gamma.GetValue() )
+			object.append( panelphase.pipelineitems[i].accel.value.GetValue() )
+		if subpanelname == 'ER Mask PC':
+			object.append( panelphase.pipelineitems[i].exp_amps.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox_sqrt_expamps.GetValue() )
+			object.append( panelphase.pipelineitems[i].support.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].mask.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niterrlpre.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niterrl.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niterrlinterval.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].gammaHWHM.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].zedims[0].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].zedims[1].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].zedims[2].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox_reset_gamma.GetValue() )
+			object.append( panelphase.pipelineitems[i].accel.value.GetValue() )
+		if subpanelname == 'HPR PC':
+			object.append( panelphase.pipelineitems[i].exp_amps.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox_sqrt_expamps.GetValue() )
+			object.append( panelphase.pipelineitems[i].support.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].mask.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].beta.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niterrlpre.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niterrl.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niterrlinterval.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].gammaHWHM.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].zedims[0].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].zedims[1].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].zedims[2].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox_reset_gamma.GetValue() )
+			object.append( panelphase.pipelineitems[i].accel.value.GetValue() )
+		if subpanelname == 'RAAR PC':
+			object.append( panelphase.pipelineitems[i].exp_amps.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox_sqrt_expamps.GetValue() )
+			object.append( panelphase.pipelineitems[i].support.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].mask.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].beta.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niter.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niterrlpre.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niterrl.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].niterrlinterval.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].gammaHWHM.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].zedims[0].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].zedims[1].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].zedims[2].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox_reset_gamma.GetValue() )
+			object.append( panelphase.pipelineitems[i].accel.value.GetValue() )
 		if subpanelname == 'Save Sequence':
 			object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
 		if subpanelname == 'Save Support':
@@ -678,6 +746,16 @@ def RestoreInstance(self):
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
+		if subpanelname == 'Load PSF':
+			panelphase.pipelineitems.append(SubPanel_Load_PSF(panelphase.panel2))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
+		if subpanelname == 'Save PSF':
+			panelphase.pipelineitems.append(SubPanel_Save_PSF(panelphase.panel2))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[0])
 		if subpanelname == 'Median Filter' or subpanelname == 0051:
 			panelphase.pipelineitems.append(SubPanel_Median_Filter(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
@@ -818,6 +896,13 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].mask.objectpath.SetValue(object[3])
 			panelphase.pipelineitems[-1].beta.value.SetValue(object[4])
 			panelphase.pipelineitems[-1].niter.value.SetValue(object[5])
+			try:
+				panelphase.pipelineitems[-1].chkbox.SetValue(object[6])
+				panelphase.pipelineitems[-1].niter_relax.value.SetValue(object[7])
+				if object[8] :
+					panelphase.pipelineitems[-1].niter_relax.Enable()
+			except:
+				pass
 		if subpanelname == 'HPR' or subpanelname == 1014:
 			panelphase.pipelineitems.append(SubPanel_HPR(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
@@ -828,6 +913,13 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].mask.objectpath.SetValue(object[3])
 			panelphase.pipelineitems[-1].beta.value.SetValue(object[4])
 			panelphase.pipelineitems[-1].niter.value.SetValue(object[5])
+			try:
+				panelphase.pipelineitems[-1].chkbox.SetValue(object[6])
+				panelphase.pipelineitems[-1].niter_relax.value.SetValue(object[7])
+				if object[8] :
+					panelphase.pipelineitems[-1].niter_relax.Enable()
+			except:
+				pass
 		if subpanelname == 'HIO Mask' or subpanelname == 1015:
 			panelphase.pipelineitems.append(SubPanel_HIOMask(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
@@ -838,6 +930,13 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].mask.objectpath.SetValue(object[3])
 			panelphase.pipelineitems[-1].beta.value.SetValue(object[4])
 			panelphase.pipelineitems[-1].niter.value.SetValue(object[5])
+			try:
+				panelphase.pipelineitems[-1].chkbox.SetValue(object[6])
+				panelphase.pipelineitems[-1].niter_relax.value.SetValue(object[7])
+				if object[8] :
+					panelphase.pipelineitems[-1].niter_relax.Enable()
+			except:
+				pass
 		if subpanelname == 'HIO Plus' or subpanelname == 1016:
 			panelphase.pipelineitems.append(SubPanel_HIOPlus(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
@@ -878,6 +977,13 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].support.objectpath.SetValue(object[2])
 			panelphase.pipelineitems[-1].mask.objectpath.SetValue(object[3])
 			panelphase.pipelineitems[-1].niter.value.SetValue(object[4])
+			try:
+				panelphase.pipelineitems[-1].chkbox.SetValue(object[5])
+				panelphase.pipelineitems[-1].niter_relax.value.SetValue(object[6])
+				if object[7] :
+					panelphase.pipelineitems[-1].niter_relax.Enable()
+			except:
+				pass
 		if subpanelname == 'Shrink Wrap' or subpanelname == 1020:
 			panelphase.pipelineitems.append(SubPanel_ShrinkWrap(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
@@ -972,6 +1078,75 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].zedims[1].value.SetValue(object[11])
 			panelphase.pipelineitems[-1].zedims[2].value.SetValue(object[12])
 			panelphase.pipelineitems[-1].chkbox_reset_gamma.SetValue(object[13])
+			try:
+				panelphase.pipelineitems[-1].accel.value.SetValue(object[14])
+			except:
+				pass
+		if subpanelname == 'ER Mask PC' or subpanelname == 1052:
+			panelphase.pipelineitems.append(SubPanel_ERMaskPC(panelphase.panel2))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].exp_amps.objectpath.SetValue(object[0])
+			panelphase.pipelineitems[-1].chkbox_sqrt_expamps.SetValue(object[1])
+			panelphase.pipelineitems[-1].support.objectpath.SetValue(object[2])
+			panelphase.pipelineitems[-1].mask.objectpath.SetValue(object[3])
+			panelphase.pipelineitems[-1].niter.value.SetValue(object[4])
+			panelphase.pipelineitems[-1].niterrlpre.value.SetValue(object[5])
+			panelphase.pipelineitems[-1].niterrl.value.SetValue(object[6])
+			panelphase.pipelineitems[-1].niterrlinterval.value.SetValue(object[7])
+			panelphase.pipelineitems[-1].gammaHWHM.value.SetValue(object[8])
+			panelphase.pipelineitems[-1].zedims[0].value.SetValue(object[9])
+			panelphase.pipelineitems[-1].zedims[1].value.SetValue(object[10])
+			panelphase.pipelineitems[-1].zedims[2].value.SetValue(object[11])
+			panelphase.pipelineitems[-1].chkbox_reset_gamma.SetValue(object[12])
+			try:
+				panelphase.pipelineitems[-1].accel.value.SetValue(object[13])
+			except:
+				pass
+		if subpanelname == 'HPR PC' or subpanelname == 1062:
+			panelphase.pipelineitems.append(SubPanel_HPRMaskPC(panelphase.panel2))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].exp_amps.objectpath.SetValue(object[0])
+			panelphase.pipelineitems[-1].chkbox_sqrt_expamps.SetValue(object[1])
+			panelphase.pipelineitems[-1].support.objectpath.SetValue(object[2])
+			panelphase.pipelineitems[-1].mask.objectpath.SetValue(object[3])
+			panelphase.pipelineitems[-1].beta.value.SetValue(object[4])
+			panelphase.pipelineitems[-1].niter.value.SetValue(object[5])
+			panelphase.pipelineitems[-1].niterrlpre.value.SetValue(object[6])
+			panelphase.pipelineitems[-1].niterrl.value.SetValue(object[7])
+			panelphase.pipelineitems[-1].niterrlinterval.value.SetValue(object[8])
+			panelphase.pipelineitems[-1].gammaHWHM.value.SetValue(object[9])
+			panelphase.pipelineitems[-1].zedims[0].value.SetValue(object[10])
+			panelphase.pipelineitems[-1].zedims[1].value.SetValue(object[11])
+			panelphase.pipelineitems[-1].zedims[2].value.SetValue(object[12])
+			panelphase.pipelineitems[-1].chkbox_reset_gamma.SetValue(object[13])
+			try:
+				panelphase.pipelineitems[-1].accel.value.SetValue(object[14])
+			except:
+				pass
+		if subpanelname == 'RAAR PC' or subpanelname == 1072:
+			panelphase.pipelineitems.append(SubPanel_RAARMaskPC(panelphase.panel2))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].exp_amps.objectpath.SetValue(object[0])
+			panelphase.pipelineitems[-1].chkbox_sqrt_expamps.SetValue(object[1])
+			panelphase.pipelineitems[-1].support.objectpath.SetValue(object[2])
+			panelphase.pipelineitems[-1].mask.objectpath.SetValue(object[3])
+			panelphase.pipelineitems[-1].beta.value.SetValue(object[4])
+			panelphase.pipelineitems[-1].niter.value.SetValue(object[5])
+			panelphase.pipelineitems[-1].niterrlpre.value.SetValue(object[6])
+			panelphase.pipelineitems[-1].niterrl.value.SetValue(object[7])
+			panelphase.pipelineitems[-1].niterrlinterval.value.SetValue(object[8])
+			panelphase.pipelineitems[-1].gammaHWHM.value.SetValue(object[9])
+			panelphase.pipelineitems[-1].zedims[0].value.SetValue(object[10])
+			panelphase.pipelineitems[-1].zedims[1].value.SetValue(object[11])
+			panelphase.pipelineitems[-1].zedims[2].value.SetValue(object[12])
+			panelphase.pipelineitems[-1].chkbox_reset_gamma.SetValue(object[13])
+			try:
+				panelphase.pipelineitems[-1].accel.value.SetValue(object[14])
+			except:
+				pass
 		if subpanelname == 'Save Sequence' or subpanelname == 2010:
 			panelphase.pipelineitems.append(SubPanel_Save_Sequence(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()

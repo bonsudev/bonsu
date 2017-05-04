@@ -62,7 +62,8 @@ def ERMask\
 	(
 		self,
 		startiter,
-		numiter
+		numiter,
+		numiter_relax
 	):
 	def updatereal():
 		wx.CallAfter(self.ancestor.GetPage(1).UpdateReal,)
@@ -93,4 +94,60 @@ def ERMask\
 	ermask(seqdata,expdata,support, mask,\
 	startiter,numiter,ndim,rho_m1,nn,residual,citer_flow,\
 	visual_amp_real,visual_phase_real,visual_amp_recip,visual_phase_recip,\
-	updatereal,updaterecip, updatelog)
+	updatereal,updaterecip, updatelog, numiter_relax)
+def ERMaskPC\
+	(
+	self,
+	startiter,
+	numiter,
+	niterrlpre,
+	niterrl,
+	niterrlinterval,
+	gammaHWHM,
+	zex, zey, zez,
+	reset_gamma,
+	accel
+	):
+	def updatereal():
+		wx.CallAfter(self.ancestor.GetPage(1).UpdateReal,)
+	def updaterecip():
+		wx.CallAfter(self.ancestor.GetPage(1).UpdateRecip,)
+	def updatelog():
+		try:
+			n = self.citer_flow[0]
+			res = self.ancestor.GetPage(0).residual[n]
+			string = "Iteration: %06d, Residual: %1.9f" %(n,res)
+			self.ancestor.GetPage(0).queue_info.put(string)
+		except:
+			pass
+	def updatelog2():
+		try:
+			n = self.citer_flow[8]
+			string = " R-L iteration: %03d, mean scaling factor: %1.6f" %(n,residualRL[0])
+			self.ancestor.GetPage(0).queue_info.put(string)
+		except:
+			pass
+	seqdata = self.seqdata
+	expdata = self.expdata
+	support = self.support
+	mask = self.mask
+	residual = self.residual
+	residualRL = self.residualRL
+	citer_flow = self.citer_flow
+	visual_amp_real = self.visual_amp_real
+	visual_amp_recip = self.visual_amp_recip
+	visual_phase_real = self.visual_phase_real
+	visual_phase_recip = self.visual_phase_recip
+	try:
+		rho_m1 = numpy.array( seqdata, copy=True, dtype=numpy.cdouble)
+	except MemoryError:
+		self.ancestor.GetPage(0).queue_info.put("ER Mask PC: Could not load array. Insufficient memory.")
+		return
+	nn=numpy.asarray( seqdata.shape, numpy.int32 )
+	ndim=int(seqdata.ndim)
+	from ..lib.prfftw import ermaskpc
+	ermaskpc(seqdata,expdata,support, mask,\
+	gammaHWHM, reset_gamma, niterrl, niterrlpre, niterrlinterval, zex, zey, zez,
+	startiter,numiter,ndim,rho_m1,self.psf,nn,residual,residualRL,citer_flow,\
+	visual_amp_real,visual_phase_real,visual_amp_recip,visual_phase_recip,\
+	updatereal,updaterecip, updatelog, updatelog2, accel)

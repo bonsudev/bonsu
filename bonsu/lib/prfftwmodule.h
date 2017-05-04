@@ -22,6 +22,8 @@
 */
 
 #include <Python.h>
+#define NPY_NO_DEPRECATED_API NPY_1_10_API_VERSION
+#include <numpy/arrayobject.h> 
 #include <stdint.h>
 #include "fftw3.h"
 #include "math.h"
@@ -49,11 +51,14 @@ PyObject* prfftw_poermask(PyObject *self, PyObject *args);
 PyObject* prfftw_raar(PyObject *self, PyObject *args);
 PyObject* prfftw_hpr(PyObject *self, PyObject *args);
 PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args);
+PyObject* prfftw_ermaskpc(PyObject *self, PyObject *args);
+PyObject* prfftw_hprmaskpc(PyObject *self, PyObject *args);
+PyObject* prfftw_raarmaskpc(PyObject *self, PyObject *args);
 
 PyObject* prfftw_fft(PyObject *self, PyObject *args);
 PyObject* prfftw_threshold(PyObject *self, PyObject *args);
 PyObject* prfftw_rangereplace(PyObject *self, PyObject *args);
-PyObject* prfftw_gaussian_fill(PyObject *self, PyObject *args);
+PyObject* prfftw_gaussian_fill(PyArrayObject *self, PyObject *args);
 PyObject* prfftw_gaussian_filter(PyObject *self, PyObject *args);
 PyObject* prfftw_convolve(PyObject *self, PyObject *args);
 PyObject* prfftw_convolve2(PyObject *self, PyObject *args);
@@ -92,7 +97,7 @@ void HIOMask(double* seqdata,	double* expdata, double* support, double* mask,
 						double beta, int startiter, int numiter, int ndim,
 						double* rho_m1, int32_t* nn, double* residual, int32_t* citer_flow,
 						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog);
+						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, int numiter_relax);
 
 void HIOPlus(double* seqdata,	double* expdata, double* support, double* mask,
 						double beta, int startiter, int numiter, int ndim,
@@ -123,7 +128,7 @@ void ERMask(double* seqdata,	double* expdata, double* support, double* mask,
 						int startiter, int numiter, int ndim,
 						double* rho_m1, int32_t* nn, double* residual, int32_t* citer_flow,
 						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog);
+						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, int numiter_relax);
 
 void POERMask(double* seqdata,	double* expdata, double* support, double* mask,
 						int startiter, int numiter, int ndim,
@@ -135,13 +140,13 @@ void RAAR(double* seqdata,	double* expdata, double* support, double* mask,
 						double beta, int startiter, int numiter, int ndim,
 						double* rho_m1, int32_t* nn, double* residual, int32_t* citer_flow,
 						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog);
+						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, int numiter_relax);
 
 void HPR(double* seqdata,	double* expdata, double* support, double* mask,
 						double beta, int startiter, int numiter, int ndim,
 						double* rho_m1, int32_t* nn, double* residual, int32_t* citer_flow,
 						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog);
+						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, int numiter_relax);
 
 void CSHIO(double* seqdata,	double* expdata, double* support, double* mask,
 						double beta, int startiter, int numiter, int ndim, double cs_p, double* epsilon, double cs_d, double cs_eta, int32_t relax,
@@ -152,18 +157,35 @@ void CSHIO(double* seqdata,	double* expdata, double* support, double* mask,
 void HIOMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
 						double gammaHWHM, int gammaRS, int numiterRL, int startiterRL, int waititerRL, int zex, int zey, int zez,
 						double beta, int startiter, int numiter, int ndim,
-						double* rho_m1, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
+						double* rho_m1, double* pca_gamma_ft, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
 						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2);
+						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2, int accel);
+
+void ERMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
+						double gammaHWHM, int gammaRS, int numiterRL, int startiterRL, int waititerRL, int zex, int zey, int zez,
+						int startiter, int numiter, int ndim,
+						double* rho_m1, double* pca_gamma_ft, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
+						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
+						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2, int accel);
+
+void HPRMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
+						double gammaHWHM, int gammaRS, int numiterRL, int startiterRL, int waititerRL, int zex, int zey, int zez,
+						double beta, int startiter, int numiter, int ndim,
+						double* rho_m1, double* pca_gamma_ft, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
+						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
+						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2, int accel);
+
+void RAARMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
+						double gammaHWHM, int gammaRS, int numiterRL, int startiterRL, int waititerRL, int zex, int zey, int zez,
+						double beta, int startiter, int numiter, int ndim,
+						double* rho_m1, double* pca_gamma_ft, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
+						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
+						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2, int accel);
 
 void MaskedSetPCAmplitudes( double* seqdata, double* expdata, double* itnsty, double* mask, int32_t* nn );
 void lorentz_ft_fill( double* data, int32_t* nn, double gammaHWHM );
 void SumArray( double* data, int32_t* nn, double* sum );
 
-void update_gamma(double* expdata, double* rho, double* rhom1, double* gamma, double* mask, int32_t ndim, int32_t* nn, int32_t* nnh, 
-	int32_t* citer_flow, int numiter, double* residualRL, double* pca_Idm_iter, double* pca_Idmdiv_iter,	double* pca_IdmdivId_iter, 
-	double* tmpdata1, double* tmpdata2, fftw_plan* torecip, fftw_plan* toreal, PyThreadState* tstate, PyObject* updatelog2);
-	
 void divide_I_Id_iter( double* expdata, double* pca_Idm_iter, double* mask, double* pca_Idmdiv_iter, int32_t* nn);
 void CopySquare( double* rho, double* itnsty, int32_t* nn);
 void make_Id_iter( double* rho, double* rhom1, double* pca_Id_iter, int32_t* nn);
@@ -204,6 +226,8 @@ void CopyPhase(double* data1, double* data2, int32_t* nn);
 void ZeroArray(double* data, int32_t* nn);
 
 void ScaleArray(double* data,  int32_t* nn, double factor);
+
+void ExponentArray(double* data, int32_t* nn, int factor);
  
 void ConstantArray(double* data, int32_t* nn, double real, double imag);
  
@@ -228,6 +252,9 @@ void SetAmplitudes(double* seqdata, double* expdata, int32_t* nn);
 void Calculate_Delp(double* rho_m1, double* rho_m2, double* elp, int32_t* nn, double p, double epsilon);
  
 void MaskedSetAmplitudesRelaxed(double* seqdata, double* expdata, double* mask, double res, int32_t relax, int32_t* nn);
+
+void MaskedSetAmplitudesIterRelaxed(	double* seqdata,	double* expdata,	double* mask,	int32_t* nn,	int niter, int iter);
+void MaskedSetPCAmplitudesIterRelaxed(	double* seqdata,	double* expdata, double* itnsty, double* mask, int32_t* nn, int niter, int iter);
  
 inline int32_t modclip(int32_t idx, int32_t idx_max); 
 

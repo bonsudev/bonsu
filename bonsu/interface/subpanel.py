@@ -867,6 +867,35 @@ class SubPanel_Memory_to_Array(wx.Panel):
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+class SubPanel_Load_PSF(wx.Panel):
+	treeitem = {'name':  'Load PSF' , 'type': 'algsstart'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_Load_PSF(selff, pipelineitem)
+	def __init__(self, parent):
+		self.start_iter = None
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = wx.StaticText(self, label="Load Fourier Tranform of Point Spread function.")
+		title.SetToolTipString("Load Fourier Tranform of Point Spread function.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+class SubPanel_Save_PSF(wx.Panel):
+	treeitem = {'name':  'Save PSF' , 'type': 'operpost'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_Save_PSF(selff, pipelineitem)
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = wx.StaticText(self, label="Save Fourier Tranform of Point Spread function.")
+		title.SetToolTipString("Save Fourier Tranform of Point Spread function.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.output_filename = TextPanelObject(self, "Output File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
 class SubPanel_Crop_Pad(wx.Panel):
 	treeitem = {'name':  'Crop Pad' , 'type': 'operpre'}
 	def sequence(self, selff, pipelineitem):
@@ -1570,8 +1599,25 @@ class SubPanel_ERMask(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 5))
+		self.chkbox = wx.CheckBox(self, -1, 'Relax Modulus Constraint', size=(200, 20))
+		self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
+		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
+		self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		self.niter_relax.Disable()
+		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.chkbox.Hide()
+		self.niter_relax.Hide()
+		vbox.Add((-1, 5))
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+	def OnCheck(self,event):
+		if self.chkbox.GetValue():
+			self.niter_relax.Enable()
+		else:
+			self.niter_relax.Disable()
 class SubPanel_RAAR(wx.Panel):
 	treeitem = {'name':  'RAAR' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
@@ -1597,8 +1643,25 @@ class SubPanel_RAAR(wx.Panel):
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 5))
+		self.chkbox = wx.CheckBox(self, -1, 'Relax Modulus Constraint', size=(200, 20))
+		self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
+		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
+		self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		self.niter_relax.Disable()
+		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.chkbox.Hide()
+		self.niter_relax.Hide()
+		vbox.Add((-1, 5))
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+	def OnCheck(self,event):
+		if self.chkbox.GetValue():
+			self.niter_relax.Enable()
+		else:
+			self.niter_relax.Disable()
 class SubPanel_HPR(wx.Panel):
 	treeitem = {'name':  'HPR' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
@@ -1624,8 +1687,25 @@ class SubPanel_HPR(wx.Panel):
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 5))
+		self.chkbox = wx.CheckBox(self, -1, 'Relax Modulus Constraint', size=(200, 20))
+		self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
+		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
+		self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		self.niter_relax.Disable()
+		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.chkbox.Hide()
+		self.niter_relax.Hide()
+		vbox.Add((-1, 5))
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+	def OnCheck(self,event):
+		if self.chkbox.GetValue():
+			self.niter_relax.Enable()
+		else:
+			self.niter_relax.Disable()
 class SubPanel_HIOMask(wx.Panel):
 	treeitem = {'name':  'HIO Mask' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
@@ -1651,8 +1731,25 @@ class SubPanel_HIOMask(wx.Panel):
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 5))
+		self.chkbox = wx.CheckBox(self, -1, 'Relax Modulus Constraint', size=(200, 20))
+		self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
+		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
+		self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		self.niter_relax.Disable()
+		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.chkbox.Hide()
+		self.niter_relax.Hide()
+		vbox.Add((-1, 5))
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+	def OnCheck(self,event):
+		if self.chkbox.GetValue():
+			self.niter_relax.Enable()
+		else:
+			self.niter_relax.Disable()
 class SubPanel_POER(wx.Panel):
 	treeitem = {'name':  'POER' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
@@ -2071,6 +2168,7 @@ class SubPanel_CSHIO(wx.Panel):
 class SubPanel_HIOMaskPC(wx.Panel):
 	treeitem = {'name':  'HIO Mask PC' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
+		Sequence_PhasePC(selff, pipelineitem)
 		Sequence_HIOMaskPC(selff, pipelineitem)
 	def __init__(self, parent):
 		self.pipeline_id = 1042
@@ -2103,6 +2201,184 @@ class SubPanel_HIOMaskPC(wx.Panel):
 		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
 		self.niterrlinterval.label.SetToolTipString("")
 		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
+		vbox.Add(self.accel, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.gammaHWHM = SpinnerObject(self,"Initial PSF HWHM: ",MAX_INT_16,0.0,0.01,0.2,300,100)
+		self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		vbox.Add(self.gammaHWHM, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		title1 = wx.StaticText(self, label="Zero fill end dimensions of PSF:")
+		vbox.Add(title1 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.zedims=[{} for i in range(3)]
+		self.zedims[0] = SpinnerObject(self,"i",MAX_INT_16,0,1,9,20,60)
+		self.zedims[1] = SpinnerObject(self,"j",MAX_INT_16,0,1,9,20,60)
+		self.zedims[2] = SpinnerObject(self,"k",MAX_INT_16,0,1,9,20,60)
+		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		hbox1.Add(self.zedims[0], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox1.Add(self.zedims[1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox1.Add(self.zedims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.chkbox_reset_gamma = wx.CheckBox(self, -1, 'Reset PSF before the next R-L optimisation cycle.', (50, 10))
+		self.chkbox_reset_gamma.SetValue(False)
+		vbox.Add(self.chkbox_reset_gamma, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+class SubPanel_ERMaskPC(wx.Panel):
+	treeitem = {'name':  'ER Mask PC' , 'type': 'algs'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_PhasePC(selff, pipelineitem)
+		Sequence_ERMaskPC(selff, pipelineitem)
+	def __init__(self, parent):
+		self.pipeline_id = 1052
+		self.start_iter = None
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = wx.StaticText(self, label="ER Mask Algorithm with Partial Coherence Optimisation")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.exp_amps = TextPanelObject(self, "Exp Amp: ", "",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.exp_amps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.chkbox_sqrt_expamps = wx.CheckBox(self, -1, 'Square Root Exp Amp', (50, 10))
+		self.chkbox_sqrt_expamps.SetValue(True)
+		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
+		self.niterrlpre.label.SetToolTipString("Number of ER iterations performed before R-L Optimisation occurs.")
+		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
+		self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
+		self.niterrlinterval.label.SetToolTipString("")
+		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
+		vbox.Add(self.accel, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.gammaHWHM = SpinnerObject(self,"Initial PSF HWHM: ",MAX_INT_16,0.0,0.01,0.2,300,100)
+		self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		vbox.Add(self.gammaHWHM, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		title1 = wx.StaticText(self, label="Zero fill end dimensions of PSF:")
+		vbox.Add(title1 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.zedims=[{} for i in range(3)]
+		self.zedims[0] = SpinnerObject(self,"i",MAX_INT_16,0,1,9,20,60)
+		self.zedims[1] = SpinnerObject(self,"j",MAX_INT_16,0,1,9,20,60)
+		self.zedims[2] = SpinnerObject(self,"k",MAX_INT_16,0,1,9,20,60)
+		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		hbox1.Add(self.zedims[0], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox1.Add(self.zedims[1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox1.Add(self.zedims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.chkbox_reset_gamma = wx.CheckBox(self, -1, 'Reset PSF before the next R-L optimisation cycle.', (50, 10))
+		self.chkbox_reset_gamma.SetValue(False)
+		vbox.Add(self.chkbox_reset_gamma, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+class SubPanel_HPRMaskPC(wx.Panel):
+	treeitem = {'name':  'HPR PC' , 'type': 'algs'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_PhasePC(selff, pipelineitem)
+		Sequence_HPRMaskPC(selff, pipelineitem)
+	def __init__(self, parent):
+		self.pipeline_id = 1062
+		self.start_iter = None
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = wx.StaticText(self, label="HPR Algorithm with Partial Coherence Optimisation")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.exp_amps = TextPanelObject(self, "Exp Amp: ", "",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.exp_amps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.chkbox_sqrt_expamps = wx.CheckBox(self, -1, 'Square Root Exp Amp', (50, 10))
+		self.chkbox_sqrt_expamps.SetValue(True)
+		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
+		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
+		self.niterrlpre.label.SetToolTipString("Number of HPR iterations performed before R-L Optimisation occurs.")
+		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
+		self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
+		self.niterrlinterval.label.SetToolTipString("")
+		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
+		vbox.Add(self.accel, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.gammaHWHM = SpinnerObject(self,"Initial PSF HWHM: ",MAX_INT_16,0.0,0.01,0.2,300,100)
+		self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		vbox.Add(self.gammaHWHM, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		title1 = wx.StaticText(self, label="Zero fill end dimensions of PSF:")
+		vbox.Add(title1 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.zedims=[{} for i in range(3)]
+		self.zedims[0] = SpinnerObject(self,"i",MAX_INT_16,0,1,9,20,60)
+		self.zedims[1] = SpinnerObject(self,"j",MAX_INT_16,0,1,9,20,60)
+		self.zedims[2] = SpinnerObject(self,"k",MAX_INT_16,0,1,9,20,60)
+		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		hbox1.Add(self.zedims[0], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox1.Add(self.zedims[1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox1.Add(self.zedims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.chkbox_reset_gamma = wx.CheckBox(self, -1, 'Reset PSF before the next R-L optimisation cycle.', (50, 10))
+		self.chkbox_reset_gamma.SetValue(False)
+		vbox.Add(self.chkbox_reset_gamma, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+class SubPanel_RAARMaskPC(wx.Panel):
+	treeitem = {'name':  'RAAR PC' , 'type': 'algs'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_PhasePC(selff, pipelineitem)
+		Sequence_RAARMaskPC(selff, pipelineitem)
+	def __init__(self, parent):
+		self.pipeline_id = 1072
+		self.start_iter = None
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = wx.StaticText(self, label="RAAR Algorithm with Partial Coherence Optimisation")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.exp_amps = TextPanelObject(self, "Exp Amp: ", "",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.exp_amps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.chkbox_sqrt_expamps = wx.CheckBox(self, -1, 'Square Root Exp Amp', (50, 10))
+		self.chkbox_sqrt_expamps.SetValue(True)
+		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
+		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
+		self.niterrlpre.label.SetToolTipString("Number of RAAR iterations performed before R-L Optimisation occurs.")
+		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
+		self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
+		self.niterrlinterval.label.SetToolTipString("")
+		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
+		vbox.Add(self.accel, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
 		self.gammaHWHM = SpinnerObject(self,"Initial PSF HWHM: ",MAX_INT_16,0.0,0.01,0.2,300,100)
 		self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
 		vbox.Add(self.gammaHWHM, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)

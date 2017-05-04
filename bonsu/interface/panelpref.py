@@ -31,6 +31,10 @@ class VisualDialog(wx.Dialog):
 		panelvisual.vtkpanel_holder.Show()
 		panelvisual.vtkpanel.Layout()
 		panelvisual.vtkpanel_holder.Layout()
+		if panelvisual.linewidget is not None:
+			self.linewidget_enabled = panelvisual.linewidget.GetEnabled()
+		if panelvisual.anglewidget is not None:
+			self.anglewiget_enabled = panelvisual.anglewidget.GetEnabled()
 		panelvisual.style = panelvisual.renWin.GetInteractorStyle()
 		from .render import wxVTKRenderWindowInteractor
 		self.renWin = wxVTKRenderWindowInteractor(self, wx.ID_ANY)
@@ -72,6 +76,20 @@ class VisualDialog(wx.Dialog):
 		except:
 			pass
 		panelvisual.renWinMain = None
+		panelvisual.renderers = panelvisual.renWin.GetRenderWindow().GetRenderers()
+		panelvisual.RefreshSceneCMD = panelvisual.renWin.Render
+		if panelvisual.linewidget is not None:
+			panelvisual.linewidget.SetInteractor(panelvisual.renWin)
+			panelvisual.linewidget.Modified()
+			if self.linewidget_enabled:
+				panelvisual.linewidget.SetEnabled(0)
+				panelvisual.linewidget.SetEnabled(1)
+		if panelvisual.anglewidget is not None:
+			panelvisual.anglewidget.SetInteractor(panelvisual.renWin)
+			panelvisual.anglewidget.Modified()
+			if self.anglewiget_enabled:
+				panelvisual.anglewidget.SetEnabled(0)
+				panelvisual.anglewidget.SetEnabled(1)
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add(self.renWin, 1, wx.EXPAND)
 		self.SetSizer(self.vbox)
@@ -86,6 +104,10 @@ class VisualDialog(wx.Dialog):
 		panelvisual.vtkpanel.Show()
 		panelvisual.vtkpanel.Layout()
 		panelvisual.Layout()
+		if panelvisual.linewidget is not None:
+			self.linewidget_enabled = panelvisual.linewidget.GetEnabled()
+		if panelvisual.anglewidget is not None:
+			self.anglewiget_enabled = panelvisual.anglewidget.GetEnabled()
 		from .render import wxVTKRenderWindowInteractor
 		panelvisual.renWinMain = wxVTKRenderWindowInteractor(panelvisual.vtkpanel, wx.ID_ANY)
 		panelvisual.renWinMain.Enable(1)
@@ -123,7 +145,21 @@ class VisualDialog(wx.Dialog):
 		except:
 			pass
 		del self.renWin
+		panelvisual.renderers = panelvisual.renWin.GetRenderWindow().GetRenderers()
 		self.GetParent().Refresh()
+		panelvisual.RefreshSceneCMD = panelvisual.renWin.Render
+		if panelvisual.linewidget is not None:
+			panelvisual.linewidget.SetInteractor(panelvisual.renWin)
+			panelvisual.linewidget.Modified()
+			if self.linewidget_enabled:
+				panelvisual.linewidget.SetEnabled(0)
+				panelvisual.linewidget.SetEnabled(1)
+		if panelvisual.anglewidget is not None:
+			panelvisual.anglewidget.SetInteractor(panelvisual.renWin)
+			panelvisual.anglewidget.Modified()
+			if self.anglewiget_enabled:
+				panelvisual.anglewidget.SetEnabled(0)
+				panelvisual.anglewidget.SetEnabled(1)
 		panelvisual.ancestor.GetParent().visualdialog_docked = True
 		del self.GetParent().visualdialog
 		self.Destroy()

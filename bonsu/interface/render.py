@@ -186,6 +186,8 @@ class wxVTKRenderWindowInteractor(baseClass):
 	def OnMouseCaptureLost(self, event):
 		if _useCapture and self._own_mouse:
 			self._own_mouse = False
+	def OnMouseZone(self, obj):
+		self.mouse_zone = obj
 	def OnPaint(self,event):
 		event.Skip()
 		dc = wx.PaintDC(self)
@@ -227,7 +229,7 @@ class wxVTKRenderWindowInteractor(baseClass):
 			event.ControlDown(), event.ShiftDown(), chr(0), 0, None)
 		self._Iren.LeaveEvent()
 	def OnButtonDown(self,event):
-		if self.mouse_zone:
+		if self.mouse_zone and event.LeftDown():
 			self.left_mouse_down = True
 			return
 		event.Skip()

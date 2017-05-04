@@ -21,13 +21,10 @@
 #############################################
 */
 
-/* #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION */
-
 #include <Python.h>
-#include "arrayobject.h"
-/* #include <numpy/arrayobject.h> */
+#define NPY_NO_DEPRECATED_API NPY_1_10_API_VERSION
+#include <numpy/arrayobject.h> 
 #include "prfftwmodule.h"
-
 
 
 
@@ -195,13 +192,17 @@ PyObject* prfftw_wrap(PyObject *self, PyObject *args)
 	double *indata;
 	npy_intp *dims;
 	int32_t nn[3];
-	PyObject *arg1=NULL;
+	PyArrayObject *arg1=NULL;
 	int drctn;
 	if (!PyArg_ParseTuple(args, "Oi", &arg1, &drctn)) return NULL;
 	indata = (double*) PyArray_DATA(arg1);
 	dims = PyArray_DIMS(arg1);
 	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
-	if (wrap_array(indata, nn, drctn))
+	int wrapped;
+	Py_BEGIN_ALLOW_THREADS;
+	wrapped = wrap_array(indata, nn, drctn);
+	Py_END_ALLOW_THREADS;
+	if (wrapped)
 	{
 		PyErr_NoMemory();
 		return PyErr_Occurred();
@@ -212,10 +213,10 @@ PyObject* prfftw_wrap(PyObject *self, PyObject *args)
 
 PyObject* prfftw_hio(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL;
 	double beta; int startiter, numiter, ndim;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -282,10 +283,10 @@ PyObject* prfftw_hio(PyObject *self, PyObject *args)
 
 PyObject* prfftw_hiomask(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
-	double beta; int startiter, numiter, ndim;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	double beta; int startiter, numiter, ndim, numiter_relax;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -303,10 +304,10 @@ PyObject* prfftw_hiomask(PyObject *self, PyObject *args)
 	double *visual_amp_recip;
 	double *visual_phase_recip;
 
-    if (!PyArg_ParseTuple(args, "OOOOdiiiOOOOOOOOOOO",
+    if (!PyArg_ParseTuple(args, "OOOOdiiiOOOOOOOOOOOi",
 		&arg1, &arg2, &arg3, &arg4, &beta, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
-		&arg16, &updatereal, &updaterecip, &updatelog))
+		&arg16, &updatereal, &updaterecip, &updatelog, &numiter_relax))
         return NULL;
 	
 	seqdata = (double*) PyArray_DATA(arg1);
@@ -346,7 +347,7 @@ PyObject* prfftw_hiomask(PyObject *self, PyObject *args)
 	HIOMask(seqdata, expdata, support, mask, beta, startiter, numiter,
 					ndim, rho_m1, nn, residual, citer_flow, visual_amp_real,
 					visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog);
+					updatereal, updaterecip, updatelog, numiter_relax);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -354,10 +355,10 @@ PyObject* prfftw_hiomask(PyObject *self, PyObject *args)
 
 PyObject* prfftw_hioplus(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
 	double beta; int startiter, numiter, ndim;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -426,11 +427,11 @@ PyObject* prfftw_hioplus(PyObject *self, PyObject *args)
 
 PyObject* prfftw_pchio(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
 	double beta; int startiter, numiter, ndim;
 	double phasemax, phasemin;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -501,11 +502,11 @@ PyObject* prfftw_pchio(PyObject *self, PyObject *args)
 
 PyObject* prfftw_pgchio(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL, *arg5=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL, *arg5=NULL;
 	double beta; int startiter, numiter, ndim;
 	double phasemax, phasemin, qx, qy, qz;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -578,10 +579,10 @@ PyObject* prfftw_pgchio(PyObject *self, PyObject *args)
 
 PyObject* prfftw_er(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL;
 	int startiter, numiter, ndim;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -648,10 +649,10 @@ PyObject* prfftw_er(PyObject *self, PyObject *args)
 
 PyObject* prfftw_ermask(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
-	int startiter, numiter, ndim;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	int startiter, numiter, ndim, numiter_relax;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -669,10 +670,10 @@ PyObject* prfftw_ermask(PyObject *self, PyObject *args)
 	double *visual_amp_recip;
 	double *visual_phase_recip;
 
-    if (!PyArg_ParseTuple(args, "OOOOiiiOOOOOOOOOOO",
+    if (!PyArg_ParseTuple(args, "OOOOiiiOOOOOOOOOOOi",
 		&arg1, &arg2, &arg3, &arg4, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
-		&arg16, &updatereal, &updaterecip, &updatelog))
+		&arg16, &updatereal, &updaterecip, &updatelog, &numiter_relax))
         return NULL;
 	
 	seqdata = (double*) PyArray_DATA(arg1);
@@ -712,7 +713,7 @@ PyObject* prfftw_ermask(PyObject *self, PyObject *args)
 	ERMask(seqdata, expdata, support, mask, startiter, numiter,
 					ndim, rho_m1, nn, residual, citer_flow, visual_amp_real,
 					visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog);
+					updatereal, updaterecip, updatelog, numiter_relax);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -720,10 +721,10 @@ PyObject* prfftw_ermask(PyObject *self, PyObject *args)
 
 PyObject* prfftw_poermask(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
 	int startiter, numiter, ndim;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -792,10 +793,10 @@ PyObject* prfftw_poermask(PyObject *self, PyObject *args)
 
 PyObject* prfftw_raar(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
-	double beta; int startiter, numiter, ndim;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	double beta; int startiter, numiter, ndim, numiter_relax;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -813,10 +814,10 @@ PyObject* prfftw_raar(PyObject *self, PyObject *args)
 	double *visual_amp_recip;
 	double *visual_phase_recip;
 
-    if (!PyArg_ParseTuple(args, "OOOOdiiiOOOOOOOOOOO",
+    if (!PyArg_ParseTuple(args, "OOOOdiiiOOOOOOOOOOOi",
 		&arg1, &arg2, &arg3, &arg4, &beta, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
-		&arg16, &updatereal, &updaterecip, &updatelog))
+		&arg16, &updatereal, &updaterecip, &updatelog, &numiter_relax))
         return NULL;
 	
 	seqdata = (double*) PyArray_DATA(arg1);
@@ -856,7 +857,7 @@ PyObject* prfftw_raar(PyObject *self, PyObject *args)
 	RAAR(seqdata, expdata, support, mask, beta, startiter, numiter,
 					ndim, rho_m1, nn, residual, citer_flow, visual_amp_real,
 					visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog);
+					updatereal, updaterecip, updatelog, numiter_relax);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -864,10 +865,10 @@ PyObject* prfftw_raar(PyObject *self, PyObject *args)
 
 PyObject* prfftw_hpr(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
-	double beta; int startiter, numiter, ndim;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	double beta; int startiter, numiter, ndim, numiter_relax;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -885,10 +886,10 @@ PyObject* prfftw_hpr(PyObject *self, PyObject *args)
 	double *visual_amp_recip;
 	double *visual_phase_recip;
 
-    if (!PyArg_ParseTuple(args, "OOOOdiiiOOOOOOOOOOO",
+    if (!PyArg_ParseTuple(args, "OOOOdiiiOOOOOOOOOOOi",
 		&arg1, &arg2, &arg3, &arg4, &beta, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
-		&arg16, &updatereal, &updaterecip, &updatelog))
+		&arg16, &updatereal, &updaterecip, &updatelog, &numiter_relax))
         return NULL;
 	
 	seqdata = (double*) PyArray_DATA(arg1);
@@ -928,7 +929,7 @@ PyObject* prfftw_hpr(PyObject *self, PyObject *args)
 	HPR(seqdata, expdata, support, mask, beta, startiter, numiter,
 					ndim, rho_m1, nn, residual, citer_flow, visual_amp_real,
 					visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog);
+					updatereal, updaterecip, updatelog, numiter_relax);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -936,12 +937,12 @@ PyObject* prfftw_hpr(PyObject *self, PyObject *args)
 
 PyObject* prfftw_cshio(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
 	double beta; int startiter, numiter, ndim;
 	double cs_p,cs_d,cs_eta; int32_t relax;
-	PyObject *arg5=NULL, *arg6=NULL, *arg7=NULL;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
+	PyArrayObject *arg5=NULL, *arg6=NULL, *arg7=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog;
 	
 	double *seqdata;
@@ -1020,21 +1021,23 @@ PyObject* prfftw_cshio(PyObject *self, PyObject *args)
 
 PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
 	double gammaHWHM; int gammaRS, numiterRL, startiterRL, waititerRL;
 	int zex, zey, zez;
 	double beta; int startiter, numiter, ndim;
-	PyObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
+	PyArrayObject *psf=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
 	PyObject *updatereal, *updaterecip, *updatelog, *updatelog2;
+	int accel;
 
-    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiidiiiOOOOOOOOOOOOO",
+    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiidiiiOOOOOOOOOOOOOOi",
 		&arg1, &arg2, &arg3, &arg4,
 		&gammaHWHM, &gammaRS, &numiterRL, &startiterRL, &waititerRL,
 		&zex, &zey, &zez,
 		&beta, &startiter, &numiter, &ndim,
-		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
-		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2))
+		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
+		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
         return NULL;
 	
 	double *seqdata = (double*) PyArray_DATA(arg1);
@@ -1043,6 +1046,7 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 	double *mask = (double*) PyArray_DATA(arg4);
 	
 	double *rho_m1 = (double*) PyArray_DATA(arg9);
+	double *pca_gamma_ft = (double*) PyArray_DATA(psf);
 	int32_t *nn = (int32_t*) PyArray_DATA(arg10);
 	double *residual = (double*) PyArray_DATA(arg11);
 	double *residualRL = (double*) PyArray_DATA(arg12);
@@ -1068,6 +1072,11 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "function must be callable");
 		return NULL;
 	}
+	if (!PyCallable_Check(updatelog2))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
 	Py_XINCREF(updatereal);
 	Py_XINCREF(updaterecip);
 	Py_XINCREF(updatelog);
@@ -1077,9 +1086,234 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 					gammaHWHM, gammaRS, numiterRL, startiterRL, waititerRL,
 					zex, zey, zez,
 					beta, startiter, numiter, ndim, 
-					rho_m1, nn, residual, residualRL, citer_flow,
+					rho_m1, pca_gamma_ft, nn, residual, residualRL, citer_flow,
 					visual_amp_real, visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog, updatelog2);
+					updatereal, updaterecip, updatelog, updatelog2, accel);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* prfftw_ermaskpc(PyObject *self, PyObject *args)
+{
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	double gammaHWHM; int gammaRS, numiterRL, startiterRL, waititerRL;
+	int zex, zey, zez;
+	int startiter, numiter, ndim;
+	PyArrayObject *psf=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
+	PyObject *updatereal, *updaterecip, *updatelog, *updatelog2;
+	int accel;
+
+    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiiiiiOOOOOOOOOOOOOOi",
+		&arg1, &arg2, &arg3, &arg4,
+		&gammaHWHM, &gammaRS, &numiterRL, &startiterRL, &waititerRL,
+		&zex, &zey, &zez,
+		&startiter, &numiter, &ndim,
+		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
+		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
+        return NULL;
+	
+	double *seqdata = (double*) PyArray_DATA(arg1);
+	double *expdata = (double*) PyArray_DATA(arg2);
+	double *support = (double*) PyArray_DATA(arg3);
+	double *mask = (double*) PyArray_DATA(arg4);
+	
+	double *rho_m1 = (double*) PyArray_DATA(arg9);
+	double *pca_gamma_ft = (double*) PyArray_DATA(psf);
+	int32_t *nn = (int32_t*) PyArray_DATA(arg10);
+	double *residual = (double*) PyArray_DATA(arg11);
+	double *residualRL = (double*) PyArray_DATA(arg12);
+	int32_t *citer_flow = (int32_t*) PyArray_DATA(arg13);
+	
+	double *visual_amp_real = (double*) PyArray_DATA(arg14);
+	double *visual_phase_real = (double*) PyArray_DATA(arg15);
+	double *visual_amp_recip = (double*) PyArray_DATA(arg16);
+	double *visual_phase_recip = (double*) PyArray_DATA(arg17);
+	
+	if (!PyCallable_Check(updatereal))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updaterecip))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updatelog))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updatelog2))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	Py_XINCREF(updatereal);
+	Py_XINCREF(updaterecip);
+	Py_XINCREF(updatelog);
+	Py_XINCREF(updatelog2);
+	
+	ERMaskPC(seqdata, expdata, support, mask,
+					gammaHWHM, gammaRS, numiterRL, startiterRL, waititerRL,
+					zex, zey, zez,
+					startiter, numiter, ndim, 
+					rho_m1, pca_gamma_ft, nn, residual, residualRL, citer_flow,
+					visual_amp_real, visual_phase_real, visual_amp_recip, visual_phase_recip,
+					updatereal, updaterecip, updatelog, updatelog2, accel);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* prfftw_hprmaskpc(PyObject *self, PyObject *args)
+{
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	double gammaHWHM; int gammaRS, numiterRL, startiterRL, waititerRL;
+	int zex, zey, zez;
+	double beta; int startiter, numiter, ndim;
+	PyArrayObject *psf=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
+	PyObject *updatereal, *updaterecip, *updatelog, *updatelog2;
+	int accel;
+
+    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiidiiiOOOOOOOOOOOOOOi",
+		&arg1, &arg2, &arg3, &arg4,
+		&gammaHWHM, &gammaRS, &numiterRL, &startiterRL, &waititerRL,
+		&zex, &zey, &zez,
+		&beta, &startiter, &numiter, &ndim,
+		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
+		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
+        return NULL;
+	
+	double *seqdata = (double*) PyArray_DATA(arg1);
+	double *expdata = (double*) PyArray_DATA(arg2);
+	double *support = (double*) PyArray_DATA(arg3);
+	double *mask = (double*) PyArray_DATA(arg4);
+	
+	double *rho_m1 = (double*) PyArray_DATA(arg9);
+	double *pca_gamma_ft = (double*) PyArray_DATA(psf);
+	int32_t *nn = (int32_t*) PyArray_DATA(arg10);
+	double *residual = (double*) PyArray_DATA(arg11);
+	double *residualRL = (double*) PyArray_DATA(arg12);
+	int32_t *citer_flow = (int32_t*) PyArray_DATA(arg13);
+	
+	double *visual_amp_real = (double*) PyArray_DATA(arg14);
+	double *visual_phase_real = (double*) PyArray_DATA(arg15);
+	double *visual_amp_recip = (double*) PyArray_DATA(arg16);
+	double *visual_phase_recip = (double*) PyArray_DATA(arg17);
+	
+	if (!PyCallable_Check(updatereal))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updaterecip))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updatelog))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updatelog2))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	Py_XINCREF(updatereal);
+	Py_XINCREF(updaterecip);
+	Py_XINCREF(updatelog);
+	Py_XINCREF(updatelog2);
+	
+	HPRMaskPC(seqdata, expdata, support, mask,
+					gammaHWHM, gammaRS, numiterRL, startiterRL, waititerRL,
+					zex, zey, zez,
+					beta, startiter, numiter, ndim, 
+					rho_m1, pca_gamma_ft, nn, residual, residualRL, citer_flow,
+					visual_amp_real, visual_phase_real, visual_amp_recip, visual_phase_recip,
+					updatereal, updaterecip, updatelog, updatelog2, accel);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* prfftw_raarmaskpc(PyObject *self, PyObject *args)
+{
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	double gammaHWHM; int gammaRS, numiterRL, startiterRL, waititerRL;
+	int zex, zey, zez;
+	double beta; int startiter, numiter, ndim;
+	PyArrayObject *psf=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
+	PyObject *updatereal, *updaterecip, *updatelog, *updatelog2;
+	int accel;
+
+    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiidiiiOOOOOOOOOOOOOOi",
+		&arg1, &arg2, &arg3, &arg4,
+		&gammaHWHM, &gammaRS, &numiterRL, &startiterRL, &waititerRL,
+		&zex, &zey, &zez,
+		&beta, &startiter, &numiter, &ndim,
+		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
+		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
+        return NULL;
+	
+	double *seqdata = (double*) PyArray_DATA(arg1);
+	double *expdata = (double*) PyArray_DATA(arg2);
+	double *support = (double*) PyArray_DATA(arg3);
+	double *mask = (double*) PyArray_DATA(arg4);
+	
+	double *rho_m1 = (double*) PyArray_DATA(arg9);
+	double *pca_gamma_ft = (double*) PyArray_DATA(psf);
+	int32_t *nn = (int32_t*) PyArray_DATA(arg10);
+	double *residual = (double*) PyArray_DATA(arg11);
+	double *residualRL = (double*) PyArray_DATA(arg12);
+	int32_t *citer_flow = (int32_t*) PyArray_DATA(arg13);
+	
+	double *visual_amp_real = (double*) PyArray_DATA(arg14);
+	double *visual_phase_real = (double*) PyArray_DATA(arg15);
+	double *visual_amp_recip = (double*) PyArray_DATA(arg16);
+	double *visual_phase_recip = (double*) PyArray_DATA(arg17);
+	
+	if (!PyCallable_Check(updatereal))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updaterecip))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updatelog))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updatelog2))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	Py_XINCREF(updatereal);
+	Py_XINCREF(updaterecip);
+	Py_XINCREF(updatelog);
+	Py_XINCREF(updatelog2);
+	
+	RAARMaskPC(seqdata, expdata, support, mask,
+					gammaHWHM, gammaRS, numiterRL, startiterRL, waititerRL,
+					zex, zey, zez,
+					beta, startiter, numiter, ndim, 
+					rho_m1, pca_gamma_ft, nn, residual, residualRL, citer_flow,
+					visual_amp_real, visual_phase_real, visual_amp_recip, visual_phase_recip,
+					updatereal, updaterecip, updatelog, updatelog2, accel);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1087,7 +1321,7 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 
 PyObject* prfftw_threshold(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL;
+	PyArrayObject *arg1=NULL;
 	double threshmin, threshmax, newval;
 	int i;
 	npy_intp *dims;
@@ -1103,6 +1337,7 @@ PyObject* prfftw_threshold(PyObject *self, PyObject *args)
 	
 	dims = PyArray_DIMS(arg1);
 	data = (double*) PyArray_DATA(arg1);
+	Py_BEGIN_ALLOW_THREADS;
 	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
 	len =  (int64_t) nn[0] * nn[1] * nn[2];
     for(i=0; i<len; i++)
@@ -1114,13 +1349,14 @@ PyObject* prfftw_threshold(PyObject *self, PyObject *args)
 			data[2*i+1] = 0.0;
 		}
 	}
+	Py_END_ALLOW_THREADS;
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
 PyObject* prfftw_rangereplace(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL;
+	PyArrayObject *arg1=NULL;
 	double threshmin, threshmax, newval_out, newval_in;
 	int i;
 	npy_intp *dims;
@@ -1135,6 +1371,7 @@ PyObject* prfftw_rangereplace(PyObject *self, PyObject *args)
 	
 	dims = PyArray_DIMS(arg1);
 	data = (double*) PyArray_DATA(arg1);
+	Py_BEGIN_ALLOW_THREADS;
 	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
 	len =  (int64_t) nn[0] * nn[1] * nn[2];
     for(i=0; i<len; i++)
@@ -1151,11 +1388,12 @@ PyObject* prfftw_rangereplace(PyObject *self, PyObject *args)
 			data[2*i+1] = 0.0;
 		}
 	}
+	Py_END_ALLOW_THREADS;
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
-void gaussian_fill(PyObject* arg1, double sigma)
+void gaussian_fill(PyArrayObject* arg1, double sigma)
 {
 	int i,j,k,ii;
 	npy_intp *dims = PyArray_DIMS(arg1);
@@ -1180,9 +1418,55 @@ void gaussian_fill(PyObject* arg1, double sigma)
 	}
 }
 
+void lorentz_ft_fill
+(
+	double* data,
+	int32_t* nn,
+	double gammaHWHM
+)
+{
+	int i,j,k,ii;
+	double r;
+	double rmax = sqrt((double) (nn[0]/2)*(nn[0]/2)+(nn[1]/2)*(nn[1]/2)+(nn[2]/2)*(nn[2]/2));
+	for(i=0;i<nn[0]; i++)
+	{
+		for(j=0;j<nn[1]; j++)
+		{
+			for(k=0;k<nn[2]; k++)
+			{
+				ii = (k+nn[2]*(j+nn[1]*i));
+				r = sqrt((double) (i-nn[0]/2)*(i-nn[0]/2)+(j-nn[1]/2)*(j-nn[1]/2)+(k-nn[2]/2)*(k-nn[2]/2));
+				
+				data[2*ii] = fabs(gammaHWHM) * exp(- fabs(gammaHWHM)*r) / 
+				(-2.0 *( exp(-fabs(gammaHWHM)*rmax) - 1.0)) ;
+				data[2*ii+1] = 0.0;
+			}
+		}
+	}
+}
+
+PyObject* prfftw_lorentz_ft_fill(PyObject *self, PyObject *args)
+{
+	PyArrayObject *arg1=NULL;
+	npy_intp *dims;
+	double *indata;
+	int32_t ndim;
+	int32_t nn[3];
+	double gammaHWHM;
+    if (!PyArg_ParseTuple(args, "Od", &arg1, &gammaHWHM)) return NULL;
+	indata = (double*) PyArray_DATA(arg1);
+	dims = PyArray_DIMS(arg1);
+	ndim = PyArray_NDIM(arg1);
+	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
+	lorentz_ft_fill(indata, nn, gammaHWHM);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
 PyObject* prfftw_gaussian_fill(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL;
+	PyArrayObject *arg1=NULL;
 	double sigma;
     if (!PyArg_ParseTuple(args, "Od", &arg1, &sigma)) return NULL;
 	gaussian_fill(arg1, sigma);
@@ -1193,7 +1477,7 @@ PyObject* prfftw_gaussian_fill(PyObject *self, PyObject *args)
 
 PyObject* prfftw_gaussian_filter(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL;
 	double sigma;
 	int i;
 	double valp[2] = {0.0,0.0};
@@ -1371,8 +1655,8 @@ int convolve2(double* indata1, double* indata2, int32_t ndim, int32_t* dims)
 	data2 = (double*) fftw_malloc( 2*len * sizeof(double));
 	if (!data1 || !data2)
 	{
-		free(data1);
-		free(data2);
+		fftw_free(data1);
+		fftw_free(data2);
 		return 1;
 	}
 	FFTPlan( &torecip, &toreal, data1, nn2, ndim );
@@ -1380,14 +1664,14 @@ int convolve2(double* indata1, double* indata2, int32_t ndim, int32_t* dims)
 	fftw_destroy_plan( torecip );
 	fftw_destroy_plan( toreal );
 	fftw_cleanup();
-	free(data1);
-	free(data2);
+	fftw_free(data1);
+	fftw_free(data2);
 	return 0;
 }
 
 PyObject* prfftw_convolve2(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL;
 	double *indata1;
 	double *indata2;
 	npy_intp *dims;
@@ -1399,7 +1683,11 @@ PyObject* prfftw_convolve2(PyObject *self, PyObject *args)
 	dims = PyArray_DIMS(arg1);
 	ndim = PyArray_NDIM(arg1);
 	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
-	if (convolve2(indata1, indata2, ndim, nn))
+	int convolved;
+	Py_BEGIN_ALLOW_THREADS;
+	convolved = convolve2(indata1, indata2, ndim, nn);
+	Py_END_ALLOW_THREADS;
+	if (convolved)
 	{
 		PyErr_NoMemory();
 		return PyErr_Occurred();
@@ -1448,8 +1736,8 @@ int convolve(double* indata1, double* indata2, int32_t ndim, int32_t* dims)
 	double* data2 = (double*) fftw_malloc( 2*len * sizeof(double));
 	if (!data1 || !data2)
 	{
-		free(data1);
-		free(data2);
+		fftw_free(data1);
+		fftw_free(data2);
 		return 1;
 	}
 	FFTPlan( &torecip, &toreal, data1, nn, ndim );
@@ -1483,14 +1771,14 @@ int convolve(double* indata1, double* indata2, int32_t ndim, int32_t* dims)
 	fftw_destroy_plan( torecip );
 	fftw_destroy_plan( toreal );
 	fftw_cleanup();
-	free(data1);
-	free(data2);
+	fftw_free(data1);
+	fftw_free(data2);
 	return 0;
 }
 
 PyObject* prfftw_convolve(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL, *arg2=NULL;
+	PyArrayObject *arg1=NULL, *arg2=NULL;
 	double *indata1;
 	double *indata2;
 	npy_intp *dims;
@@ -1502,7 +1790,11 @@ PyObject* prfftw_convolve(PyObject *self, PyObject *args)
 	dims = PyArray_DIMS(arg1);
 	ndim = PyArray_NDIM(arg1);
 	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
-	if (convolve(indata1, indata2, ndim, nn))
+	int convolved;
+	Py_BEGIN_ALLOW_THREADS;
+	convolved = convolve(indata1, indata2, ndim, nn);
+	Py_END_ALLOW_THREADS;
+	if (convolved)
 	{
 		PyErr_NoMemory();
 		return PyErr_Occurred();
@@ -1513,7 +1805,7 @@ PyObject* prfftw_convolve(PyObject *self, PyObject *args)
 
 PyObject* prfftw_fft(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL;
+	PyArrayObject *arg1=NULL;
 	int space;
 	double *indata;
 	npy_intp *dims;
@@ -1628,7 +1920,7 @@ void conj_reflect(double* data, int32_t* nn)
 
 PyObject* prfftw_conj_reflect(PyObject *self, PyObject *args)
 {
-	PyObject *arg1=NULL;
+	PyArrayObject *arg1=NULL;
 	double *indata;
 	npy_intp *dims;
 	int32_t nn[3];
@@ -1647,8 +1939,8 @@ PyObject* prfftw_medianfilter(PyObject *self, PyObject *args)
 	double *data2;
 	npy_intp *dims;
 	int32_t nn[3];
-	PyObject *arg1=NULL;
-	PyObject *arg2=NULL;
+	PyArrayObject *arg1=NULL;
+	PyArrayObject *arg2=NULL;
 	int kx, ky, kz;
 	double maxerr;
 	if (!PyArg_ParseTuple(args, "OOiiid", &arg1, &arg2, &kx, &ky, &kz, &maxerr)) return NULL;
@@ -1656,7 +1948,9 @@ PyObject* prfftw_medianfilter(PyObject *self, PyObject *args)
 	data2 = (double*) PyArray_DATA(arg2);
 	dims = PyArray_DIMS(arg1);
 	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
+	Py_BEGIN_ALLOW_THREADS;
 	MedianReplaceVoxel(data1, data2, nn, kx, ky, kz, maxerr);
+	Py_END_ALLOW_THREADS;
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1667,8 +1961,8 @@ PyObject* prfftw_blanklinereplace(PyObject *self, PyObject *args)
 	double *data2;
 	npy_intp *dims;
 	int32_t nn[3];
-	PyObject *arg1=NULL;
-	PyObject *arg2=NULL;
+	PyArrayObject *arg1=NULL;
+	PyArrayObject *arg2=NULL;
 	int kx, ky, kz;
 	int x1, x2, y1, y2, z1, z2;
 	if (!PyArg_ParseTuple(args, "OOiiiiiiiii", &arg1, &arg2, &kx, &ky, &kz, &x1, &x2, &y1, &y2, &z1, &z2)) return NULL;
@@ -1680,6 +1974,9 @@ PyObject* prfftw_blanklinereplace(PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
+
+
 
 static PyMethodDef prfftwMethods[] = {
 	{"fft",  prfftw_fft, METH_VARARGS,
@@ -1700,6 +1997,8 @@ static PyMethodDef prfftwMethods[] = {
      "Filter array with a gaussian distribution."},
 	{"gaussian_fill",  prfftw_gaussian_fill, METH_VARARGS,
      "Fill array with gaussian distribution."},
+	 {"lorentzftfill",  prfftw_lorentz_ft_fill, METH_VARARGS,
+     "Fill array with lorentzian distribution, FT and wrapped."},
 	{"rangereplace",  prfftw_rangereplace, METH_VARARGS,
      "Replace values outside and inside a range."},
 	{"threshold",  prfftw_threshold, METH_VARARGS,
@@ -1728,6 +2027,12 @@ static PyMethodDef prfftwMethods[] = {
      "HIO algorithm without mask."},
 	{"hiomaskpc",  prfftw_hiomaskpc, METH_VARARGS,
      "HIO algorithm with partial coherence optimisation."},
+	 {"ermaskpc",  prfftw_ermaskpc, METH_VARARGS,
+     "ER algorithm with partial coherence optimisation."},
+	 {"hprmaskpc",  prfftw_hprmaskpc, METH_VARARGS,
+     "HPR algorithm with partial coherence optimisation."},
+	 {"raarmaskpc",  prfftw_raarmaskpc, METH_VARARGS,
+     "RAAR algorithm with partial coherence optimisation."},
     {NULL, NULL, 0, NULL}
 };
 

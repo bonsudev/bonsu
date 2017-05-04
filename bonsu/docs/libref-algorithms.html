@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Library Reference – Phasing Algorithms &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</title>
+    <title>Library Reference – Phasing Algorithms &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.1',
+        VERSION:     '2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation" href="bonsu.html" />
+    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation" href="bonsu.html" />
     <link rel="up" title="Library Reference" href="libref.html" />
     <link rel="next" title="Library Reference - Phasing Operations" href="libref-posterior.html" />
     <link rel="prev" title="Library Reference - Functions" href="libref-prephasing.html" /> 
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="libref-prephasing.html" title="Library Reference - Functions"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -76,9 +76,18 @@
 <dd>User provided path string to the input NumPy file.</dd>
 </dl>
 </div>
+<div class="section" id="load-psf">
+<h2>Load PSF<a class="headerlink" href="#load-psf" title="Permalink to this headline">¶</a></h2>
+<p id="index-4">Initialises or replaces the internally stored <code class="docutils literal"><span class="pre">Point</span> <span class="pre">Spread</span> <span class="pre">Function</span> <span class="pre">data</span></code> with the supplied array. This is typically used before a <a class="reference internal" href="#libref-algorithms-hiomaskpc"><span>partial coherence</span></a> phase retrieval algorithm commences.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="docutils">
+<dt><strong>Input file</strong></dt>
+<dd>User provided path string to the input NumPy file.</dd>
+</dl>
+</div>
 <div class="section" id="hybrid-input-output-hio">
 <h2>Hybrid Input-Output (HIO)<a class="headerlink" href="#hybrid-input-output-hio" title="Permalink to this headline">¶</a></h2>
-<p id="index-4">Fienup&#8217;s hybrid input-output (HIO) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1364/AO.21.002758">here</a> for more details.</p>
+<p id="index-5">Fienup&#8217;s hybrid input-output (HIO) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1364/AO.21.002758">here</a> for more details.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Exp amp</strong></dt>
@@ -301,7 +310,7 @@
 </dl>
 </div>
 <div class="section" id="hio-mask-with-partial-coherence-optimisation-hio-mask-pc">
-<h2>HIO Mask with Partial Coherence Optimisation (HIO Mask PC)<a class="headerlink" href="#hio-mask-with-partial-coherence-optimisation-hio-mask-pc" title="Permalink to this headline">¶</a></h2>
+<span id="libref-algorithms-hiomaskpc"></span><h2>HIO Mask with Partial Coherence Optimisation (HIO Mask PC)<a class="headerlink" href="#hio-mask-with-partial-coherence-optimisation-hio-mask-pc" title="Permalink to this headline">¶</a></h2>
 <p>HIO Mask with Partial Coherence Optimisation (HIO Mask PC) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1038/ncomms1994">here</a> for more details.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
@@ -315,6 +324,105 @@
 <dd>User provided path string to the <code class="docutils literal"><span class="pre">mask</span></code> data NumPy file.</dd>
 <dt><strong>Beta</strong></dt>
 <dd>Relaxation parameter for the HIO algorithm.</dd>
+<dt><strong>Iterations</strong></dt>
+<dd>Total number of iterations for which the algorithm will perform (not including R-L iterations).</dd>
+<dt><strong>Iterations preceding R-L optimisation</strong></dt>
+<dd>Interval of iterations after which Richardson-Lucy optimisation commences in successive cycles.</dd>
+<dt><strong>R-L iterations</strong></dt>
+<dd>Number of R-L iterations performed at each cycle.</dd>
+<dt><strong>Interval between R-L optimisation</strong></dt>
+<dd>Number of iterations between each Richardson-Lucy optimisation cycle.</dd>
+</dl>
+<p><strong>Initial PSF HWHM</strong>
+The initial point spread function (PSF) optimised using the R-L algorithm is a normal Lorentzian function (<img class="math" src="_images/math/ee422829cd9dfe2379ca8eab1c9143e0c2668b8a.png" alt="\frac{1}{\pi}\frac{a}{x^2 + a^2}"/>). The user can specify the HWHM of its Fourier transform (<img class="math" src="_images/math/fca139a44f55cdd4d116dc176e07a2ef60d88930.png" alt="e^{-a |x |}"/>).</p>
+<dl class="docutils">
+<dt><strong>Zero fill end dimensions of PSF</strong></dt>
+<dd>After optimising the PSF with the R-L algorithm, voxels upto a distance {i,j,k} from the perimeter of the PSF array are set to zero. This can improve stability of the algorithm.</dd>
+<dt><strong>Reset PSF</strong></dt>
+<dd>Resets the PSF to a normal Lorentzian function before the next R-L optimisation cycle.</dd>
+</dl>
+</div>
+<div class="section" id="er-mask-with-partial-coherence-optimisation-er-mask-pc">
+<h2>ER Mask with Partial Coherence Optimisation (ER Mask PC)<a class="headerlink" href="#er-mask-with-partial-coherence-optimisation-er-mask-pc" title="Permalink to this headline">¶</a></h2>
+<p>ER Mask with Partial Coherence Optimisation (ER Mask PC) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1038/ncomms1994">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="docutils">
+<dt><strong>Exp amp</strong></dt>
+<dd>User provided path string to the input experimental data NumPy file.</dd>
+<dt><strong>Square Root Exp amp</strong></dt>
+<dd>Causes the <code class="docutils literal"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</dd>
+<dt><strong>Support</strong></dt>
+<dd>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span>support</span></a> data NumPy file.</dd>
+<dt><strong>Mask</strong></dt>
+<dd>User provided path string to the <code class="docutils literal"><span class="pre">mask</span></code> data NumPy file.</dd>
+<dt><strong>Beta</strong></dt>
+<dd>Relaxation parameter for the ER algorithm.</dd>
+<dt><strong>Iterations</strong></dt>
+<dd>Total number of iterations for which the algorithm will perform (not including R-L iterations).</dd>
+<dt><strong>Iterations preceding R-L optimisation</strong></dt>
+<dd>Interval of iterations after which Richardson-Lucy optimisation commences in successive cycles.</dd>
+<dt><strong>R-L iterations</strong></dt>
+<dd>Number of R-L iterations performed at each cycle.</dd>
+<dt><strong>Interval between R-L optimisation</strong></dt>
+<dd>Number of iterations between each Richardson-Lucy optimisation cycle.</dd>
+</dl>
+<p><strong>Initial PSF HWHM</strong>
+The initial point spread function (PSF) optimised using the R-L algorithm is a normal Lorentzian function (<img class="math" src="_images/math/ee422829cd9dfe2379ca8eab1c9143e0c2668b8a.png" alt="\frac{1}{\pi}\frac{a}{x^2 + a^2}"/>). The user can specify the HWHM of its Fourier transform (<img class="math" src="_images/math/fca139a44f55cdd4d116dc176e07a2ef60d88930.png" alt="e^{-a |x |}"/>).</p>
+<dl class="docutils">
+<dt><strong>Zero fill end dimensions of PSF</strong></dt>
+<dd>After optimising the PSF with the R-L algorithm, voxels upto a distance {i,j,k} from the perimeter of the PSF array are set to zero. This can improve stability of the algorithm.</dd>
+<dt><strong>Reset PSF</strong></dt>
+<dd>Resets the PSF to a normal Lorentzian function before the next R-L optimisation cycle.</dd>
+</dl>
+</div>
+<div class="section" id="hpr-mask-with-partial-coherence-optimisation-hpr-mask-pc">
+<h2>HPR Mask with Partial Coherence Optimisation (HPR Mask PC)<a class="headerlink" href="#hpr-mask-with-partial-coherence-optimisation-hpr-mask-pc" title="Permalink to this headline">¶</a></h2>
+<p>HPR Mask with Partial Coherence Optimisation (HPR Mask PC) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1038/ncomms1994">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="docutils">
+<dt><strong>Exp amp</strong></dt>
+<dd>User provided path string to the input experimental data NumPy file.</dd>
+<dt><strong>Square Root Exp amp</strong></dt>
+<dd>Causes the <code class="docutils literal"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</dd>
+<dt><strong>Support</strong></dt>
+<dd>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span>support</span></a> data NumPy file.</dd>
+<dt><strong>Mask</strong></dt>
+<dd>User provided path string to the <code class="docutils literal"><span class="pre">mask</span></code> data NumPy file.</dd>
+<dt><strong>Beta</strong></dt>
+<dd>Relaxation parameter for the HPR algorithm.</dd>
+<dt><strong>Iterations</strong></dt>
+<dd>Total number of iterations for which the algorithm will perform (not including R-L iterations).</dd>
+<dt><strong>Iterations preceding R-L optimisation</strong></dt>
+<dd>Interval of iterations after which Richardson-Lucy optimisation commences in successive cycles.</dd>
+<dt><strong>R-L iterations</strong></dt>
+<dd>Number of R-L iterations performed at each cycle.</dd>
+<dt><strong>Interval between R-L optimisation</strong></dt>
+<dd>Number of iterations between each Richardson-Lucy optimisation cycle.</dd>
+</dl>
+<p><strong>Initial PSF HWHM</strong>
+The initial point spread function (PSF) optimised using the R-L algorithm is a normal Lorentzian function (<img class="math" src="_images/math/ee422829cd9dfe2379ca8eab1c9143e0c2668b8a.png" alt="\frac{1}{\pi}\frac{a}{x^2 + a^2}"/>). The user can specify the HWHM of its Fourier transform (<img class="math" src="_images/math/fca139a44f55cdd4d116dc176e07a2ef60d88930.png" alt="e^{-a |x |}"/>).</p>
+<dl class="docutils">
+<dt><strong>Zero fill end dimensions of PSF</strong></dt>
+<dd>After optimising the PSF with the R-L algorithm, voxels upto a distance {i,j,k} from the perimeter of the PSF array are set to zero. This can improve stability of the algorithm.</dd>
+<dt><strong>Reset PSF</strong></dt>
+<dd>Resets the PSF to a normal Lorentzian function before the next R-L optimisation cycle.</dd>
+</dl>
+</div>
+<div class="section" id="raar-mask-with-partial-coherence-optimisation-raar-mask-pc">
+<h2>RAAR Mask with Partial Coherence Optimisation (RAAR Mask PC)<a class="headerlink" href="#raar-mask-with-partial-coherence-optimisation-raar-mask-pc" title="Permalink to this headline">¶</a></h2>
+<p>RAAR Mask with Partial Coherence Optimisation (RAAR Mask PC) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1038/ncomms1994">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="docutils">
+<dt><strong>Exp amp</strong></dt>
+<dd>User provided path string to the input experimental data NumPy file.</dd>
+<dt><strong>Square Root Exp amp</strong></dt>
+<dd>Causes the <code class="docutils literal"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</dd>
+<dt><strong>Support</strong></dt>
+<dd>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span>support</span></a> data NumPy file.</dd>
+<dt><strong>Mask</strong></dt>
+<dd>User provided path string to the <code class="docutils literal"><span class="pre">mask</span></code> data NumPy file.</dd>
+<dt><strong>Beta</strong></dt>
+<dd>Relaxation parameter for the RAAR algorithm.</dd>
 <dt><strong>Iterations</strong></dt>
 <dd>Total number of iterations for which the algorithm will perform (not including R-L iterations).</dd>
 <dt><strong>Iterations preceding R-L optimisation</strong></dt>
@@ -376,6 +484,7 @@ The initial point spread function (PSF) optimised using the R-L algorithm is a n
 <li><a class="reference internal" href="#">Library Reference – Phasing Algorithms</a><ul>
 <li><a class="reference internal" href="#random-start">Random Start</a></li>
 <li><a class="reference internal" href="#array-start">Array Start</a></li>
+<li><a class="reference internal" href="#load-psf">Load PSF</a></li>
 <li><a class="reference internal" href="#hybrid-input-output-hio">Hybrid Input-Output (HIO)</a></li>
 <li><a class="reference internal" href="#hio-mask">HIO Mask</a></li>
 <li><a class="reference internal" href="#hio-plus">HIO Plus</a></li>
@@ -388,6 +497,9 @@ The initial point spread function (PSF) optimised using the R-L algorithm is a n
 <li><a class="reference internal" href="#hybrid-projection-reflection-hpr">Hybrid Projection Reflection (HPR)</a></li>
 <li><a class="reference internal" href="#compressed-sensing-hio-cshio">Compressed Sensing HIO (CSHIO)</a></li>
 <li><a class="reference internal" href="#hio-mask-with-partial-coherence-optimisation-hio-mask-pc">HIO Mask with Partial Coherence Optimisation (HIO Mask PC)</a></li>
+<li><a class="reference internal" href="#er-mask-with-partial-coherence-optimisation-er-mask-pc">ER Mask with Partial Coherence Optimisation (ER Mask PC)</a></li>
+<li><a class="reference internal" href="#hpr-mask-with-partial-coherence-optimisation-hpr-mask-pc">HPR Mask with Partial Coherence Optimisation (HPR Mask PC)</a></li>
+<li><a class="reference internal" href="#raar-mask-with-partial-coherence-optimisation-raar-mask-pc">RAAR Mask with Partial Coherence Optimisation (RAAR Mask PC)</a></li>
 <li><a class="reference internal" href="#shrink-wrap">Shrink Wrap</a></li>
 </ul>
 </li>
@@ -428,7 +540,7 @@ The initial point spread function (PSF) optimised using the R-L algorithm is a n
         <li class="right" >
           <a href="libref-prephasing.html" title="Library Reference - Functions"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &raquo;</li> 
       </ul>
     </div>

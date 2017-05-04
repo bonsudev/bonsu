@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Library Reference - Phasing Operations &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</title>
+    <title>Library Reference - Phasing Operations &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.1',
+        VERSION:     '2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation" href="bonsu.html" />
+    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation" href="bonsu.html" />
     <link rel="up" title="Library Reference" href="libref.html" />
     <link rel="prev" title="Library Reference – Phasing Algorithms" href="libref-algorithms.html" /> 
   </head>
@@ -38,7 +38,7 @@
         <li class="right" >
           <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -77,9 +77,18 @@
 <dd>User provided path string for the output CSV file.</dd>
 </dl>
 </div>
+<div class="section" id="save-psf">
+<h2>Save PSF<a class="headerlink" href="#save-psf" title="Permalink to this headline">¶</a></h2>
+<p id="index-3">Saves the internally stored <code class="docutils literal"><span class="pre">Point</span> <span class="pre">Spread</span> <span class="pre">Function</span> <span class="pre">data</span></code> to a NumPy file.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="docutils">
+<dt><strong>Output file</strong></dt>
+<dd>User provided path string for the ouput NumPy file.</dd>
+</dl>
+</div>
 <div class="section" id="co-ordinate-transformation">
 <span id="libref-posterior-coord"></span><h2>Co-ordinate Transformation<a class="headerlink" href="#co-ordinate-transformation" title="Permalink to this headline">¶</a></h2>
-<p id="index-3">Perform a co-ordinate transformation on either <code class="docutils literal"><span class="pre">sequence</span> <span class="pre">data</span></code> or an input array.  The transformation is derived using the principles as demonstrated by <a class="reference external" href="https://www.ideals.illinois.edu/handle/2142/8859/browse?value=Pfeifer%2C+Mark+August&amp;type=author">Pfeifer, M.A.</a> .
+<p id="index-4">Perform a co-ordinate transformation on either <code class="docutils literal"><span class="pre">sequence</span> <span class="pre">data</span></code> or an input array.  The transformation is derived using the principles as demonstrated by <a class="reference external" href="https://www.ideals.illinois.edu/handle/2142/8859/browse?value=Pfeifer%2C+Mark+August&amp;type=author">Pfeifer, M.A.</a> .
 The generated co-ordinate array is stored internally and is accessible for  <a class="reference internal" href="libref-prephasing.html#libref-prephasing-viewobject"><span>viewing</span></a> with the <a class="reference internal" href="usage.html#usage-arrays"><span>memory array</span></a> keyword <code class="docutils literal"><span class="pre">memorycoords</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
@@ -120,7 +129,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
 </div>
 <div class="section" id="save-co-ordinates">
 <h2>Save Co-ordinates<a class="headerlink" href="#save-co-ordinates" title="Permalink to this headline">¶</a></h2>
-<p id="index-4">Save <code class="docutils literal"><span class="pre">Co-ordinates</span></code> data to a NumPy file.</p>
+<p id="index-5">Save <code class="docutils literal"><span class="pre">Co-ordinates</span></code> data to a NumPy file.</p>
 <dl class="docutils">
 <dt><strong>Output file</strong></dt>
 <dd>User provided path string for the output NumPy file.</dd>
@@ -147,6 +156,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
 <li><a class="reference internal" href="#save-sequence">Save Sequence</a></li>
 <li><a class="reference internal" href="#save-support">Save Support</a></li>
 <li><a class="reference internal" href="#save-residual">Save Residual</a></li>
+<li><a class="reference internal" href="#save-psf">Save PSF</a></li>
 <li><a class="reference internal" href="#co-ordinate-transformation">Co-ordinate Transformation</a></li>
 <li><a class="reference internal" href="#save-co-ordinates">Save Co-ordinates</a></li>
 </ul>
@@ -182,7 +192,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
         <li class="right" >
           <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.1 documentation</a> &raquo;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &raquo;</li> 
       </ul>
     </div>

@@ -123,6 +123,7 @@ modprfftw = Extension('prfftw',
 					sources = ['bonsu/lib/prfftwmodule.cxx', 'bonsu/lib/prfftwhiomask.cxx', 'bonsu/lib/prfftwhio.cxx', 'bonsu/lib/libphase.cxx',
 										'bonsu/lib/prfftwhioplus.cxx', 'bonsu/lib/prfftwpchiomask.cxx', 'bonsu/lib/prfftwpgchiomask.cxx','bonsu/lib/prfftwer.cxx',
 										'bonsu/lib/prfftwermask.cxx','bonsu/lib/prfftwpoermask.cxx','bonsu/lib/prfftwraar.cxx','bonsu/lib/prfftwhpr.cxx',
+										'bonsu/lib/prfftwermaskpc.cxx','bonsu/lib/prfftwhprmaskpc.cxx','bonsu/lib/prfftwraarmaskpc.cxx',
 										'bonsu/lib/prfftwcshio.cxx','bonsu/lib/prfftwhiomaskpc.cxx','bonsu/lib/median.cxx', 'bonsu/lib/blanklinereplace.cxx' ])
 setup\
 (

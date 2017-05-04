@@ -24,123 +24,7 @@
 #include <Python.h>
 #include "prfftwmodule.h"
 
-void mask_gamma(double* gamma, int32_t* nn, int32_t* maskdim)
-{
-	int ii, i, j, k;
-	if( nn[0] ==1 )  maskdim[0] = 1;
-	if( nn[1] ==1 )  maskdim[1] = 1;
-	if( nn[2] ==1 )  maskdim[2] = 1;
-	int32_t nns[3] = {0, 0, 0};
-	int32_t nne[3] = {0, 0, 0};
-	nns[0] = (nn[0] - maskdim[0])/2;
-	nne[0] = nns[0] + maskdim[0];
-	nns[1] = (nn[1] - maskdim[1])/2;
-	nne[1] = nns[1] + maskdim[1];
-	nns[2] = (nn[2] - maskdim[2])/2;
-	nne[2] = nns[2] + maskdim[2];
-	
-	for(i=0;i<nn[0]; i++)
-	{
-		for(j=0;j<nn[1]; j++)
-		{
-			for(k=0;k<nn[2]; k++)
-			{
-				if( i >= nns[0] && i  < nne[0] &&
-					j >= nns[1] && j < nne[1] &&
-					k >= nns[2] && k < nne[2] )
-				{
-					ii = (k+nn[2]*(j+nn[1]*i));
-					gamma[2*ii] = 0.0;
-					gamma[2*ii+1] = 0.0;
-				}
-			}
-		}
-	}
-}
-
-void make_Id_iter( double* rho, double* rhom1, double* pca_Id_iter, int32_t* nn)
-{
-	int len = nn[0] * nn[1] * nn[2];
-	int i;
-	double itnsty, itnstym1;
-	for(i=0; i<len; i++)
-	{
-		itnsty = rho[2*i]*rho[2*i] + rho[2*i+1]*rho[2*i+1];
-		itnstym1 = rhom1[2*i]*rhom1[2*i] + rhom1[2*i+1]*rhom1[2*i+1];
-		pca_Id_iter[2*i] = (2.0*itnsty - itnstym1);
-		pca_Id_iter[2*i+1] = 0.0;
-	}
-}
-
-void CopySquare( double* rho, double* itnsty, int32_t* nn)
-{
-	int len = nn[0] * nn[1] * nn[2];
-	int i;
-	for(i=0; i<len; i++)
-	{
-		itnsty[2*i] = (rho[2*i]*rho[2*i] + rho[2*i+1]*rho[2*i+1]);
-		itnsty[2*i+1] = 0.0;
-	}
-}
-
-void divide_I_Id_iter( double* expdata, double* pca_Idm_iter, double* mask, double* pca_Idmdiv_iter, int32_t* nn)
-{
-	int len = nn[0] * nn[1] * nn[2];
-	int i;
-	double val1[2] = {0.0,0.0};
-	double val2[2] = {0.0,0.0};
-	double divis = 0;
-	for(i=0; i<len; i++)
-	{
-		
-		val1[0] = (expdata[2*i]*expdata[2*i] + expdata[2*i+1]*expdata[2*i+1]);
-		val1[1] = 0.0;
-		val2[0] = pca_Idm_iter[2*i];
-		val2[1] = pca_Idm_iter[2*i+1];
-		divis = val2[0]*val2[0] + val2[1]*val2[1];
-		if(divis >1e-150)
-		{
-			pca_Idmdiv_iter[2*i] = (val1[0]*val2[0] + val1[1]*val2[1])/divis;
-			pca_Idmdiv_iter[2*i+1] =(val1[1]*val2[0] - val1[0]*val2[1])/divis;
-		}
-		else
-		{
-			pca_Idmdiv_iter[2*i] = 0.0;
-			pca_Idmdiv_iter[2*i+1] = 0.0;
-		}
-	}
-}
-
-
-void MaskedSetPCAmplitudes
-(
-	double* seqdata,
-	double* expdata,
-	double* itnsty,
-	double* mask,
-	int32_t* nn
-)
-{
-	int64_t len = (int64_t) nn[0] * nn[1] * nn[2];
-	int64_t i;
-	double expamp, pcamp, amp, phase;
-	for(i=0; i<len; i++)
-	{
-		if (mask[2*i] > 1e-6)
-		{
-			expamp = sqrt( expdata[2*i]*expdata[2*i] +
-						expdata[2*i+1]*expdata[2*i+1]);
-			amp = sqrt( seqdata[2*i]*seqdata[2*i] +
-						seqdata[2*i+1]*seqdata[2*i+1]);
-			pcamp = sqrt(sqrt( itnsty[2*i]*itnsty[2*i] + itnsty[2*i+1]*itnsty[2*i+1] ));
-			phase = atan2(seqdata[2*i+1], seqdata[2*i]);
-			seqdata[2*i] = (expamp*amp/pcamp)*cos(phase);
-			seqdata[2*i+1] = (expamp*amp/pcamp)*sin(phase);
-		}
-	}
-}
-
-void HIOMaskPC
+void RAARMaskPC
 (
 	double* seqdata,
 	double* expdata,
@@ -357,18 +241,12 @@ void HIOMaskPC
 				SumArray(pca_gamma_ft, nn, &gamma_sum);
 				ScaleArray(pca_gamma_ft, nn, (1.0/gamma_sum));
 			}
-			
-			
-			
-			
-			
+
 			gamma_count = 1;
 			
 			
 			CopyArray( seqdata, pca_rho_m1_ft, nn );
 		}
-		
-		
 		
 		
 		if( citer_flow[5] > 0 && update_count_recip == citer_flow[5] ) 
@@ -406,7 +284,7 @@ void HIOMaskPC
 		residual[iter] = (double) ( (double) res/sos);
 		
 		SumOfSquares( seqdata, nn, &sos1);
-		RS_HIO(seqdata, rho_m1, support, nn, beta );
+		RS_RAAR(seqdata, rho_m1, support, nn, beta );
 		SumOfSquares( seqdata, nn, &sos2 );
 		norm = sqrt( (double) sos1/sos2 );
 		ScaleArray( seqdata, nn, norm );

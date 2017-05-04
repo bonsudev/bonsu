@@ -64,7 +64,8 @@ def HIOMask\
 		self,
 		beta,
 		startiter,
-		numiter
+		numiter,
+		numiter_relax
 	):
 	def updatereal():
 		wx.CallAfter(self.ancestor.GetPage(1).UpdateReal,)
@@ -95,7 +96,7 @@ def HIOMask\
 	hiomask(seqdata,expdata,support, mask,\
 	beta,startiter,numiter,ndim,rho_m1,nn,residual,citer_flow,\
 	visual_amp_real,visual_phase_real,visual_amp_recip,visual_phase_recip,\
-	updatereal,updaterecip, updatelog)
+	updatereal,updaterecip, updatelog, numiter_relax)
 def HIOPlus\
 	(
 		self,
@@ -226,7 +227,8 @@ def HIOMaskPC\
 	niterrlinterval,
 	gammaHWHM,
 	zex, zey, zez,
-	reset_gamma
+	reset_gamma,
+	accel
 	):
 	def updatereal():
 		wx.CallAfter(self.ancestor.GetPage(1).UpdateReal,)
@@ -258,12 +260,16 @@ def HIOMaskPC\
 	visual_amp_recip = self.visual_amp_recip
 	visual_phase_real = self.visual_phase_real
 	visual_phase_recip = self.visual_phase_recip
-	rho_m1 = numpy.array( seqdata, copy=True, dtype=numpy.cdouble)
+	try:
+		rho_m1 = numpy.array( seqdata, copy=True, dtype=numpy.cdouble)
+	except MemoryError:
+		self.ancestor.GetPage(0).queue_info.put("HIO Mask PC: Could not load array. Insufficient memory.")
+		return
 	nn=numpy.asarray( seqdata.shape, numpy.int32 )
 	ndim=int(seqdata.ndim)
 	from ..lib.prfftw import hiomaskpc
 	hiomaskpc(seqdata,expdata,support, mask,\
 	gammaHWHM, reset_gamma, niterrl, niterrlpre, niterrlinterval, zex, zey, zez,
-	beta,startiter,numiter,ndim,rho_m1,nn,residual,residualRL,citer_flow,\
+	beta,startiter,numiter,ndim,rho_m1,self.psf,nn,residual,residualRL,citer_flow,\
 	visual_amp_real,visual_phase_real,visual_amp_recip,visual_phase_recip,\
-	updatereal,updaterecip, updatelog, updatelog2)
+	updatereal,updaterecip, updatelog, updatelog2, accel)
