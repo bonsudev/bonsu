@@ -30,6 +30,9 @@ from .action import *
 from .common import getmaincollapseBitmap
 from .common import getmainexpandBitmap
 from .common import getmainhoverBitmap
+from .common import OptIconSize
+from .common import CheckListCtrl
+from .common import IsNotWX4
 class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 	def __init__(self,parent):
 		self.ancestor = parent
@@ -48,16 +51,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.psf = None
 		self.residualRL = numpy.zeros((2), dtype=numpy.double)
 		self.coordarray = None
-		self.memory0 = None
-		self.memory1 = None
-		self.memory2 = None
-		self.memory3 = None
-		self.memory4 = None
-		self.memory5 = None
-		self.memory6 = None
-		self.memory7 = None
-		self.memory8 = None
-		self.memory9 = None
+		self.memory = {}
 		self.visual_amp_real = None
 		self.visual_phase_real = None
 		self.visual_support = None
@@ -111,10 +105,15 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 			limb= self.maintree.GetNextSibling(limb)
 		self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnActivateTreeItem)
 		self.maintree.Expand(self.operpre)
-		self.mainlist=wx.ListCtrl(self.panel1,-1,style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.LC_HRULES|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL, size=(180,1))
+		fontdc = wx.ScreenDC()
+		fontdc.SetFont(self.font)
+		fontw,fonth = fontdc.GetTextExtent(" ")
+		mainlistchksize = fonth
+		self.mainlist=CheckListCtrl(self.panel1, id=-1, bmpsize=(mainlistchksize,mainlistchksize), size=(180,1))
 		self.mainlist.SetFont(self.font)
-		self.ListColumn = self.mainlist.InsertColumn(0,'Pipeline of Operations', width = 200)
-		self.mainlist.Bind(wx.EVT_SIZE, self.OnListResize)
+		self.ListColumnTick = self.mainlist.InsertColumn(0,'Enabled', width=(2*mainlistchksize))
+		self.ListColumn = self.mainlist.InsertColumn(1,'Pipeline of Operations')
+		self.mainlist.Arrange()
 		self.mainlist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelectListItem)
 		self.mainlist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightDown)
 		self.mainlist.Bind(wx.EVT_KEY_DOWN, self.OnKeyListItem)
@@ -122,9 +121,15 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.vbox1 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox1.Add((-1,200))
 		self.spin_up = wx.BitmapButton(self.panel1, -1, getspinupBitmap(), size=(20, 50))
-		self.spin_up.SetToolTipString('Change item positon in list.')
+		if IsNotWX4():
+			self.spin_up.SetToolTipString('Change item positon in list.')
+		else:
+			self.spin_up.SetToolTip('Change item positon in list.')
 		self.spin_down = wx.BitmapButton(self.panel1, -1, getspindownBitmap(), size=(20, 50))
-		self.spin_down.SetToolTipString('Change item positon in list.')
+		if IsNotWX4():
+			self.spin_down.SetToolTipString('Change item positon in list.')
+		else:
+			self.spin_down.SetToolTip('Change item positon in list.')
 		self.vbox1.Add(self.spin_up)
 		self.vbox1.Add(self.spin_down)
 		self.Bind(wx.EVT_BUTTON, self.OnClickUp, self.spin_up)
@@ -142,19 +147,30 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.vbox.Add(self.splitter, 5,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.vbox.Add((-1, 5))
 		self.panel3 = wx.Panel(self,  style=wx.NO_BORDER)
+		buttonx = OptIconSize()
+		buttonsize = (2*buttonx,2*buttonx)
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
-		self.button_start = wx.BitmapButton(self.panel3, -1, getstart48Bitmap(), size=(70, 70))
-		self.button_start.SetToolTipString('Start pipline execution.')
+		self.button_start = wx.BitmapButton(self.panel3, -1, getstart48Bitmap(), size=buttonsize)
+		if IsNotWX4():
+			self.button_start.SetToolTipString('Start pipline execution.')
+		else:
+			self.button_start.SetToolTip('Start pipline execution.')
 		self.hbox_btn.Add(self.button_start)
 		self.Bind(wx.EVT_BUTTON, self.OnClickStart,self.button_start)
 		self.hbox_btn.Add((2, -1))
-		self.button_pause = wx.BitmapButton(self.panel3, -1, getpause48Bitmap(), size=(70, 70))
-		self.button_pause.SetToolTipString('Pause pipline execution.')
+		self.button_pause = wx.BitmapButton(self.panel3, -1, getpause48Bitmap(), size=buttonsize)
+		if IsNotWX4():
+			self.button_pause.SetToolTipString('Pause pipline execution.')
+		else:
+			self.button_pause.SetToolTip('Pause pipline execution.')
 		self.hbox_btn.Add(self.button_pause)
 		self.Bind(wx.EVT_BUTTON, self.OnClickPause,self.button_pause)
 		self.hbox_btn.Add((2, -1))
-		self.button_stop = wx.BitmapButton(self.panel3, -1, getstop48Bitmap(), size=(70, 70))
-		self.button_stop.SetToolTipString('Stop pipline execution.')
+		self.button_stop = wx.BitmapButton(self.panel3, -1, getstop48Bitmap(), size=buttonsize)
+		if IsNotWX4():
+			self.button_stop.SetToolTipString('Stop pipline execution.')
+		else:
+			self.button_stop.SetToolTip('Stop pipline execution.')
 		self.hbox_btn.Add(self.button_stop)
 		self.Bind(wx.EVT_BUTTON, self.OnClickStop,self.button_stop)
 		self.sbox1 = wx.StaticBox(self.panel3, label="Visualisation Options", style=wx.SUNKEN_BORDER)
@@ -178,16 +194,28 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		if sstextw > sschkw-25: sschkw = sstextw+35;
 		self.chkbox_amp_real = wx.CheckBox(self.panel3, -1, rstext, size=(rschkw, 25))
 		self.chkbox_amp_real.SetFont(self.font)
-		self.chkbox_amp_real.SetToolTipString("Visualise")
+		if IsNotWX4():
+			self.chkbox_amp_real.SetToolTipString("Visualise")
+		else:
+			self.chkbox_amp_real.SetToolTip("Visualise")
 		self.chkbox_amp_real.SetValue(True)
 		self.amp_real_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
-		self.amp_real_update_interval.value.SetToolTipString("Real space update interval")
+		if IsNotWX4():
+			self.amp_real_update_interval.value.SetToolTipString("Real space update interval")
+		else:
+			self.amp_real_update_interval.value.SetToolTip("Real space update interval")
 		self.chkbox_amp_recip = wx.CheckBox(self.panel3, -1, fstext, size=(fschkw, 25))
 		self.chkbox_amp_recip.SetFont(self.font)
-		self.chkbox_amp_recip.SetToolTipString("Visualise")
+		if IsNotWX4():
+			self.chkbox_amp_recip.SetToolTipString("Visualise")
+		else:
+			self.chkbox_amp_recip.SetToolTip("Visualise")
 		self.chkbox_amp_recip.SetValue(False)
 		self.amp_recip_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
-		self.amp_recip_update_interval.value.SetToolTipString("Fourier space update interval")
+		if IsNotWX4():
+			self.amp_recip_update_interval.value.SetToolTipString("Fourier space update interval")
+		else:
+			self.amp_recip_update_interval.value.SetToolTip("Fourier space update interval")
 		self.hbox_chk1.Add(self.chkbox_amp_real , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add(self.amp_real_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add((20, -1))
@@ -195,13 +223,22 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.hbox_chk1.Add(self.amp_recip_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.chkbox_support = wx.CheckBox(self.panel3, -1, sstext, size=(sschkw , 25))
 		self.chkbox_support.SetFont(self.font)
-		self.chkbox_support.SetToolTipString("Visualise")
+		if IsNotWX4():
+			self.chkbox_support.SetToolTipString("Visualise")
+		else:
+			self.chkbox_support.SetToolTip("Visualise")
 		self.chkbox_support.SetValue(True)
 		self.support_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
-		self.support_update_interval.value.SetToolTipString("Update interval")
+		if IsNotWX4():
+			self.support_update_interval.value.SetToolTipString("Update interval")
+		else:
+			self.support_update_interval.value.SetToolTip("Update interval")
 		self.chkbox_phase = wx.CheckBox(self.panel3, -1, 'Phase', size=(150, 25))
 		self.chkbox_phase.SetFont(self.font)
-		self.chkbox_phase.SetToolTipString("Visualise")
+		if IsNotWX4():
+			self.chkbox_phase.SetToolTipString("Visualise")
+		else:
+			self.chkbox_phase.SetToolTip("Visualise")
 		self.chkbox_phase.SetValue(False)
 		self.hbox_chk2.Add(self.chkbox_support , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk2.Add(self.support_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
@@ -212,8 +249,12 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.sbox2.SetFont(self.font)
 		self.vbox_thrd = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
 		self.nthreads = SpinnerObject(self.panel3,"",65535,1,1,1,5,90)
-		self.nthreads.value.SetToolTipString("Maximum number of FFTW threads")
-		self.nthreads.label.SetToolTipString("Maximum number of FFTW threads")
+		if IsNotWX4():
+			self.nthreads.value.SetToolTipString("Maximum number of FFTW threads")
+			self.nthreads.label.SetToolTipString("Maximum number of FFTW threads")
+		else:
+			self.nthreads.value.SetToolTip("Maximum number of FFTW threads")
+			self.nthreads.label.SetToolTip("Maximum number of FFTW threads")
 		self.vbox_thrd.Add(self.nthreads , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.vbox_thrd.Add((-1,25))
 		self.vbox_chk.Add(self.hbox_chk1)
@@ -269,7 +310,15 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 			else:
 				self.maintree.Expand(item)
 		if (item not in (self.operpre,self.algs,self.operpost)):
-			self.mainlist.InsertStringItem(itemcount,itemtext,itemcount)
+			if IsNotWX4():
+				mainlistidx = self.mainlist.InsertStringItem(itemcount,"")
+			else:
+				mainlistidx = self.mainlist.InsertItem(itemcount,"")
+			self.mainlist.CheckItem(mainlistidx)
+			if IsNotWX4():
+				self.mainlist.SetStringItem(mainlistidx, 1, itemtext)
+			else:
+				self.mainlist.SetItem(mainlistidx, 1, itemtext)
 			for item in self.subpanel_members:
 				if hasattr(item[1], 'treeitem'):
 					if item[1].treeitem['name'] == itemtext:
@@ -301,28 +350,54 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 			self.mainlist.SetItemState(next, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED )
 		event.Skip()
 	def OnSelectListItem(self, event):
-		self.CurrentListItem = event.m_itemIndex
+		if IsNotWX4():
+			self.CurrentListItem = event.m_itemIndex
+		else:
+			self.CurrentListItem = event.GetIndex()
 		if self.menu_place_holder.IsShown():
 			self.menu_place_holder.Hide()
-		name = self.mainlist.GetItemText(event.m_itemIndex)
+		if IsNotWX4():
+			name = self.mainlist.GetItemText(event.m_itemIndex)
+		else:
+			name = self.mainlist.GetItemText(event.GetIndex())
 		for  i in range(len(self.pipelineitems)):
 			if i == self.CurrentListItem: self.pipelineitems[i].Show();
 			else : self.pipelineitems[i].Hide()
 		self.Layout()
 		self.panel2.Layout()
 	def OnRightDown(self,event):
-		item = self.mainlist.HitTest(event.GetPosition())[0]
+		if IsNotWX4():
+			item = self.mainlist.HitTest(event.GetPosition())[0]
+		else:
+			item = self.mainlist.HitTest(event.GetPoint())[0]
 		if item > -1:
 			menu = wx.Menu()
-			item = wx.MenuItem(menu, wx.NewId(), "Delete")
-			menu.AppendItem(item)
-			self.CurrentListItem = event.m_itemIndex
-			self.Bind(wx.EVT_MENU, self.OnItem, item)
-			x,y = event.GetPosition()
-			mx,my = self.GetSize()
-			x= mx/4
+			if IsNotWX4():
+				self.CurrentListItem = event.m_itemIndex
+			else:
+				self.CurrentListItem = event.GetIndex()
+			itemup = wx.MenuItem(menu, wx.ID_UP, "Move up")
+			itemdel = wx.MenuItem(menu, wx.ID_DELETE, "Delete")
+			itemdown = wx.MenuItem(menu, wx.ID_DOWN, "Move Down")
+			if IsNotWX4():
+				menu.AppendItem(itemup)
+				menu.AppendItem(itemdel)
+				menu.AppendItem(itemdown)
+			else:
+				menu.Append(itemup)
+				menu.Append(itemdel)
+				menu.Append(itemdown)
+			self.Bind(wx.EVT_MENU, self.OnClickUp, itemup)
+			self.Bind(wx.EVT_MENU, self.OnItemDel, itemdel)
+			self.Bind(wx.EVT_MENU, self.OnClickDown, itemdown)
+			if IsNotWX4():
+				x,y = event.GetPosition()
+			else:
+				x,y = event.GetPoint().Get()
+			mx,my = self.hbox1.GetSize()
+			x= 3*mx/4
 			self.PopupMenu( menu, (x,y))
-	def OnItem(self, event):
+	def OnItemDel(self, event):
 		self.mainlist.DeleteItem(self.CurrentListItem)
 		self.pipelineitems[self.CurrentListItem].Hide()
 		self.pipelineitems.pop(self.CurrentListItem)
@@ -334,50 +409,68 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		itemcount = self.mainlist.GetItemCount()
 		if self.CurrentListItem <= 0:
 			return
-		item = 0
+		item_selected = -1
 		for i in range(itemcount):
-			item = self.mainlist.GetNextItem(item,wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-			if item == 0:
-				return
-		item = -1
-		item_next = 0
-		while item_next >= 0:
-			item_next = self.mainlist.GetNextItem(item,wx.LIST_NEXT_ALL, wx.LIST_STATE_DONTCARE)
-			if self.mainlist.IsSelected(item_next) and (item > -1):
-				t = self.mainlist.GetItemText(item_next)
-				self.mainlist.DeleteItem(item_next)
-				self.mainlist.InsertStringItem(item, t, item)
-				self.mainlist.Select(item, 1)
-				self.pipelineitems[item], self.pipelineitems[item_next] = self.pipelineitems[item_next], self.pipelineitems[item]
-				cmd = wx.ListEvent(wx.EVT_LIST_ITEM_SELECTED.typeId, self.mainlist.GetId())
-				cmd.m_itemIndex	= item
-				self.mainlist.GetEventHandler().ProcessEvent(cmd)
+			if self.mainlist.IsSelected(i):
+				item_selected = i
 				break
-			item = item_next
+		if item_selected > 0:
+			item = item_selected-1
+			item_next = item_selected
+			t = self.mainlist.GetItem(item_next,1).GetText()
+			ischecked = self.mainlist.IsChecked(item_next)
+			self.mainlist.DeleteItem(item_next)
+			if IsNotWX4():
+				mainlistidx = self.mainlist.InsertStringItem(item,"")
+			else:
+				mainlistidx = self.mainlist.InsertItem(item,"")
+			if ischecked:
+				self.mainlist.CheckItem(mainlistidx)
+			if IsNotWX4():
+				self.mainlist.SetStringItem(mainlistidx, 1, t)
+			else:
+				self.mainlist.SetItem(mainlistidx, 1, t)
+			self.mainlist.Select(item, 1)
+			self.pipelineitems[item], self.pipelineitems[item_next] = self.pipelineitems[item_next], self.pipelineitems[item]
+			cmd = wx.ListEvent(wx.EVT_LIST_ITEM_SELECTED.typeId, self.mainlist.GetId())
+			if IsNotWX4():
+				cmd.m_itemIndex = item
+			else:
+				cmd.SetIndex(item)
+			self.mainlist.GetEventHandler().ProcessEvent(cmd)
 	def OnClickDown(self, event):
 		itemcount = self.mainlist.GetItemCount()
 		if self.CurrentListItem < 0 or self.CurrentListItem == (itemcount - 1):
 			return
-		item = 0
+		item_selected = -1
 		for i in range(itemcount):
-			item = self.mainlist.GetNextItem(item,wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-			if item == (itemcount - 1):
-				return
-		item = itemcount
-		item_next = 0
-		while item_next >= 0:
-			item_next = item - 1
-			if self.mainlist.IsSelected(item_next) and (item_next < (itemcount - 1)):
-				t = self.mainlist.GetItemText(item_next)
-				self.mainlist.DeleteItem(item_next)
-				self.mainlist.InsertStringItem(item, t, item)
-				self.pipelineitems[item], self.pipelineitems[item_next] = self.pipelineitems[item_next], self.pipelineitems[item]
-				self.mainlist.Select(item, 1)
-				cmd = wx.ListEvent(wx.EVT_LIST_ITEM_SELECTED.typeId, self.mainlist.GetId())
-				cmd.m_itemIndex	= item
-				self.mainlist.GetEventHandler().ProcessEvent(cmd)
+			if self.mainlist.IsSelected(i):
+				item_selected = i
 				break
-			item = item_next
+		if item_selected < itemcount-1:
+			item = item_selected+1
+			item_next = item_selected
+			t = self.mainlist.GetItem(item_next,1).GetText()
+			ischecked = self.mainlist.IsChecked(item_next)
+			self.mainlist.DeleteItem(item_next)
+			if IsNotWX4():
+				mainlistidx = self.mainlist.InsertStringItem(item,"")
+			else:
+				mainlistidx = self.mainlist.InsertItem(item,"")
+			if ischecked:
+				self.mainlist.CheckItem(mainlistidx)
+			if IsNotWX4():
+				self.mainlist.SetStringItem(mainlistidx, 1, t)
+			else:
+				self.mainlist.SetItem(mainlistidx, 1, t)
+			self.pipelineitems[item], self.pipelineitems[item_next] = self.pipelineitems[item_next], self.pipelineitems[item]
+			self.mainlist.Select(item, 1)
+			cmd = wx.ListEvent(wx.EVT_LIST_ITEM_SELECTED.typeId, self.mainlist.GetId())
+			if IsNotWX4():
+				cmd.m_itemIndex = item
+			else:
+				cmd.SetIndex(item)
+			self.mainlist.GetEventHandler().ProcessEvent(cmd)
 	def OnClickStart(self, event):
 		OnClickStartAction(self, event)
 	def OnClickPause(self, event):

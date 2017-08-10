@@ -19,7 +19,7 @@
 ##
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
-import os
+import os, datetime
 from sys import argv
 from sys import platform
 from sys import executable
@@ -27,6 +27,20 @@ from sys import exec_prefix
 from distutils.core import setup, Extension
 from distutils.version import StrictVersion
 from distutils.file_util import copy_file
+args = argv[1:]
+filename_bonsu = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bonsu', 'interface', 'bonsu.py')
+f1_bonsu = open(filename_bonsu, 'r')
+lines = f1_bonsu.readlines()
+for i in range(len(lines)):
+	if lines[i].startswith("__builddate__"):
+		if 'sdist' == args[0]:
+			lines[i] = "__builddate__ = ''"+os.linesep
+		else:
+			lines[i] = "__builddate__ = '"+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"'"+os.linesep
+f2_bonsu = open(filename_bonsu, 'w')
+f2_bonsu.writelines(lines)
+f1_bonsu.close()
+f2_bonsu.close()
 from bonsu.interface.bonsu import __version__
 try:
 	import wx
@@ -72,7 +86,6 @@ else:
 		text  = "Bonsu requires FFTW >= 3.0 .\n"
 		raise ValueError, text
 """
-args = argv[1:]
 if 'sdist' == args[0]:
 	package_data_dict={'bonsu.licence': ['gpl.txt'], 'bonsu.interface': ['cms.npy'], 'bonsu.image': ['bonsu.ico'], 'bonsu.lib':['prfftwmodule.h'], 'bonsu.macos':['*'], 'bonsu.docs': ['*.*', '_images/*.*', '_images/math/*.*', '_static/*.*']}
 else:

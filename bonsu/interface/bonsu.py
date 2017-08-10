@@ -22,10 +22,11 @@ __author__ = "Marcus C. Newton"
 __copyright__ = "Copyright 2011-2017 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "2.2.0"
+__version__ = "2.3.0"
 __maintainer__ = "Marcus C. Newton"
 __email__ = "Bonsu.Devel@gmail.com"
 __status__ = "Production"
+__builddate__ = ''
 import os
 import sys
 import wx
@@ -42,6 +43,12 @@ from .instance import SaveInstance
 from .instance import RestoreInstance
 from .instance import NewInstance
 from .panelpref import VisualDialog
+from .common import IsNotWX4
+from .common import CustomAboutDialog
+if IsNotWX4():
+	pass
+else:
+	import wx.adv
 class MainWindow(wx.Frame):
 	def __init__(self, parent, title):
 		self.dirname=os.getcwd()
@@ -63,7 +70,10 @@ class MainWindow(wx.Frame):
 		self.viewmenudock.Enable(0)
 		self.Bind(wx.EVT_MENU, self.OnUndock, self.viewmenuundock)
 		self.Bind(wx.EVT_MENU, self.OnDock, self.viewmenudock)
-		viewmenu.AppendMenu(wx.ID_ANY,"&Visualisation", vismenu)
+		if IsNotWX4():
+			viewmenu.AppendMenu(wx.ID_ANY,"&Visualisation", vismenu)
+		else:
+			viewmenu.Append(wx.ID_ANY,"&Visualisation", vismenu)
 		self.visualdialog_docked = True
 		editmenu = wx.Menu()
 		self.menuCWD = editmenu.Append(wx.ID_ANY, "Current Working &Directory","Current Working Directory")
@@ -84,13 +94,11 @@ class MainWindow(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
 		self.Bind(wx.EVT_MENU, self.OnHelp, menuDoc)
 		self.Bind(wx.EVT_CLOSE, self.OnExit)
-		fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
-		self.font = wx.Font(fontpointsize, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		self.fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		self.font = wx.Font(self.fontpointsize, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
 		self.SetFont(self.font)
 		icon = wx.Icon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'image',  'bonsu.ico'), wx.BITMAP_TYPE_ICO)
 		wx.Frame.SetIcon(self, icon)
-		tbicon = wx.TaskBarIcon()
-		tbicon.SetIcon(icon, "Bonsu")
 		self.nb = None
 		self.sizer = wx.BoxSizer(wx.VERTICAL)
 		self.Fit()
@@ -110,7 +118,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>."""
-		info = wx.AboutDialogInfo()
+		if IsNotWX4():
+			info = wx.AboutDialogInfo()
+		else:
+			info = wx.adv.AboutDialogInfo()
 		info.SetIcon(wx.Icon(os.path.join(os.path.dirname(os.path.dirname(__file__)),'image',  'bonsu.ico'), wx.BITMAP_TYPE_ICO))
 		info.SetName('Bonsu')
 		info.SetVersion(__version__)
@@ -130,8 +141,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 			self.version_str_list.append("h5Py "+h5py.version.version)
 		except:
 			pass
+		self.version_str_list.append("Build date: "+__builddate__)
 		info.SetArtists(self.version_str_list)
-		wx.AboutBox(info)
+		dialog = CustomAboutDialog(self,info)
+		dialog.ShowModal()
+		dialog.Destroy()
 	def OnHelp(self,e):
 		dlg = wx.MessageDialog(self, "Bonsu will attempt to open the"+os.linesep+"documentation with your default"+os.linesep+"browser. Continue?","Confirm Open", wx.OK|wx.CANCEL|wx.ICON_QUESTION)
 		result = dlg.ShowModal()
@@ -155,7 +169,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		dlg.Destroy()
 		if result == wx.ID_OK:
 			self.Destroy()
-			wx.GetApp().Exit()
 	def CurrentWD(self):
 		try:
 			cwd = os.getcwd()

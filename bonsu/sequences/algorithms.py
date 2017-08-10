@@ -43,11 +43,14 @@ from ..operations.RAAR import RAAR
 from ..operations.RAAR import RAARMaskPC
 from ..operations.wrap import WrapArray
 from ..operations.compact import CompactArray
+from ..operations.loadarray import NewArray
 from ..operations.loadarray import LoadArray
 from ..interface.common import CNTR_CLIP
 def PrepareVisualisation(self,pipelineitem):
 	panelvisual = self.ancestor.GetPage(1)
 	panelvisual.data = None
+	panelvisual.widget.SetInteractor(panelvisual.renWin)
+	panelvisual.widget.SetEnabled( 0 )
 	r = float(panelvisual.r)/255.0
 	g = float(panelvisual.g)/255.0
 	b = float(panelvisual.b)/255.0
@@ -325,6 +328,8 @@ def PrepareVisualisation(self,pipelineitem):
 def PrepareVisualisation2D(self,pipelineitem):
 	panelvisual = self.ancestor.GetPage(1)
 	panelvisual.data = None
+	panelvisual.widget.SetInteractor(panelvisual.renWin)
+	panelvisual.widget.SetEnabled( 0 )
 	r = float(panelvisual.r)/255.0
 	g = float(panelvisual.g)/255.0
 	b = float(panelvisual.b)/255.0
@@ -1502,8 +1507,8 @@ def Sequence_ShrinkWrap(\
 				pass
 			return
 		try:
-			temparray = numpy.zeros(self.support.shape, dtype=numpy.cdouble, order='C')
-			temparray2 = numpy.zeros(self.support.shape, dtype=numpy.cdouble, order='C')
+			temparray = NewArray(self, *self.support.shape)
+			temparray2 = NewArray(self, *self.support.shape)
 		except:
 			msg = "Insufficient memory for temporary array."
 			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)

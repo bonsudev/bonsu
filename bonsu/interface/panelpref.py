@@ -35,6 +35,7 @@ class VisualDialog(wx.Dialog):
 			self.linewidget_enabled = panelvisual.linewidget.GetEnabled()
 		if panelvisual.anglewidget is not None:
 			self.anglewiget_enabled = panelvisual.anglewidget.GetEnabled()
+		widget_enabled = panelvisual.widget.GetEnabled()
 		panelvisual.style = panelvisual.renWin.GetInteractorStyle()
 		from .render import wxVTKRenderWindowInteractor
 		self.renWin = wxVTKRenderWindowInteractor(self, wx.ID_ANY)
@@ -90,6 +91,13 @@ class VisualDialog(wx.Dialog):
 			if self.anglewiget_enabled:
 				panelvisual.anglewidget.SetEnabled(0)
 				panelvisual.anglewidget.SetEnabled(1)
+		if widget_enabled != 0:
+			panelvisual.widget.SetInteractor(panelvisual.renWin)
+			panelvisual.widget.SetOrientationMarker( panelvisual.axes )
+			panelvisual.widget.Modified()
+			panelvisual.widget.SetViewport( 0.0, 0.0, 0.1, 0.1 )
+			panelvisual.widget.SetEnabled(1)
+			panelvisual.widget.InteractiveOn()
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add(self.renWin, 1, wx.EXPAND)
 		self.SetSizer(self.vbox)
@@ -108,6 +116,7 @@ class VisualDialog(wx.Dialog):
 			self.linewidget_enabled = panelvisual.linewidget.GetEnabled()
 		if panelvisual.anglewidget is not None:
 			self.anglewiget_enabled = panelvisual.anglewidget.GetEnabled()
+		widget_enabled = panelvisual.widget.GetEnabled()
 		from .render import wxVTKRenderWindowInteractor
 		panelvisual.renWinMain = wxVTKRenderWindowInteractor(panelvisual.vtkpanel, wx.ID_ANY)
 		panelvisual.renWinMain.Enable(1)
@@ -160,6 +169,13 @@ class VisualDialog(wx.Dialog):
 			if self.anglewiget_enabled:
 				panelvisual.anglewidget.SetEnabled(0)
 				panelvisual.anglewidget.SetEnabled(1)
+		if widget_enabled != 0:
+			panelvisual.widget.SetInteractor(panelvisual.renWin)
+			panelvisual.widget.SetOrientationMarker( panelvisual.axes )
+			panelvisual.widget.Modified()
+			panelvisual.widget.SetViewport( 0.0, 0.0, 0.1, 0.1 )
+			panelvisual.widget.SetEnabled(1)
+			panelvisual.widget.InteractiveOn()
 		panelvisual.ancestor.GetParent().visualdialog_docked = True
 		del self.GetParent().visualdialog
 		self.Destroy()

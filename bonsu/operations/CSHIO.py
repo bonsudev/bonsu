@@ -23,6 +23,7 @@ import sys
 import os
 import numpy
 from .wrap import WrapArray
+from .loadarray import NewArray
 def CSHIO\
 	(
 		self,
@@ -58,9 +59,12 @@ def CSHIO\
 	visual_amp_recip = self.visual_amp_recip
 	visual_phase_real = self.visual_phase_real
 	visual_phase_recip = self.visual_phase_recip
-	rho_m1 = numpy.array( seqdata, copy=True, dtype=numpy.cdouble)
-	rho_m2 = numpy.array( seqdata, copy=True, dtype=numpy.cdouble)
-	elp = numpy.array( seqdata, copy=True, dtype=numpy.cdouble)
+	try:
+		rho_m1 = NewArray(self, *seqdata.shape)
+		rho_m2 = NewArray(self, *seqdata.shape)
+		elp = NewArray(self, *seqdata.shape)
+	except:
+		return
 	epsilon = numpy.zeros((2),dtype=numpy.double)
 	epsilon[0] = cs_epsilon
 	epsilon[1] = cs_epsilon_min

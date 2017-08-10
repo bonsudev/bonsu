@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</title>
+    <title>Installation &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.3 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.2',
+        VERSION:     '2.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation" href="bonsu.html" />
+    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.3 documentation" href="bonsu.html" />
     <link rel="next" title="History and Licence" href="licence.html" />
     <link rel="prev" title="General Usage" href="usage.html" /> 
   </head>
@@ -41,7 +41,7 @@
         <li class="right" >
           <a href="usage.html" title="General Usage"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -58,11 +58,11 @@
 <h3>System Preparation<a class="headerlink" href="#system-preparation" title="Permalink to this headline">¶</a></h3>
 <p>Before Bonsu can be installed from source, a number of software packages are required. They are namely:</p>
 <ul class="simple">
-<li>2.6 <img class="math" src="_images/math/5ffbdb8f6fd40e856169dda4586fe9e70ab19466.png" alt="\leq"/> <a class="reference external" href="http://www.python.org">Python</a> <img class="math" src="_images/math/c1063a458139235d94b43817ed8d89dab9f9f811.png" alt="&lt;"/> 3.0</li>
+<li><a class="reference external" href="http://www.python.org">Python</a></li>
 <li><a class="reference external" href="http://www.wxpython.org">wxPython</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 2.8.10</li>
 <li><a class="reference external" href="http://www.fftw.org">FFTW with threading</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 3.0</li>
 <li><a class="reference external" href="http://numpy.org">NumPy (FFTW aware)</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 1.4.1</li>
-<li><a class="reference external" href="http://www.vtk.org">VTK (compiled with python bindings)</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 5.4.2</li>
+<li><a class="reference external" href="http://www.vtk.org">VTK (compiled with python bindings)</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 5.8</li>
 <li><a class="reference external" href="http://pypi.python.org/pypi/Pillow">Python Imaging Library (Pillow)</a></li>
 <li>A reasonably new c<sup>++</sup>compiler such as <a class="reference external" href="http://gcc.gnu.org">gcc</a></li>
 </ul>
@@ -72,11 +72,11 @@
 </ul>
 <p>As most Linux systems and services require Python natively, it is likely that Python is already provided in your distribution. Also, many distributions package all of the above prerequisites.  Please check your distributions repositories.</p>
 <p>It is also possible to install a stand alone python distribution such as that provided by <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought</a>. This will include most of the above prerequisites. In order to compile and use any additional packages (such as FFTW) into the stand alone distribution, a number of environmental variables should be set. If you are using the <em>Bourne-again</em> (BASH) shell, append something akin to the following in your <code class="docutils literal"><span class="pre">.bashrc</span></code> profile:</p>
-<div class="highlight-python"><div class="highlight"><pre>export EPD=&quot;/path/to/python/installation/&quot;
+<div class="highlight-python"><div class="highlight"><pre><span></span>export EPD=&quot;/path/to/python/installation/&quot;
 export PYVER=&quot;2.7&quot;
 export PYTHONSITE=$EPD/lib/python$PYVER/site-packages
-export PYTHONPATH=$EPD/lib:$EPD/lib/python$PYVER/:$EPD/lib/python$PYVER/lib-dyload/:/work/newton:
-export PATH=/bin:/usr/bin/:/usr/local/bin:$EPD/bin/:$EPD/include:$EPD/include/vtk-5.6:.
+export PYTHONPATH=$EPD/lib:$EPD/lib/python$PYVER/:
+export PATH=/bin:/usr/bin/:/usr/local/bin:$EPD/bin/:$EPD/include:.
 alias python=$EPD/bin/python
 export INSTALL_PREFIX=$EPD
 export PREFIX=$EPD
@@ -99,9 +99,9 @@ export FCFLAGS=${CFLAGS}
 <div class="section" id="note-on-building-fftw">
 <h3>Note on Building FFTW<a class="headerlink" href="#note-on-building-fftw" title="Permalink to this headline">¶</a></h3>
 <p>To build FFTW into a stand alone python distribution such as that provided by <a class="reference external" href="http://www.enthought.com/products/epd.php">Enthought</a> , use the following sequence of commands:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>./configure --prefix<span class="o">=</span><span class="si">${</span><span class="nv">PREFIX</span><span class="si">}</span> --enable-threads --enable-sse2 --enable-shared --disable-fortran
-<span class="nv">$ </span>make
-<span class="nv">$ </span>make install
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ ./configure --prefix<span class="o">=</span><span class="si">${</span><span class="nv">PREFIX</span><span class="si">}</span> --enable-threads --enable-shared
+$ make
+$ make install
 </pre></div>
 </div>
 </div>
@@ -113,20 +113,20 @@ export FCFLAGS=${CFLAGS}
 <p class="last"><a class="reference external" href="https://github.com/bonsudev/bonsu">https://github.com/bonsudev/bonsu</a></p>
 </div>
 <p>Unpack the source code with the following:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>tar -xvf Bonsu-<span class="o">{</span>x<span class="o">}</span>.tar.gz
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ tar -xvf Bonsu-<span class="o">{</span>x<span class="o">}</span>.tar.gz
 </pre></div>
 </div>
 <p>where x is the current version.</p>
 <p>Enter the newly created directory and first build the source:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python setup.py build
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ python setup.py build
 </pre></div>
 </div>
 <p>If this is successful you will now have a fully prepared built source tree for installation. To install the package type the following (super user privileges may be required):</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python setup.py install
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ python setup.py install
 </pre></div>
 </div>
 <p>To install the package to a non-default location (perhaps where super user privileges are not required) use the following command:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python setup.py install --home<span class="o">=</span>/my/install/path
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ python setup.py install --home<span class="o">=</span>/my/install/path
 </pre></div>
 </div>
 <p>The <code class="xref std std-option docutils literal"><span class="pre">--home</span></code> option defines the installation base directory.  Files are installed to the following directories under the installation base as follows</p>
@@ -160,7 +160,7 @@ export FCFLAGS=${CFLAGS}
 <div class="line"><br /></div>
 </div>
 <p>To start the program, execute the following from the command line:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>bonsu <span class="p">&amp;</span>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ bonsu <span class="p">&amp;</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -240,7 +240,7 @@ export FCFLAGS=${CFLAGS}
         <li class="right" >
           <a href="usage.html" title="General Usage"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.2 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

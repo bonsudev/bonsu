@@ -437,6 +437,44 @@ stop48 = PyEmbeddedImage(
     "e8fPX7wriuIZ4r2dAxH98L3Wuwfsm7Kb2Wx2qbWO9WXwJ4DPRVH88p1A+StlYmUDqZUNpFY2"
     "kFrZQGrdAuMkYoPBsnXxAAAAAElFTkSuQmCC")
 getstop48Bitmap = stop48.GetBitmap
+#----------------------------------------------------------------------
+pipelineok24 = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAAA"
+    "CXBIWXMAAA3WAAAN1gGQb3mcAAAAB3RJTUUH4QgKDTIaVsv3egAAAkdJREFUSMftlE1PE1EU"
+    "hp/pTGfmlsQalLYGFy4gAv0AlKVR4tqtoG78E0aj0IS4daHxL7ixdSO4MRG/ULDEuMLESGLE"
+    "hbSdGYjBFiF05rqAiWNTPoyNbniTu7iZ3Od9z+ScA/v631KbwFCALqAdWAa8ZgZUgFQ6m8mf"
+    "uDXwFhgAws2qQAGS6WwmaybEeUVV2uODif7SZPEdYPuVqH8DT42kR824GPLWPEW6EtVQ22On"
+    "472lp8UCUAbQGjzWgOPAOvAJkI3gyevpETMmhtxVV/E/uK6L9ar8DdjY7hepQG/mZt/d1pOH"
+    "ks6MPQ8s1cF7eq6lRkVcDLurroLciiBh8fHX8dJk8R4w5QdT6+CZzFjvba0lfEY/oPdFu6PC"
+    "KTi+ySb8ampEJMSFWrX2G7z4ZPGh9bKcAx4EOylokExnM3e0lvCgu1rDW3cV47DZH+2Oms6s"
+    "Mw/Ee64kb5hxcbH2fUNBSvxTelb04fn6Ng0atOkH9XNGq37MT7Vl0hftihqxU7GzZkxc2oT/"
+    "Sl5+Xh63psr5RvB6g+WVjysypClG5GikM2hitol+rUXLbNTDX5Qn7NdWDshtN2BBAwnMVT5X"
+    "NEULGeJIpFN6ID3wfrhKbc1V/Lv0wJqyxu1pK78TvFEXSWCuulDRQnrIiCREZzCxf6xpa8KZ"
+    "sfPA/d1WQ6NB803CIUM1RUJ0BOH2tD3hvLFze4HvNMkSeO9XYsZEh/TAKdiPnIKzZ/huq8ID"
+    "5qpfqrpqqEZ1ofJhafbP4HuVBlwGhpu03vf1j/UTiHEBhP1g7gkAAAAASUVORK5CYII=")
+getpipelineok24Bitmap = pipelineok24.GetBitmap
+#----------------------------------------------------------------------
+pipelineignore24 = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/gD+AP7rGNSCAAAA"
+    "CXBIWXMAAA3WAAAN1gGQb3mcAAAACXZwQWcAAAAYAAAAGAB4TKWmAAAC5klEQVRIx+2T30uT"
+    "URjHv++Pza3YyF/Fm1s2CbrRESo2h5QI3QRRQtEPG9KNNxWJXdgf4K03QlAEUZQ1mXWxiCiK"
+    "wGqWpmRGJDn7oamvNp3bO7d5POd042Stdyld1E0PPLyc8+X9fM/z8DzA//jXIf1GEwDkArAC"
+    "IABohm4EULDyTWaDiL+DD7c0eUJtrXfqHA5lBbQKr3M4lFBba/dwS5Nn5SHCeisQAOQOnTt1"
+    "sniDqV1QJ7fX11S5Br5MP/wUDscBSHUOh+JtrPcaJsfdmyyWfcfLS6cvvXrzEUBCD5YZuYOn"
+    "Gz3bN5ra6diIDM4hbsoDUewvT3T6jgHArYYjXsPUuIuF5wBBgFSyc/lzLHG+/OL1GwDm02Gy"
+    "joHxm6o2bCVRGZwDAOisCpEQV+fRei8AiF/HXCQ8t/oDHXknfzNYGgB0radF5O6HMXOl1Wy1"
+    "5ch2zig4o2CLGoSlhA0L8zYamkXqnjOKFzPhwLEn/V2U82eZw6BnQCnnQ/6peXOlxWQtMsp2"
+    "Thk4ZWAxDSymIXXmlKH3eyTgGQz6koxd1pumbGO6TDkf8qsL5gqL0VpkkOzpL05l73wk0Pj2"
+    "awoe1wNlG1MAoM7CQn/+thIDJQR6mb+txOAsLPTj1x1ZswKjW1GUzoN7b+eGpndTLQq9CvJz"
+    "5KLDrvLdryfnHo5rWlzPSMoGv7bf7eWjIy4yo/7U8/SkWhRCfNF2qGqXa2A6rGuitwdbhk8e"
+    "6Ja/jNYsf5/5SeiLkQAAVG00uNPv5YLNWC7e8bzs5r3DANQ1KwhOTFTsobFSgTGJMwbOGPpi"
+    "S4HTk5rvfiT53mkUrIoIe0pLalHS+jb4NBgnD5CxzXoGyWCczI4miFBrQpnAqNS/SAJn1YQv"
+    "yXCZcgw8ihGzU+ZWRWR2wii5oMavP44sXQUwinWGAMBdaxKvdORJPTkimgGY03Rzjojmjjyp"
+    "p9YkXgHgztLuNU2qAZzJgK+arGjVfwL/H38vfgDg6YtTZYxtNAAAACV0RVh0ZGF0ZTpjcmVh"
+    "dGUAMjAxMS0xMS0xNFQxMzozMDoyMSswMTowMGmKh8AAAAAldEVYdGRhdGU6bW9kaWZ5ADIw"
+    "MTEtMTEtMTRUMTM6MzA6MjErMDE6MDAY1z98AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2Nh"
+    "cGUub3Jnm+48GgAAAABJRU5ErkJggg==")
+getpipelineignore24Bitmap = pipelineignore24.GetBitmap
 def IsNumber(input):
 	try:
 		float(input)
@@ -448,7 +486,10 @@ class TextPanelObject(wx.BoxSizer):
 		def assign(input):
 			self.objectpath.ChangeValue(input)
 		def OnBrowse(self):
-			dlg = wx.FileDialog(parent, 'Choose a file', os.getcwd(), '',  file_extension, wx.OPEN)
+			if IsNotWX4():
+				dlg = wx.FileDialog(parent, 'Choose a file', os.getcwd(), '',  file_extension, wx.OPEN)
+			else:
+				dlg = wx.FileDialog(parent, 'Choose a file', os.getcwd(), '',  file_extension, wx.FD_OPEN)
 			if dlg.ShowModal() == wx.ID_OK:
 				assign(dlg.GetPath())
 			dlg.Destroy()
@@ -470,12 +511,18 @@ class TextPanelObject(wx.BoxSizer):
 		self.objectpath = wx.TextCtrl(parent, -1)
 		self.objectpath.SetFont(self.font)
 		self.objectpath.SetValue(objectpath)
-		self.objectpath.SetToolTipString("Browse for file or type "+os.linesep+"path and name")
+		if IsNotWX4():
+			self.objectpath.SetToolTipString("Browse for file or type "+os.linesep+"path and name")
+		else:
+			self.objectpath.SetToolTip("Browse for file or type "+os.linesep+"path and name")
 		self.objectpath.Bind(wx.EVT_TEXT_ENTER, OnEdit)
 		self.Add( self.objectpath, 1, wx.CENTER |wx.EXPAND )
 		self.button = wx.Button(parent, -1, "Browse")
 		self.button.SetFont(self.font)
-		self.button.SetToolTipString("Browse for file or type "+os.linesep+"path and name")
+		if IsNotWX4():
+			self.button.SetToolTipString("Browse for file or type "+os.linesep+"path and name")
+		else:
+			self.button.SetToolTip("Browse for file or type "+os.linesep+"path and name")
 		self.button.Bind(wx.EVT_BUTTON, OnBrowse)
 		self.Add( self.button, 0, wx.LEFT|wx.CENTER)
 	def Hide(self):
@@ -529,7 +576,7 @@ class SpinnerObject(wx.BoxSizer):
 		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(labelw,-1) )
 		self.label.SetFont(self.font)
 		self.Add( self.label, 0, wx.CENTER )
-		self.value = wx.TextCtrl(parent, value=str(sinit),size=(swidth, -1))
+		self.value = wx.TextCtrl(parent, value=str(sinit),size=(swidth, -1), style=wx.TE_PROCESS_ENTER)
 		self.value.SetWindowStyle(wx.TE_RIGHT)
 		self.value.SetFont(self.font)
 		self.value.Bind(wx.EVT_TEXT, OnEdit)
@@ -619,3 +666,98 @@ def IsNotVTK6():
 		return True
 	else:
 		return False
+def IsNotWX4():
+	if wx.VERSION[0] < 4:
+		return True
+	else:
+		return False
+def OptIconSize():
+	displays = (wx.Display(i) for i in range(wx.Display.GetCount()))
+	sizes = [display.GetGeometry().GetSize() for display in displays]
+	x,y = sizes[0]
+	iconsize = int(2.5*(x)/100.0)
+	if iconsize < 30:
+		iconsize = 30
+	if iconsize > 60:
+		iconsize = 60
+	return iconsize
+from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
+class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ListCtrlAutoWidthMixin):
+	def __init__(self, parent, id, bmpsize=(24,24), size=(180,1)):
+		wx.ListCtrl.__init__(self, parent, id, style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.LC_HRULES|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL, size=(180,1))
+		ListCtrlAutoWidthMixin.__init__(self)
+		bmpchk = getpipelineok24Bitmap()
+		bmpunchk = getpipelineignore24Bitmap()
+		CheckListCtrlMixin.__init__(self,check_image=bmpchk,uncheck_image=bmpunchk, imgsz=bmpsize)
+class CustomAboutDialog(wx.Dialog):
+	def __init__(self, parent, info):
+		wx.Dialog.__init__(self, parent, title="About Bonsu", size=(460,300))
+		self.SetSizeHints(450,300,-1,-1)
+		self.parent = parent
+		self.info  = info
+		self.vboxborder = wx.BoxSizer(wx.VERTICAL)
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+		self.icon = wx.Image(os.path.join(os.path.dirname(os.path.dirname(__file__)),'image',  'bonsu.ico'), wx.BITMAP_TYPE_ICO)
+		self.bitmap = wx.BitmapFromImage(self.icon)
+		self.staticbmp = wx.StaticBitmap(self, -1, self.bitmap)
+		self.vbox.Add(self.staticbmp, 0, flag=wx.CENTER, border=5)
+		namestr = info.GetName()+" "+info.GetVersion()
+		self.namefont = wx.Font((parent.font.GetPointSize()+8),parent.font.GetFamily(),wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+		self.name = wx.StaticText(self, label=namestr)
+		self.name.SetFont(self.namefont)
+		self.vbox.Add((-1, 5))
+		self.vbox.Add(self.name, 0, flag=wx.CENTER, border=5)
+		self.vbox.Add((-1, 5))
+		self.description = wx.StaticText(self, label=info.GetDescription(), style=wx.ALIGN_CENTRE_HORIZONTAL)
+		self.description.Wrap(400)
+		self.vbox.Add(self.description, 0, flag=wx.CENTER, border=5)
+		self.vbox.Add((-1, 5))
+		self.copyright = wx.StaticText(self, label=info.GetCopyright())
+		self.vbox.Add(self.copyright, 0, flag=wx.CENTER, border=5)
+		self.vbox.Add((-1, 5))
+		if IsNotWX4():
+			self.web = wx.StaticText(self, label=info.GetWebSite()[0])
+		else:
+			self.web = wx.StaticText(self, label=info.GetWebSiteURL())
+		self.vbox.Add(self.web, 0, flag=wx.CENTER, border=5)
+		self.vbox.Add((-1, 10))
+		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.credits =wx.Button(self, label="More")
+		self.Bind(wx.EVT_BUTTON, self.OnCredits, self.credits)
+		self.hbox.Add(self.credits)
+		self.hbox.Add((10, -1))
+		self.license =wx.Button(self, label="License")
+		self.Bind(wx.EVT_BUTTON, self.OnLicense, self.license)
+		self.hbox.Add(self.license)
+		self.hbox.Add((10, -1))
+		self.close =wx.Button(self, label="Close")
+		self.Bind(wx.EVT_BUTTON, self.OnClose, self.close)
+		self.hbox.Add(self.close)
+		self.vbox.Add(self.hbox, 0, flag=wx.CENTER, border=5)
+		self.vbox.Add((-1, 10))
+		self.vboxborder.Add(self.vbox, 1, flag=wx.CENTER|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=20)
+		self.SetSizer( self.vboxborder )
+		self.SetAutoLayout(True)
+		self.Fit()
+		self.Layout()
+		self.Show()
+	def OnCredits(self, event):
+		msg = ""
+		for name in self.parent.version_str_list:
+			msg += name+os.linesep
+		dlg = wx.MessageDialog(self, msg,"Lib Info", wx.OK)
+		result = dlg.ShowModal()
+		dlg.Destroy()
+	def OnLicense(self, event):
+		lines = self.info.GetLicence().splitlines()
+		msg = ''
+		for line in lines:
+			if line == "":
+				msg += os.linesep+os.linesep
+			else:
+				msg += line+" "
+		dlg = wx.MessageDialog(self, msg,"License", wx.OK)
+		result = dlg.ShowModal()
+		dlg.Destroy()
+	def OnClose(self, event):
+		self.Destroy()

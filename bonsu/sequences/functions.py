@@ -29,6 +29,7 @@ import threading
 from ..interface.render import wxVTKRenderWindowInteractor
 from ..interface.common import CNTR_CLIP
 from ..operations.wrap import WrapArray
+from ..operations.loadarray import NewArray
 from ..operations.loadarray import LoadArray
 from ..operations.loadarray import SaveArray
 from ..operations.loadarray import LoadCoordsArray
@@ -70,7 +71,10 @@ def Sequence_BlankLineFill(\
 				wx.CallAfter(self.UserMessage, title, msg)
 				self.pipeline_started = False
 				return
-			tmparray = numpy.zeros(array.shape, dtype=numpy.cdouble)
+			try:
+				tmparray = NewArray(self,*array.shape)
+			except:
+				return
 			from ..lib.prfftw import blanklinefill
 			blanklinefill(array, tmparray, kx,ky,kz, roiids[0][0], roiids[0][1], roiids[1][0], roiids[1][1], roiids[2][0], roiids[2][1])
 			del tmparray
@@ -357,7 +361,10 @@ def Sequence_SPE_to_Numpy(\
 		self.ancestor.GetPage(0).queue_info.put("Alternative exposure time: %f (s)" %exp_sec )
 		datasize = numpy.dtype(datatype[dtype_id]).itemsize #bytes
 		if z > 0:
-			array = numpy.zeros( (x, y, z), dtype=numpy.cdouble, order='C')
+			try:
+				array = NewArray(self, x, y, z)
+			except:
+				return
 			seekpoint = 4100
 			for iz in range(z):
 				for iy in range(y):
@@ -365,8 +372,11 @@ def Sequence_SPE_to_Numpy(\
 					array[:, iy, iz] = numpy.cdouble( numpy.fromfile( SPE_file, datatype[dtype_id], x ) )
 					seekpoint += x*datasize
 		else:
-			array = numpy.zeros( (x, y, 1), dtype=numpy.cdouble, order='C')
-			arraytemp = numpy.zeros( (x, y, 1), dtype=numpy.cdouble, order='C')
+			try:
+				array = NewArray(self, x, y, 1)
+				arraytemp = NewArray(self, x, y, 1)
+			except:
+				return
 			SPE_file.seek(0, os.SEEK_END)
 			size = SPE_file.tell()
 			seekpoint = 4100
@@ -385,6 +395,42 @@ def Sequence_SPE_to_Numpy(\
 		SaveArray(self, filename_npy, array)
 		SPE_file.close()
 		return
+class TIFFStackRead():
+	def __init__(self,imgfile):
+		self.im  = imgfile
+		self.im.seek(0)
+		self.im_sz = [self.im.tag[0x101][0],
+					  self.im.tag[0x100][0]]
+		self.cur = self.im.tell()
+		j = 0
+		while True:
+			try:
+				j = j+1
+				self.im.seek(j)
+			except EOFError:
+				break
+		self.nframes = j
+	def get_frame(self,j):
+		try:
+			self.im.seek(j)
+		except EOFError:
+			return None
+		self.cur = self.im.tell()
+		return numpy.reshape(self.im.getdata().convert('L'),self.im_sz)
+	def __iter__(self):
+		self.im.seek(0)
+		self.old = self.cur
+		self.cur = self.im.tell()
+		return self
+	def next(self):
+		try:
+			self.im.seek(self.cur)
+			self.cur = self.im.tell()+1
+		except EOFError:
+			self.im.seek(self.old)
+			self.cur = self.im.tell()
+			raise StopIteration
+		return numpy.reshape(self.im.getdata().convert('L'),self.im_sz)
 def Sequence_Image_to_Numpy(\
 	self,
 	pipelineitem
@@ -396,14 +442,24 @@ def Sequence_Image_to_Numpy(\
 		filename_npy = pipelineitem.output_filename.objectpath.GetValue()
 		from PIL import Image
 		try:
-			Image_file=Image.open(filename_Image).convert('L')
+			Image_file_raw=Image.open(filename_Image)
+			type = Image_file_raw.format
+			if type == 'TIFF':
+				imgobj = TIFFStackRead(Image_file_raw)
+				x,y = imgobj.im_sz
+				z = imgobj.nframes
+				array = NewArray(self,x,y,z)
+				for i in range(z):
+					array[:,:,i] = imgobj.get_frame(i)[:]
+			else:
+				Image_file=Image_file_raw.convert('L')
+				array = numpy.array(Image_file)
 		except:
 			msg = "Could not load array."
 			wx.CallAfter(self.UserMessage, title, msg)
 			self.pipeline_started = False
 			return
 		else:
-			array = numpy.array(Image_file)
 			SaveArray(self, filename_npy, array)
 		return
 def Sequence_Array_to_Memory(\
@@ -549,7 +605,10 @@ def Sequence_Bin(\
 			ny = (shp[1]+biny -1)/biny
 			nz = (shp[2]+binz -1)/binz
 			nshp = numpy.array((nx, ny, nz),dtype=numpy.int)
-			arraybin = numpy.zeros(nshp, dtype=numpy.cdouble, order='C')
+			try:
+				arraybin = NewArray(self,nx,ny,nz)
+			except:
+				return
 			for k in range(binz):
 				for j in range(biny):
 					for i in range(binx):
@@ -577,7 +636,10 @@ def Sequence_AutoCentre(\
 		centre = numpy.array(array.shape) / 2
 		padding = (max - centre)
 		extra = numpy.abs(padding)
-		arraycentred = numpy.zeros((shp+ 2*extra), dtype=numpy.cdouble, order='C')
+		try:
+			arraycentred = NewArray(self,*(shp+ 2*extra))
+		except:
+			return
 		centre2 = numpy.array(arraycentred.shape) / 2
 		x_0 = extra[0] - padding[0]
 		x_1 = x_0 + shp[0]
@@ -630,7 +692,10 @@ def Sequence_Median_Filter(\
 			self.pipeline_started = False
 			return
 		else:
-			tmparray = numpy.zeros(array.shape, dtype=numpy.cdouble)
+			try:
+				tmparray = NewArray(self,*array.shape)
+			except:
+				return
 			from ..lib.prfftw import medianfilter
 			medianfilter(array, tmparray, kx,ky,kz, maxdev)
 			try:
@@ -905,7 +970,10 @@ def Sequence_Cuboid_Support(\
 					wx.CallAfter(self.UserMessage, title, msg)
 					self.pipeline_started = False
 					return
-		support = numpy.zeros((x,y,z), dtype=numpy.cdouble, order='C')
+		try:
+			support = NewArray(self,x,y,z)
+		except:
+			return
 		x1 = (x - sx)/2;
 		x2 = x1 + sx
 		y1 = (y - sy)/2
@@ -2096,6 +2164,7 @@ def Sequence_View_Array(self, ancestor):
 				ViewAmpPlane(self, ancestor , panelvisual.data, r, g, b)
 		panelvisual.datarangelist = []
 		panelvisual.ReleaseVisualButtons(gotovisual=True)
+		panelvisual.RefreshSceneFull()
 def Sequence_View_Support(self, ancestor):
 	def ViewDataSupport(self, ancestor, data, inputdata, r, g, b):
 		self.ancestor.GetPage(0).queue_info.put("Preparing Support array visualisation...")
@@ -2281,6 +2350,7 @@ def Sequence_View_Support(self, ancestor):
 			ViewDataSupport(self, ancestor , panelvisual.data, panelvisual.inputdata, r, g, b)
 		panelvisual.datarangelist = []
 		panelvisual.ReleaseVisualButtons(gotovisual=True)
+		panelvisual.RefreshSceneFull()
 def Sequence_Random(\
 	self,
 	pipelineitem
@@ -3083,6 +3153,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.datarangelist = []
 		panelvisual.ReleaseVisualButtons(gotovisual=True)
 		panelvisual.button_vremove.Enable(False)
+		panelvisual.RefreshSceneFull()
 def Sequence_View_VTK(self, ancestor):
 	def ViewDataAmp(self, ancestor, image, r, g, b):
 		self.ancestor.GetPage(0).queue_info.put("Preparing 3D array visualisation")

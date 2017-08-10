@@ -22,7 +22,6 @@ import numpy
 import os
 from sys import platform
 import ctypes
-MEMARRAY = ['memory0', 'memory1', 'memory2', 'memory3', 'memory4', 'memory5', 'memory6', 'memory7', 'memory8', 'memory9', 'memorysequence']
 def FreeSpace(path):
 	if platform.startswith('win'):
 		free = ctypes.c_ulonglong(0)
@@ -32,70 +31,9 @@ def FreeSpace(path):
 		stat = os.statvfs(path)
 		free = stat.f_frsize * stat.f_bavail
 		return free
-def LoadArray(self, filename):
+def ArTo3DNpy(array):
 	from numpy import newaxis
-	if filename in MEMARRAY:
-		if filename == 'memory0':
-			if numpy.any(self.memory0):
-				return self.memory0
-			else:
-				raise TypeError
-		elif filename == 'memory1':
-			if numpy.any(self.memory1):
-				return self.memory1
-			else:
-				raise TypeError
-		elif filename == 'memory2':
-			if numpy.any(self.memory2):
-				return self.memory2
-			else:
-				raise TypeError
-		elif filename == 'memory3':
-			if numpy.any(self.memory3):
-				return self.memory3
-			else:
-				raise TypeError
-		elif filename == 'memory4':
-			if numpy.any(self.memory4):
-				return self.memory4
-			else:
-				raise TypeError
-		elif filename == 'memory5':
-			if numpy.any(self.memory5):
-				return self.memory5
-			else:
-				raise TypeError
-		elif filename == 'memory6':
-			if numpy.any(self.memory6):
-				return self.memory6
-			else:
-				raise TypeError
-		elif filename == 'memory7':
-			if numpy.any(self.memory7):
-				return self.memory7
-			else:
-				raise TypeError
-		elif filename == 'memory8':
-			if numpy.any(self.memory8):
-				return self.memory8
-			else:
-				raise TypeError
-		elif filename == 'memory9':
-			if numpy.any(self.memory9):
-				return self.memory9
-			else:
-				raise TypeError
-		elif filename == 'memorysequence':
-			if numpy.any(self.seqdata):
-				return self.seqdata
-			else:
-				raise TypeError
-	else:
-		try:
-			array = numpy.array(numpy.load(filename), dtype=numpy.cdouble, copy=True, order='C')
-		except MemoryError:
-			self.ancestor.GetPage(0).queue_info.put("Could not load array. Insufficient memory.")
-			raise MemoryError
+	if numpy.any(array):
 		if array.ndim == 2:
 			array = array[:, :, newaxis]
 		if array.ndim == 1:
@@ -103,6 +41,45 @@ def LoadArray(self, filename):
 		if array.ndim > 3:
 			raise TypeError
 		else:
+			return array
+	else:
+		raise TypeError
+def NameIsMem(name):
+	if name == 'memorysequence':
+		return True
+	elif name.startswith('memory'):
+		idxpart = name.replace('memory', '')
+		try:
+			idx = int(idxpart)
+		except:
+			return False
+		else:
+			return True
+	else:
+		return False
+def NewArray(self,x,y,z):
+	try:
+		array = numpy.zeros((x,y,z), dtype=numpy.cdouble, order='C')
+	except MemoryError:
+		self.ancestor.GetPage(0).queue_info.put("Could not create array. Insufficient memory.")
+		raise MemoryError
+	else:
+		return array
+def LoadArray(self, filename):
+	if NameIsMem(filename):
+		if filename in self.memory:
+			array = ArTo3DNpy(self.memory[filename])
+			return array
+		else:
+			raise NameError
+	else:
+		try:
+			array = numpy.array(numpy.load(filename), dtype=numpy.cdouble, copy=True, order='C')
+		except MemoryError:
+			self.ancestor.GetPage(0).queue_info.put("Could not load array. Insufficient memory.")
+			raise MemoryError
+		else:
+			array = ArTo3DNpy(array)
 			return array
 def LoadCoordsArray(self, filename):
 	if filename == 'memorycoords':
@@ -121,27 +98,13 @@ def LoadCoordsArray(self, filename):
 		else:
 			return array
 def SaveArray(self, filename, array):
-	if filename in MEMARRAY:
-		if filename == 'memory0':
-			self.memory0 = array
-		elif filename == 'memory1':
-			self.memory1 = array
-		elif filename == 'memory2':
-			self.memory2 = array
-		elif filename == 'memory3':
-			self.memory3 = array
-		elif filename == 'memory4':
-			self.memory4 = array
-		elif filename == 'memory5':
-			self.memory5 = array
-		elif filename == 'memory6':
-			self.memory6 = array
-		elif filename == 'memory7':
-			self.memory7 = array
-		elif filename == 'memory8':
-			self.memory8 = array
-		elif filename == 'memory9':
-			self.memory9 = array
+	if NameIsMem(filename):
+		if filename in self.memory:
+			self.memory[filename+"_tmp"] = array
+			del self.memory[filename]
+			self.memory[filename] = self.memory.pop(filename+"_tmp")
+		else:
+			self.memory[filename] = array
 	else:
 		pathname = os.path.dirname(filename)
 		base = os.path.basename(filename)

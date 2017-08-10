@@ -23,6 +23,7 @@ import sys
 import os
 import numpy
 from .wrap import WrapArray
+from .loadarray import NewArray
 def HPR\
 	(
 		self,
@@ -53,7 +54,10 @@ def HPR\
 	visual_amp_recip = self.visual_amp_recip
 	visual_phase_real = self.visual_phase_real
 	visual_phase_recip = self.visual_phase_recip
-	rho_m1 = numpy.array( seqdata, copy=True, dtype=numpy.cdouble)
+	try:
+		rho_m1 = NewArray(self, *seqdata.shape)
+	except:
+		return
 	nn=numpy.asarray( seqdata.shape, numpy.int32 )
 	ndim=int(seqdata.ndim)
 	from ..lib.prfftw import hpr
@@ -106,7 +110,7 @@ def HPRMaskPC\
 	visual_phase_real = self.visual_phase_real
 	visual_phase_recip = self.visual_phase_recip
 	try:
-		rho_m1 = numpy.array( seqdata, copy=True, dtype=numpy.cdouble)
+		rho_m1 = NewArray(self, *seqdata.shape)
 	except MemoryError:
 		self.ancestor.GetPage(0).queue_info.put("HIO Mask PC: Could not load array. Insufficient memory.")
 		return

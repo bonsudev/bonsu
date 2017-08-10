@@ -34,7 +34,10 @@ class SubPanel_Comments(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Pipeline Comments:")
-		title.SetToolTipString("Pipeline Comments.")
+		if IsNotWX4():
+			title.SetToolTipString("Pipeline Comments.")
+		else:
+			title.SetToolTip("Pipeline Comments.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.txt = wx.TextCtrl(self, style=wx.TE_BESTWRAP | wx.TE_MULTILINE)
 		self.txt.Enable(True)
@@ -64,12 +67,18 @@ class SubPanel_BlankLineFill(wx.Panel):
 		self.objectpath = wx.TextCtrl(self, -1)
 		self.objectpath.SetFont(self.font)
 		self.objectpath.SetValue("")
-		self.objectpath.SetToolTipString("Region of Interest")
+		if IsNotWX4():
+			self.objectpath.SetToolTipString("Region of Interest")
+		else:
+			self.objectpath.SetToolTip("Region of Interest")
 		self.objectpath.Bind(wx.EVT_TEXT_ENTER, OnEdit)
 		hbox.Add( self.objectpath, 1, wx.CENTER |wx.EXPAND )
 		self.button = wx.Button(self, -1, "Browse")
 		self.button.SetFont(self.font)
-		self.button.SetToolTipString("Browse for ROI.")
+		if IsNotWX4():
+			self.button.SetToolTipString("Browse for ROI.")
+		else:
+			self.button.SetToolTip("Browse for ROI.")
 		self.button.Bind(wx.EVT_BUTTON, self.OnBrowse)
 		hbox.Add( self.button, 0, wx.LEFT|wx.CENTER)
 		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -123,17 +132,35 @@ class ROIDialog(wx.Dialog):
 		self.hbox1.Add(self.slider, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		self.roi = [None]*6
 		self.roi[0] = SpinnerObject(self,"x:",1,1,1,1,15,40)
-		self.roi[0].label.SetToolTipString("x, start index")
+		if IsNotWX4():
+			self.roi[0].label.SetToolTipString("x, start index")
+		else:
+			self.roi[0].label.SetToolTip("x, start index")
 		self.roi[1] = SpinnerObject(self,"",1,1,1,1,0,40)
-		self.roi[1].label.SetToolTipString("x, end index")
+		if IsNotWX4():
+			self.roi[1].label.SetToolTipString("x, end index")
+		else:
+			self.roi[1].label.SetToolTip("x, end index")
 		self.roi[2] = SpinnerObject(self,"y:",1,1,1,1,15,40)
-		self.roi[2].label.SetToolTipString("y, start index")
+		if IsNotWX4():
+			self.roi[2].label.SetToolTipString("y, start index")
+		else:
+			self.roi[2].label.SetToolTip("y, start index")
 		self.roi[3] = SpinnerObject(self,"",1,1,1,1,0,40)
-		self.roi[3].label.SetToolTipString("y, end index")
+		if IsNotWX4():
+			self.roi[3].label.SetToolTipString("y, end index")
+		else:
+			self.roi[3].label.SetToolTip("y, end index")
 		self.roi[4] = SpinnerObject(self,"z:",1,1,1,1,15,40)
-		self.roi[4].label.SetToolTipString("z, start index")
+		if IsNotWX4():
+			self.roi[4].label.SetToolTipString("z, start index")
+		else:
+			self.roi[4].label.SetToolTip("z, start index")
 		self.roi[5] = SpinnerObject(self,"",1,1,1,1,0,40)
-		self.roi[5].label.SetToolTipString("z, end index")
+		if IsNotWX4():
+			self.roi[5].label.SetToolTipString("z, end index")
+		else:
+			self.roi[5].label.SetToolTip("z, end index")
 		self.SetROILimits()
 		axis = int(self.scrollaxis.value.GetValue())
 		self.slider.SetRange(1,self.object.shape[axis - 1])
@@ -295,14 +322,20 @@ class SubPanel_Scale_Array(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Scale Arrays")
-		title.SetToolTipString("Scale array by a specified factor")
+		if IsNotWX4():
+			title.SetToolTipString("Scale array by a specified factor")
+		else:
+			title.SetToolTip("Scale array by a specified factor")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.output_filename = TextPanelObject(self, "Output File: ", "output.npy",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.scale = SpinnerObject(self,"Scale factor:",MAX_INT,0.0,1.0,1.0,150,150)
-		self.scale.label.SetToolTipString("Scale factor.")
+		if IsNotWX4():
+			self.scale.label.SetToolTipString("Scale factor.")
+		else:
+			self.scale.label.SetToolTip("Scale factor.")
 		vbox.Add(self.scale, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -314,7 +347,10 @@ class SubPanel_SumDiff_Array(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Sum or Subtract Arrays")
-		title.SetToolTipString("Sum or subtract array2 from array 1")
+		if IsNotWX4():
+			title.SetToolTipString("Sum or subtract array2 from array 1")
+		else:
+			title.SetToolTip("Sum or subtract array2 from array 1")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File 1: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -323,7 +359,10 @@ class SubPanel_SumDiff_Array(wx.Panel):
 		self.output_filename = TextPanelObject(self, "Output File: ", "output.npy",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.addsub = wx.RadioBox(self, label="Add or Subtract:", choices=['Add','Subtract'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
-		self.addsub.SetToolTipString("Add or Subtract")
+		if IsNotWX4():
+			self.addsub.SetToolTipString("Add or Subtract")
+		else:
+			self.addsub.SetToolTip("Add or Subtract")
 		vbox.Add(self.addsub, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -335,17 +374,26 @@ class SubPanel_Rotate_Support(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Rotate Support Array")
-		title.SetToolTipString("Rotate support (binary complex) arrays only. \nStrange results will ensue if used on data arrays.")
+		if IsNotWX4():
+			title.SetToolTipString("Rotate support (binary complex) arrays only. \nStrange results will ensue if used on data arrays.")
+		else:
+			title.SetToolTip("Rotate support (binary complex) arrays only. \nStrange results will ensue if used on data arrays.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.output_filename = TextPanelObject(self, "Output File: ", "data_rotated.npy",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.rotationaxis = SpinnerObject(self,"Axis:",3,1,1,1,150,150)
-		self.rotationaxis.label.SetToolTipString("Rotation axis.")
+		if IsNotWX4():
+			self.rotationaxis.label.SetToolTipString("Rotation axis.")
+		else:
+			self.rotationaxis.label.SetToolTip("Rotation axis.")
 		vbox.Add(self.rotationaxis, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.rotationangle = SpinnerObject(self,"Angle:",360,-360,1,0,150,150)
-		self.rotationangle.label.SetToolTipString("Rotation angle in degrees.")
+		if IsNotWX4():
+			self.rotationangle.label.SetToolTipString("Rotation angle in degrees.")
+		else:
+			self.rotationangle.label.SetToolTip("Rotation angle in degrees.")
 		vbox.Add(self.rotationangle, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -357,7 +405,10 @@ class SubPanel_Transpose_Array(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Transpose Array")
-		title.SetToolTipString("Transpose array from x,y,z to z,y,x")
+		if IsNotWX4():
+			title.SetToolTipString("Transpose array from x,y,z to z,y,x")
+		else:
+			title.SetToolTip("Transpose array from x,y,z to z,y,x")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -389,12 +440,18 @@ class SubPanel_HDF_to_Numpy(wx.Panel):
 		self.objectpath = wx.TextCtrl(self, -1)
 		self.objectpath.SetFont(self.font)
 		self.objectpath.SetValue("")
-		self.objectpath.SetToolTipString("Comma separated key names.")
+		if IsNotWX4():
+			self.objectpath.SetToolTipString("Comma separated key names.")
+		else:
+			self.objectpath.SetToolTip("Comma separated key names.")
 		self.objectpath.Bind(wx.EVT_TEXT_ENTER, OnEdit)
 		hbox.Add( self.objectpath, 1, wx.CENTER |wx.EXPAND )
 		self.button = wx.Button(self, -1, "Browse")
 		self.button.SetFont(self.font)
-		self.button.SetToolTipString("Browse for HDF5 key path.")
+		if IsNotWX4():
+			self.button.SetToolTipString("Browse for HDF5 key path.")
+		else:
+			self.button.SetToolTip("Browse for HDF5 key path.")
 		self.button.Bind(wx.EVT_BUTTON, self.OnBrowse)
 		hbox.Add( self.button, 0, wx.LEFT|wx.CENTER)
 		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -465,20 +522,41 @@ class KeyDialog(wx.Dialog):
 		self.roi_enable = wx.CheckBox(self, -1, 'ROI', size=(50, 20))
 		self.roi_enable.SetValue(False)
 		self.Bind(wx.EVT_CHECKBOX, self.OnROI, self.roi_enable)
-		self.roi_enable.SetToolTipString("Enable ROI")
+		if IsNotWX4():
+			self.roi_enable.SetToolTipString("Enable ROI")
+		else:
+			self.roi_enable.SetToolTip("Enable ROI")
 		self.roi = [None]*6
 		self.roi[0] = SpinnerObject(self,"x:",1,1,1,1,15,40)
-		self.roi[0].label.SetToolTipString("x, start index")
+		if IsNotWX4():
+			self.roi[0].label.SetToolTipString("x, start index")
+		else:
+			self.roi[0].label.SetToolTip("x, start index")
 		self.roi[1] = SpinnerObject(self,"",1,1,1,1,0,40)
-		self.roi[1].label.SetToolTipString("x, end index")
+		if IsNotWX4():
+			self.roi[1].label.SetToolTipString("x, end index")
+		else:
+			self.roi[1].label.SetToolTip("x, end index")
 		self.roi[2] = SpinnerObject(self,"y:",1,1,1,1,15,40)
-		self.roi[2].label.SetToolTipString("y, start index")
+		if IsNotWX4():
+			self.roi[2].label.SetToolTipString("y, start index")
+		else:
+			self.roi[2].label.SetToolTip("y, start index")
 		self.roi[3] = SpinnerObject(self,"",1,1,1,1,0,40)
-		self.roi[3].label.SetToolTipString("y, end index")
+		if IsNotWX4():
+			self.roi[3].label.SetToolTipString("y, end index")
+		else:
+			self.roi[3].label.SetToolTip("y, end index")
 		self.roi[4] = SpinnerObject(self,"z:",1,1,1,1,15,40)
-		self.roi[4].label.SetToolTipString("z, start index")
+		if IsNotWX4():
+			self.roi[4].label.SetToolTipString("z, start index")
+		else:
+			self.roi[4].label.SetToolTip("z, start index")
 		self.roi[5] = SpinnerObject(self,"",1,1,1,1,0,40)
-		self.roi[5].label.SetToolTipString("z, end index")
+		if IsNotWX4():
+			self.roi[5].label.SetToolTipString("z, end index")
+		else:
+			self.roi[5].label.SetToolTip("z, end index")
 		for i in range(len(self.roi)):
 			self.roi[i].Disable()
 		for i in range(len(self.roi)):
@@ -843,7 +921,10 @@ class SubPanel_Array_to_Memory(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Load Array to Memory Location")
-		title.SetToolTipString("Memory locations: memory0, memory1, ... , memory9")
+		if IsNotWX4():
+			title.SetToolTipString("Memory locations: memory0, memory1, ... , memory9")
+		else:
+			title.SetToolTip("Memory locations: memory0, memory1, ... , memory9")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -859,7 +940,10 @@ class SubPanel_Memory_to_Array(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Save Array from Memory Location")
-		title.SetToolTipString("Memory locations: memory0, memory1, ... , memory9")
+		if IsNotWX4():
+			title.SetToolTipString("Memory locations: memory0, memory1, ... , memory9")
+		else:
+			title.SetToolTip("Memory locations: memory0, memory1, ... , memory9")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "memory0",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -876,7 +960,10 @@ class SubPanel_Load_PSF(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Load Fourier Tranform of Point Spread function.")
-		title.SetToolTipString("Load Fourier Tranform of Point Spread function.")
+		if IsNotWX4():
+			title.SetToolTipString("Load Fourier Tranform of Point Spread function.")
+		else:
+			title.SetToolTip("Load Fourier Tranform of Point Spread function.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -890,7 +977,10 @@ class SubPanel_Save_PSF(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Save Fourier Tranform of Point Spread function.")
-		title.SetToolTipString("Save Fourier Tranform of Point Spread function.")
+		if IsNotWX4():
+			title.SetToolTipString("Save Fourier Tranform of Point Spread function.")
+		else:
+			title.SetToolTip("Save Fourier Tranform of Point Spread function.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.output_filename = TextPanelObject(self, "Output File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -905,7 +995,10 @@ class SubPanel_Crop_Pad(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Crop and Pad Numpy Array")
-		title.SetToolTipString("Input array will be cropped and then "+os.linesep+"padded according to the values below.")
+		if IsNotWX4():
+			title.SetToolTipString("Input array will be cropped and then "+os.linesep+"padded according to the values below.")
+		else:
+			title.SetToolTip("Input array will be cropped and then "+os.linesep+"padded according to the values below.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -972,9 +1065,15 @@ class SubPanel_Mask(wx.Panel):
 		self.output_filename = TextPanelObject(self, "Output File: ", "mask.npy",150,'*.npy')
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.max = SpinnerObject(self,"Maximum Value:",MAX_INT,MIN_INT,1.0,MAX_INT,150,150)
-		self.max.label.SetToolTipString("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
+		if IsNotWX4():
+			self.max.label.SetToolTipString("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
+		else:
+			self.max.label.SetToolTip("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
 		self.min = SpinnerObject(self,"Minimum Value:",MAX_INT,MIN_INT,1,50.0,150,150)
-		self.min.label.SetToolTipString("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
+		if IsNotWX4():
+			self.min.label.SetToolTipString("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
+		else:
+			self.min.label.SetToolTip("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
 		vbox.Add(self.max, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.min, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
@@ -988,7 +1087,10 @@ class SubPanel_Bin(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Bin Numpy Array")
-		title.SetToolTipString("Input array will be binned "+os.linesep+"according to the values below.")
+		if IsNotWX4():
+			title.SetToolTipString("Input array will be binned "+os.linesep+"according to the values below.")
+		else:
+			title.SetToolTip("Input array will be binned "+os.linesep+"according to the values below.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1016,7 +1118,10 @@ class SubPanel_AutoCentre(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Auto Centre Numpy Array")
-		title.SetToolTipString("Input array will be Auto Centred "+os.linesep+"according to the brightest voxel.")
+		if IsNotWX4():
+			title.SetToolTipString("Input array will be Auto Centred "+os.linesep+"according to the brightest voxel.")
+		else:
+			title.SetToolTip("Input array will be Auto Centred "+os.linesep+"according to the brightest voxel.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1033,7 +1138,10 @@ class SubPanel_Wrap(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Wrap Numpy Array")
-		title.SetToolTipString("Input array will be converted "+os.linesep+"to wrap around order.")
+		if IsNotWX4():
+			title.SetToolTipString("Input array will be converted "+os.linesep+"to wrap around order.")
+		else:
+			title.SetToolTip("Input array will be converted "+os.linesep+"to wrap around order.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1041,9 +1149,14 @@ class SubPanel_Wrap(wx.Panel):
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.rbdirection = wx.RadioBox(self, label="Wrap Direction", choices=['Forward','Reverse',],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
-		self.rbdirection.SetToolTipString("If an array dimension has an odd number of elements, "+os.linesep+
-														"a Forward followed by a Reverse wrap is required "+os.linesep+
-														"to obtain the original array.")
+		if IsNotWX4():
+			self.rbdirection.SetToolTipString("If an array dimension has an odd number of elements, "+os.linesep+
+															"a Forward followed by a Reverse wrap is required "+os.linesep+
+															"to obtain the original array.")
+		else:
+			self.rbdirection.SetToolTip("If an array dimension has an odd number of elements, "+os.linesep+
+															"a Forward followed by a Reverse wrap is required "+os.linesep+
+															"to obtain the original array.")
 		vbox.Add(self.rbdirection ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -1056,16 +1169,25 @@ class SubPanel_Threshold(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Threshold data in Numpy array")
-		title.SetToolTipString("Data outside range is set to zero.")
+		if IsNotWX4():
+			title.SetToolTipString("Data outside range is set to zero.")
+		else:
+			title.SetToolTip("Data outside range is set to zero.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,'*.npy')
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.output_filename = TextPanelObject(self, "Output File: ", "data_thresh.npy",150,'*.npy')
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.max = SpinnerObject(self,"Maximum Value:",MAX_INT,MIN_INT,1.0,MAX_INT,150,150)
-		self.max.label.SetToolTipString("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
+		if IsNotWX4():
+			self.max.label.SetToolTipString("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
+		else:
+			self.max.label.SetToolTip("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
 		self.min = SpinnerObject(self,"Minimum Value:",MAX_INT,MIN_INT,1,50.0,150,150)
-		self.min.label.SetToolTipString("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
+		if IsNotWX4():
+			self.min.label.SetToolTipString("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
+		else:
+			self.min.label.SetToolTip("Data within the min/max range "+os.linesep+"will result in a non-zero mask value.")
 		vbox.Add(self.max, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.min, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
@@ -1079,7 +1201,10 @@ class SubPanel_Voxel_Replace(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Replace Voxels in Numpy Array")
-		title.SetToolTipString("Useful for viewing data with a cut-out section.")
+		if IsNotWX4():
+			title.SetToolTipString("Useful for viewing data with a cut-out section.")
+		else:
+			title.SetToolTip("Useful for viewing data with a cut-out section.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1145,7 +1270,10 @@ class SubPanel_Median_Filter(wx.Panel):
 		hbox.Add(self.kdims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.maxdev = SpinnerObject(self,"Normal deviation:",MAX_INT_16,0.0,0.1,0.5,150,150)
-		self.maxdev.label.SetToolTipString("Maximum element-wise normal deviation.")
+		if IsNotWX4():
+			self.maxdev.label.SetToolTipString("Maximum element-wise normal deviation.")
+		else:
+			self.maxdev.label.SetToolTip("Maximum element-wise normal deviation.")
 		vbox.Add(self.maxdev, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -1164,7 +1292,10 @@ class SubPanel_GaussianFill(wx.Panel):
 		self.output_filename = TextPanelObject(self, "Output File: ", "data_gaussian.npy",150,'*.npy')
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.sigma = SpinnerObject(self,"Sigma:",MAX_INT_16,0.0,0.1,2.0,150,150)
-		self.sigma.label.SetToolTipString("Standard deviation.")
+		if IsNotWX4():
+			self.sigma.label.SetToolTipString("Standard deviation.")
+		else:
+			self.sigma.label.SetToolTip("Standard deviation.")
 		vbox.Add(self.sigma, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -1177,7 +1308,10 @@ class SubPanel_FFT(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Fourier Transform Array")
-		title.SetToolTipString("Fourier Transform Input Array.")
+		if IsNotWX4():
+			title.SetToolTipString("Fourier Transform Input Array.")
+		else:
+			title.SetToolTip("Fourier Transform Input Array.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1197,7 +1331,10 @@ class SubPanel_Convolve(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Convolve Arrays")
-		title.SetToolTipString("Convolve Input Arrays.")
+		if IsNotWX4():
+			title.SetToolTipString("Convolve Input Arrays.")
+		else:
+			title.SetToolTip("Convolve Input Arrays.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename1 = TextPanelObject(self, "Input File 1: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1216,7 +1353,10 @@ class SubPanel_Conjugate_Reflect(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Conjugate and Reflect Array")
-		title.SetToolTipString("Conjugate and Reflect Array.")
+		if IsNotWX4():
+			title.SetToolTipString("Conjugate and Reflect Array.")
+		else:
+			title.SetToolTip("Conjugate and Reflect Array.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1233,7 +1373,10 @@ class SubPanel_Cuboid_Support(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Make Cuboid Support")
-		title.SetToolTipString("Support is made using the (x,y,z) values below."+os.linesep+"If an additional numpy array is supplied, its "+os.linesep+"dimensions will be used.")
+		if IsNotWX4():
+			title.SetToolTipString("Support is made using the (x,y,z) values below."+os.linesep+"If an additional numpy array is supplied, its "+os.linesep+"dimensions will be used.")
+		else:
+			title.SetToolTip("Support is made using the (x,y,z) values below."+os.linesep+"If an additional numpy array is supplied, its "+os.linesep+"dimensions will be used.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.filename = TextPanelObject(self, "Support File: ", "support.npy",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1405,7 +1548,10 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		vbox.Add((-1, 10))
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
 		origintext = wx.StaticText(self, label="Origin:",size=(70, 30))
-		origintext.SetToolTipString("Origin of cut plane")
+		if IsNotWX4():
+			origintext.SetToolTipString("Origin of cut plane")
+		else:
+			origintext.SetToolTip("Origin of cut plane")
 		self.ox = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,1,10,15,80)
 		self.oy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,1,10,15,80)
 		self.oz = SpinnerObject(self,"z",MAX_INT_16,MIN_INT_16,1,10,15,80)
@@ -1416,7 +1562,10 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		vbox.Add(self.hbox3 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
 		normaltext = wx.StaticText(self, label="Normal:",size=(70, 30))
-		normaltext.SetToolTipString("Normal to cut plane")
+		if IsNotWX4():
+			normaltext.SetToolTipString("Normal to cut plane")
+		else:
+			normaltext.SetToolTip("Normal to cut plane")
 		self.nx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
 		self.ny = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,0,15,80)
 		self.nz = SpinnerObject(self,"z",MAX_INT_16,MIN_INT_16,0.1,0,15,80)
@@ -1428,7 +1577,10 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		vbox.Add((-1, 5))
 		self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
 		spacetext = wx.StaticText(self, label="Spacing:",size=(70, 30))
-		spacetext.SetToolTipString("Spacing between NumPy array points")
+		if IsNotWX4():
+			spacetext.SetToolTipString("Spacing between NumPy array points")
+		else:
+			spacetext.SetToolTip("Spacing between NumPy array points")
 		self.sx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
 		self.sy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
 		self.sz = SpinnerObject(self,"z",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
@@ -1520,7 +1672,10 @@ class SubPanel_ArrayStart(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Input Array Start")
-		title.SetToolTipString("Phase reconstruction will begin with this array.")
+		if IsNotWX4():
+			title.SetToolTipString("Phase reconstruction will begin with this array.")
+		else:
+			title.SetToolTip("Phase reconstruction will begin with this array.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input File: ", "",150,'*.npy')
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1543,7 +1698,10 @@ class SubPanel_HIO(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1568,7 +1726,10 @@ class SubPanel_ER(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		#self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		#vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1593,7 +1754,10 @@ class SubPanel_ERMask(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1601,11 +1765,17 @@ class SubPanel_ERMask(wx.Panel):
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.chkbox = wx.CheckBox(self, -1, 'Relax Modulus Constraint', size=(200, 20))
-		self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		if IsNotWX4():
+			self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		else:
+			self.chkbox.SetToolTip("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
 		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
 		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
-		self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		if IsNotWX4():
+			self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		else:
+			self.niter_relax.label.SetToolTip("Reduce the relaxtion to zero linearly over this many iterations.")
 		self.niter_relax.Disable()
 		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.chkbox.Hide()
@@ -1635,7 +1805,10 @@ class SubPanel_RAAR(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1645,11 +1818,17 @@ class SubPanel_RAAR(wx.Panel):
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.chkbox = wx.CheckBox(self, -1, 'Relax Modulus Constraint', size=(200, 20))
-		self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		if IsNotWX4():
+			self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		else:
+			self.chkbox.SetToolTip("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
 		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
 		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
-		self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		if IsNotWX4():
+			self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		else:
+			self.niter_relax.label.SetToolTip("Reduce the relaxtion to zero linearly over this many iterations.")
 		self.niter_relax.Disable()
 		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.chkbox.Hide()
@@ -1679,7 +1858,10 @@ class SubPanel_HPR(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1689,11 +1871,17 @@ class SubPanel_HPR(wx.Panel):
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.chkbox = wx.CheckBox(self, -1, 'Relax Modulus Constraint', size=(200, 20))
-		self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		if IsNotWX4():
+			self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		else:
+			self.chkbox.SetToolTip("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
 		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
 		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
-		self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		if IsNotWX4():
+			self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		else:
+			self.niter_relax.label.SetToolTip("Reduce the relaxtion to zero linearly over this many iterations.")
 		self.niter_relax.Disable()
 		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.chkbox.Hide()
@@ -1723,7 +1911,10 @@ class SubPanel_HIOMask(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1733,11 +1924,17 @@ class SubPanel_HIOMask(wx.Panel):
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.chkbox = wx.CheckBox(self, -1, 'Relax Modulus Constraint', size=(200, 20))
-		self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		if IsNotWX4():
+			self.chkbox.SetToolTipString("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
+		else:
+			self.chkbox.SetToolTip("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
 		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
 		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
-		self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		if IsNotWX4():
+			self.niter_relax.label.SetToolTipString("Reduce the relaxtion to zero linearly over this many iterations.")
+		else:
+			self.niter_relax.label.SetToolTip("Reduce the relaxtion to zero linearly over this many iterations.")
 		self.niter_relax.Disable()
 		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.chkbox.Hide()
@@ -1767,7 +1964,10 @@ class SubPanel_POER(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1792,7 +1992,10 @@ class SubPanel_HIOPlus(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1820,7 +2023,10 @@ class SubPanel_PCHIO(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1840,16 +2046,28 @@ class QDialog(wx.Dialog):
 		self.subpanel = subpanel
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		self.ttheta = NumberObject(self,"2 theta:",self.subpanel.ttheta,80)
-		self.ttheta.label.SetToolTipString("2 theta angle (radians). "+os.linesep+"Note: Diffraction pattern is assumed "+os.linesep+"to be co-ordinate corrected.")
+		if IsNotWX4():
+			self.ttheta.label.SetToolTipString("2 theta angle (radians). "+os.linesep+"Note: Diffraction pattern is assumed "+os.linesep+"to be co-ordinate corrected.")
+		else:
+			self.ttheta.label.SetToolTip("2 theta angle (radians). "+os.linesep+"Note: Diffraction pattern is assumed "+os.linesep+"to be co-ordinate corrected.")
 		self.phi = NumberObject(self,"phi:",self.subpanel.phi,80)
-		self.phi.label.SetToolTipString("phi angle (radians). "+os.linesep+"Note: Diffraction pattern is assumed "+os.linesep+"to be co-ordinate corrected.")
+		if IsNotWX4():
+			self.phi.label.SetToolTipString("phi angle (radians). "+os.linesep+"Note: Diffraction pattern is assumed "+os.linesep+"to be co-ordinate corrected.")
+		else:
+			self.phi.label.SetToolTip("phi angle (radians). "+os.linesep+"Note: Diffraction pattern is assumed "+os.linesep+"to be co-ordinate corrected.")
 		self.waveln = NumberObject(self,"lambda:",self.subpanel.waveln,80)
-		self.waveln.label.SetToolTipString("wavelength (nanometers),")
+		if IsNotWX4():
+			self.waveln.label.SetToolTipString("wavelength (nanometers),")
+		else:
+			self.waveln.label.SetToolTip("wavelength (nanometers),")
 		vbox.Add(self.ttheta ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.phi ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.waveln ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.rb = wx.RadioBox(self, label="Coordinate system", choices=['Global','Detector'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
-		self.rb.SetToolTipString("Select co-ordinate system for Q-vector. "+os.linesep+"If the Diffraction data is co-ordinate corrected,"+os.linesep+"the global system is appropriate."+os.linesep+"If not, the detector system should be used."+os.linesep+"(i.e. normal to the reflected wave.)")
+		if IsNotWX4():
+			self.rb.SetToolTipString("Select co-ordinate system for Q-vector. "+os.linesep+"If the Diffraction data is co-ordinate corrected,"+os.linesep+"the global system is appropriate."+os.linesep+"If not, the detector system should be used."+os.linesep+"(i.e. normal to the reflected wave.)")
+		else:
+			self.rb.SetToolTip("Select co-ordinate system for Q-vector. "+os.linesep+"If the Diffraction data is co-ordinate corrected,"+os.linesep+"the global system is appropriate."+os.linesep+"If not, the detector system should be used."+os.linesep+"(i.e. normal to the reflected wave.)")
 		vbox.Add(self.rb ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1,10))
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -1904,7 +2122,10 @@ class SubPanel_PGCHIO(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Phase Gradient Constrained HIO Algorithm")
-		title.SetToolTipString("Phase is constrained in the direction "+os.linesep+"of the Q-vector.")
+		if IsNotWX4():
+			title.SetToolTipString("Phase is constrained in the direction "+os.linesep+"of the Q-vector.")
+		else:
+			title.SetToolTip("Phase is constrained in the direction "+os.linesep+"of the Q-vector.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.exp_amps = TextPanelObject(self, "Exp Amp: ", "",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.exp_amps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1912,7 +2133,10 @@ class SubPanel_PGCHIO(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1925,13 +2149,22 @@ class SubPanel_PGCHIO(wx.Panel):
 		self.phasemin = SpinnerObject(self,"Phase Min: ",2.0*pi,0.0,0.01,0.0,100,150)
 		vbox.Add(self.phasemin, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.qx = NumberObject(self,"Q,x:",0.0,80)
-		self.qx.label.SetToolTipString("Q vector, x component direction.")
+		if IsNotWX4():
+			self.qx.label.SetToolTipString("Q vector, x component direction.")
+		else:
+			self.qx.label.SetToolTip("Q vector, x component direction.")
 		vbox.Add(self.qx ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.qy = NumberObject(self,"Q,y:",0.0,80)
-		self.qy.label.SetToolTipString("Q vector, y component direction.")
+		if IsNotWX4():
+			self.qy.label.SetToolTipString("Q vector, y component direction.")
+		else:
+			self.qy.label.SetToolTip("Q vector, y component direction.")
 		vbox.Add(self.qy ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.qz = NumberObject(self,"Q,z:",0.0,80)
-		self.qz.label.SetToolTipString("Q vector, z component direction.")
+		if IsNotWX4():
+			self.qz.label.SetToolTipString("Q vector, z component direction.")
+		else:
+			self.qz.label.SetToolTip("Q vector, z component direction.")
 		vbox.Add(self.qz ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.ttheta = 0.0
 		self.phi = 0.0
@@ -1965,56 +2198,98 @@ class SubPanel_ShrinkWrap(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Initial support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Initial support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Initial support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
-		self.beta.label.SetToolTipString("Relaxation parameter.")
+		if IsNotWX4():
+			self.beta.label.SetToolTipString("Relaxation parameter.")
+		else:
+			self.beta.label.SetToolTip("Relaxation parameter.")
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,100,100,100)
-		self.niter.label.SetToolTipString("Total number of iterations.")
+		if IsNotWX4():
+			self.niter.label.SetToolTipString("Total number of iterations.")
+		else:
+			self.niter.label.SetToolTip("Total number of iterations.")
 		hbox1.Add(self.niter, 0,  flag=wx.EXPAND|wx.RIGHT, border=5)
 		self.cycle = SpinnerObject(self,"Cycle length: ",MAX_INT_16,1,1,30,120,80)
-		self.cycle.label.SetToolTipString("Number of iterations in a shrink-wrap cycle.")
+		if IsNotWX4():
+			self.cycle.label.SetToolTipString("Number of iterations in a shrink-wrap cycle.")
+		else:
+			self.cycle.label.SetToolTip("Number of iterations in a shrink-wrap cycle.")
 		hbox1.Add(self.cycle, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		hbox2 = wx.BoxSizer(wx.HORIZONTAL)
 		self.sigma = SpinnerObject(self,"Sigma: ",5.0,0.0,0.01,0.35,100,100)
-		self.sigma.label.SetToolTipString("Standard deviation of Gaussian smoothing function for Support.")
+		if IsNotWX4():
+			self.sigma.label.SetToolTipString("Standard deviation of Gaussian smoothing function for Support.")
+		else:
+			self.sigma.label.SetToolTip("Standard deviation of Gaussian smoothing function for Support.")
 		hbox2.Add(self.sigma, 0,  flag=wx.EXPAND|wx.RIGHT, border=5)
 		self.frac = SpinnerObject(self,"threshold: ",1.0,0.0,0.01,0.2,100,100)
-		self.frac.label.SetToolTipString("Data cut-off threshold for updating the support."+os.linesep+"Data below this fraction is not used for the support.")
+		if IsNotWX4():
+			self.frac.label.SetToolTipString("Data cut-off threshold for updating the support."+os.linesep+"Data below this fraction is not used for the support.")
+		else:
+			self.frac.label.SetToolTip("Data cut-off threshold for updating the support."+os.linesep+"Data below this fraction is not used for the support.")
 		hbox2.Add(self.frac, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		vbox.Add(hbox2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.rbrs = wx.RadioBox(self, label="Algorithm:", choices=['HIO','HIOMask','HIOPlus','PCHIO','PGCHIO','ER','HPR','RAAR', 'CSHIO'],  majorDimension=5, style=wx.RA_SPECIFY_COLS)
-		self.rbrs.SetToolTipString("Select an algorithm for the shrink wrap to use.")
+		if IsNotWX4():
+			self.rbrs.SetToolTipString("Select an algorithm for the shrink wrap to use.")
+		else:
+			self.rbrs.SetToolTip("Select an algorithm for the shrink wrap to use.")
 		vbox.Add(self.rbrs ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.Bind(wx.EVT_RADIOBOX, self.OnRadioSelect, self.rbrs)
 		self.phasemax = SpinnerObject(self,"Phase Max: ",pi,0.0,0.01,pi,100,150)
-		self.phasemax.label.SetToolTipString("Maximum phase (PCHIO only).")
+		if IsNotWX4():
+			self.phasemax.label.SetToolTipString("Maximum phase (PCHIO only).")
+		else:
+			self.phasemax.label.SetToolTip("Maximum phase (PCHIO only).")
 		vbox.Add(self.phasemax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.phasemin = SpinnerObject(self,"Phase Min: ",0.0,-pi,0.01,-pi,100,150)
-		self.phasemin.label.SetToolTipString("Minimum phase (PCHIO only).")
+		if IsNotWX4():
+			self.phasemin.label.SetToolTipString("Minimum phase (PCHIO only).")
+		else:
+			self.phasemin.label.SetToolTip("Minimum phase (PCHIO only).")
 		vbox.Add(self.phasemin, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.phasemax.Hide()
 		self.phasemin.Hide()
 		self.cs_p = SpinnerObject(self,"p-norm: ",2.0,-2.0,0.01,1.0,100,100)
-		self.cs_p.label.SetToolTipString("p-normalisation value. "+os.linesep+" (CSHIO only)")
+		if IsNotWX4():
+			self.cs_p.label.SetToolTipString("p-normalisation value. "+os.linesep+" (CSHIO only)")
+		else:
+			self.cs_p.label.SetToolTip("p-normalisation value. "+os.linesep+" (CSHIO only)")
 		vbox.Add(self.cs_p, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.cs_epsilon = SpinnerObject(self,"Epsilon: ",MAX_INT_16,0.0,0.01,1.0,100,100)
-		self.cs_epsilon.label.SetToolTipString("Relaxation parameter. "+os.linesep+" (CSHIO only)")
+		if IsNotWX4():
+			self.cs_epsilon.label.SetToolTipString("Relaxation parameter. "+os.linesep+" (CSHIO only)")
+		else:
+			self.cs_epsilon.label.SetToolTip("Relaxation parameter. "+os.linesep+" (CSHIO only)")
 		vbox.Add(self.cs_epsilon, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.cs_epsilon_min = SpinnerObject(self,"Epsilon min: ",1.0,0.000000001,0.000000001,0.000001,100,100)
-		self.cs_epsilon_min.label.SetToolTipString("Relaxation parameter minimum value.")
+		if IsNotWX4():
+			self.cs_epsilon_min.label.SetToolTipString("Relaxation parameter minimum value.")
+		else:
+			self.cs_epsilon_min.label.SetToolTip("Relaxation parameter minimum value.")
 		vbox.Add(self.cs_epsilon_min, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.cs_d = SpinnerObject(self,"Divisor: ",MAX_INT_16,1.0,0.01,2.0,100,100)
-		self.cs_d.label.SetToolTipString("Number to divide Epsilon when decrement condition is met."+os.linesep+" (CSHIO only)")
+		if IsNotWX4():
+			self.cs_d.label.SetToolTipString("Number to divide Epsilon when decrement condition is met."+os.linesep+" (CSHIO only)")
+		else:
+			self.cs_d.label.SetToolTip("Number to divide Epsilon when decrement condition is met."+os.linesep+" (CSHIO only)")
 		vbox.Add(self.cs_d, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.cs_eta = SpinnerObject(self,"Eta: ",MAX_INT_16,1.0,0.01,100.0,100,100)
-		self.cs_eta.label.SetToolTipString("Divisor for decrement condition: "+os.linesep+" i.e sqrt( epsilon )/eta. "+os.linesep+" (CSHIO only)")
+		if IsNotWX4():
+			self.cs_eta.label.SetToolTipString("Divisor for decrement condition: "+os.linesep+" i.e sqrt( epsilon )/eta. "+os.linesep+" (CSHIO only)")
+		else:
+			self.cs_eta.label.SetToolTip("Divisor for decrement condition: "+os.linesep+" i.e sqrt( epsilon )/eta. "+os.linesep+" (CSHIO only)")
 		vbox.Add(self.cs_eta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.chkbox_relax= wx.CheckBox(self, -1, 'Relax Modulus Constraint', (50, 10))
 		self.chkbox_relax.SetValue(True)
@@ -2030,13 +2305,22 @@ class SubPanel_ShrinkWrap(wx.Panel):
 		self.gc_phasemin = SpinnerObject(self,"Phase Min: ",2.0*pi,0.0,0.01,0.0,100,150)
 		vbox.Add(self.gc_phasemin, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.qx = NumberObject(self,"Q,x:",0.0,80)
-		self.qx.label.SetToolTipString("Q vector, x component direction.")
+		if IsNotWX4():
+			self.qx.label.SetToolTipString("Q vector, x component direction.")
+		else:
+			self.qx.label.SetToolTip("Q vector, x component direction.")
 		vbox.Add(self.qx ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.qy = NumberObject(self,"Q,y:",0.0,80)
-		self.qy.label.SetToolTipString("Q vector, y component direction.")
+		if IsNotWX4():
+			self.qy.label.SetToolTipString("Q vector, y component direction.")
+		else:
+			self.qy.label.SetToolTip("Q vector, y component direction.")
 		vbox.Add(self.qy ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.qz = NumberObject(self,"Q,z:",0.0,80)
-		self.qz.label.SetToolTipString("Q vector, z component direction.")
+		if IsNotWX4():
+			self.qz.label.SetToolTipString("Q vector, z component direction.")
+		else:
+			self.qz.label.SetToolTip("Q vector, z component direction.")
 		vbox.Add(self.qz ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.ttheta = 0.0
 		self.phi = 0.0
@@ -2136,7 +2420,10 @@ class SubPanel_CSHIO(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2146,19 +2433,34 @@ class SubPanel_CSHIO(wx.Panel):
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.cs_p = SpinnerObject(self,"p-norm: ",2.0,-2.0,0.01,1.0,100,100)
-		self.cs_p.label.SetToolTipString("p-normalisation value.")
+		if IsNotWX4():
+			self.cs_p.label.SetToolTipString("p-normalisation value.")
+		else:
+			self.cs_p.label.SetToolTip("p-normalisation value.")
 		vbox.Add(self.cs_p, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.cs_epsilon = SpinnerObject(self,"Epsilon: ",MAX_INT_16,0.0,0.01,1.0,100,150)
-		self.cs_epsilon.label.SetToolTipString("Relaxation parameter.")
+		if IsNotWX4():
+			self.cs_epsilon.label.SetToolTipString("Relaxation parameter.")
+		else:
+			self.cs_epsilon.label.SetToolTip("Relaxation parameter.")
 		vbox.Add(self.cs_epsilon, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.cs_epsilon_min = SpinnerObject(self,"Epsilon min: ",1.0,0.000000001,0.000000001,0.000001,100,150)
-		self.cs_epsilon_min.label.SetToolTipString("Relaxation parameter minimum value.")
+		if IsNotWX4():
+			self.cs_epsilon_min.label.SetToolTipString("Relaxation parameter minimum value.")
+		else:
+			self.cs_epsilon_min.label.SetToolTip("Relaxation parameter minimum value.")
 		vbox.Add(self.cs_epsilon_min, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.cs_d = SpinnerObject(self,"Divisor: ",MAX_INT_16,1.0,0.01,2.0,100,150)
-		self.cs_d.label.SetToolTipString("Number to divide Epsilon when decrement condition is met.")
+		if IsNotWX4():
+			self.cs_d.label.SetToolTipString("Number to divide Epsilon when decrement condition is met.")
+		else:
+			self.cs_d.label.SetToolTip("Number to divide Epsilon when decrement condition is met.")
 		vbox.Add(self.cs_d, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.cs_eta = SpinnerObject(self,"Eta: ",MAX_INT_16,1.0,0.01,100.0,100,150)
-		self.cs_eta.label.SetToolTipString("Divisor for decrement condition: "+os.linesep+" i.e sqrt( epsilon )/eta.")
+		if IsNotWX4():
+			self.cs_eta.label.SetToolTipString("Divisor for decrement condition: "+os.linesep+" i.e sqrt( epsilon )/eta.")
+		else:
+			self.cs_eta.label.SetToolTip("Divisor for decrement condition: "+os.linesep+" i.e sqrt( epsilon )/eta.")
 		vbox.Add(self.cs_eta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.chkbox_relax= wx.CheckBox(self, -1, 'Relax Modulus Constraint', (50, 10))
 		self.chkbox_relax.SetValue(True)
@@ -2183,7 +2485,10 @@ class SubPanel_HIOMaskPC(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2193,19 +2498,31 @@ class SubPanel_HIOMaskPC(wx.Panel):
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
-		self.niterrlpre.label.SetToolTipString("Number of HIO iterations performed before R-L Optimisation occurs.")
+		if IsNotWX4():
+			self.niterrlpre.label.SetToolTipString("Number of HIO iterations performed before R-L Optimisation occurs.")
+		else:
+			self.niterrlpre.label.SetToolTip("Number of HIO iterations performed before R-L Optimisation occurs.")
 		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
-		self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		if IsNotWX4():
+			self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		else:
+			self.niterrl.label.SetToolTip("Number of Richardon-Lucy iterations.")
 		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
-		self.niterrlinterval.label.SetToolTipString("")
+		if IsNotWX4():
+			self.niterrlinterval.label.SetToolTipString("")
+		else:
+			self.niterrlinterval.label.SetToolTip("")
 		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
 		vbox.Add(self.accel, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.gammaHWHM = SpinnerObject(self,"Initial PSF HWHM: ",MAX_INT_16,0.0,0.01,0.2,300,100)
-		self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		if IsNotWX4():
+			self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		else:
+			self.gammaHWHM.label.SetToolTip("HWHM of initial FT'd Lorentzian PSF.")
 		vbox.Add(self.gammaHWHM, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		title1 = wx.StaticText(self, label="Zero fill end dimensions of PSF:")
 		vbox.Add(title1 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2242,7 +2559,10 @@ class SubPanel_ERMaskPC(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2250,19 +2570,31 @@ class SubPanel_ERMaskPC(wx.Panel):
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
-		self.niterrlpre.label.SetToolTipString("Number of ER iterations performed before R-L Optimisation occurs.")
+		if IsNotWX4():
+			self.niterrlpre.label.SetToolTipString("Number of ER iterations performed before R-L Optimisation occurs.")
+		else:
+			self.niterrlpre.label.SetToolTip("Number of ER iterations performed before R-L Optimisation occurs.")
 		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
-		self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		if IsNotWX4():
+			self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		else:
+			self.niterrl.label.SetToolTip("Number of Richardon-Lucy iterations.")
 		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
-		self.niterrlinterval.label.SetToolTipString("")
+		if IsNotWX4():
+			self.niterrlinterval.label.SetToolTipString("")
+		else:
+			self.niterrlinterval.label.SetToolTip("")
 		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
 		vbox.Add(self.accel, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.gammaHWHM = SpinnerObject(self,"Initial PSF HWHM: ",MAX_INT_16,0.0,0.01,0.2,300,100)
-		self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		if IsNotWX4():
+			self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		else:
+			self.gammaHWHM.label.SetToolTip("HWHM of initial FT'd Lorentzian PSF.")
 		vbox.Add(self.gammaHWHM, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		title1 = wx.StaticText(self, label="Zero fill end dimensions of PSF:")
 		vbox.Add(title1 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2299,7 +2631,10 @@ class SubPanel_HPRMaskPC(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2309,19 +2644,31 @@ class SubPanel_HPRMaskPC(wx.Panel):
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
-		self.niterrlpre.label.SetToolTipString("Number of HPR iterations performed before R-L Optimisation occurs.")
+		if IsNotWX4():
+			self.niterrlpre.label.SetToolTipString("Number of HPR iterations performed before R-L Optimisation occurs.")
+		else:
+			self.niterrlpre.label.SetToolTip("Number of HPR iterations performed before R-L Optimisation occurs.")
 		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
-		self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		if IsNotWX4():
+			self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		else:
+			self.niterrl.label.SetToolTip("Number of Richardon-Lucy iterations.")
 		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
-		self.niterrlinterval.label.SetToolTipString("")
+		if IsNotWX4():
+			self.niterrlinterval.label.SetToolTipString("")
+		else:
+			self.niterrlinterval.label.SetToolTip("")
 		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
 		vbox.Add(self.accel, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.gammaHWHM = SpinnerObject(self,"Initial PSF HWHM: ",MAX_INT_16,0.0,0.01,0.2,300,100)
-		self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		if IsNotWX4():
+			self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		else:
+			self.gammaHWHM.label.SetToolTip("HWHM of initial FT'd Lorentzian PSF.")
 		vbox.Add(self.gammaHWHM, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		title1 = wx.StaticText(self, label="Zero fill end dimensions of PSF:")
 		vbox.Add(title1 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2358,7 +2705,10 @@ class SubPanel_RAARMaskPC(wx.Panel):
 		self.chkbox_sqrt_expamps.SetValue(True)
 		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
-		self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		if IsNotWX4():
+			self.support.label.SetToolTipString("Support. If empty, previous instance will be used.")
+		else:
+			self.support.label.SetToolTip("Support. If empty, previous instance will be used.")
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2368,19 +2718,31 @@ class SubPanel_RAARMaskPC(wx.Panel):
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
-		self.niterrlpre.label.SetToolTipString("Number of RAAR iterations performed before R-L Optimisation occurs.")
+		if IsNotWX4():
+			self.niterrlpre.label.SetToolTipString("Number of RAAR iterations performed before R-L Optimisation occurs.")
+		else:
+			self.niterrlpre.label.SetToolTip("Number of RAAR iterations performed before R-L Optimisation occurs.")
 		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
-		self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		if IsNotWX4():
+			self.niterrl.label.SetToolTipString("Number of Richardon-Lucy iterations.")
+		else:
+			self.niterrl.label.SetToolTip("Number of Richardon-Lucy iterations.")
 		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
-		self.niterrlinterval.label.SetToolTipString("")
+		if IsNotWX4():
+			self.niterrlinterval.label.SetToolTipString("")
+		else:
+			self.niterrlinterval.label.SetToolTip("")
 		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
 		vbox.Add(self.accel, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.gammaHWHM = SpinnerObject(self,"Initial PSF HWHM: ",MAX_INT_16,0.0,0.01,0.2,300,100)
-		self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		if IsNotWX4():
+			self.gammaHWHM.label.SetToolTipString("HWHM of initial FT'd Lorentzian PSF.")
+		else:
+			self.gammaHWHM.label.SetToolTip("HWHM of initial FT'd Lorentzian PSF.")
 		vbox.Add(self.gammaHWHM, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		title1 = wx.StaticText(self, label="Zero fill end dimensions of PSF:")
 		vbox.Add(title1 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2436,31 +2798,55 @@ class SubPanel_Transform(wx.Panel):
 		hbox.Add(self.bdims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=2)
 		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.twotheta = NumberObject(self,"2 theta:",0.0,80)
-		self.twotheta.label.SetToolTipString("2 theta angle (radians)")
+		if IsNotWX4():
+			self.twotheta.label.SetToolTipString("2 theta angle (radians)")
+		else:
+			self.twotheta.label.SetToolTip("2 theta angle (radians)")
 		vbox.Add(self.twotheta ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.dtheta = NumberObject(self,"d theta:",0.0,80)
-		self.dtheta.label.SetToolTipString("Increment in theta angle (radians)")
+		if IsNotWX4():
+			self.dtheta.label.SetToolTipString("Increment in theta angle (radians)")
+		else:
+			self.dtheta.label.SetToolTip("Increment in theta angle (radians)")
 		vbox.Add(self.dtheta ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.phi = NumberObject(self,"phi:",0.0,80)
-		self.phi.label.SetToolTipString("Phi angle (radians)")
+		if IsNotWX4():
+			self.phi.label.SetToolTipString("Phi angle (radians)")
+		else:
+			self.phi.label.SetToolTip("Phi angle (radians)")
 		vbox.Add(self.phi ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.dphi = NumberObject(self,"d phi:",0.0,80)
-		self.dphi.label.SetToolTipString("Increment in phi angle (radians)")
+		if IsNotWX4():
+			self.dphi.label.SetToolTipString("Increment in phi angle (radians)")
+		else:
+			self.dphi.label.SetToolTip("Increment in phi angle (radians)")
 		vbox.Add(self.dphi ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.pixelx = NumberObject(self,"Pixel x (microns):",50.0,140)
-		self.pixelx.label.SetToolTipString("Dimension of detector pixel (microns)")
+		if IsNotWX4():
+			self.pixelx.label.SetToolTipString("Dimension of detector pixel (microns)")
+		else:
+			self.pixelx.label.SetToolTip("Dimension of detector pixel (microns)")
 		hbox1.Add(self.pixelx ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		hbox1.Add((10, -1))
 		self.pixely = NumberObject(self,"Pixel y (microns):",50.0,140)
-		self.pixely.label.SetToolTipString("Dimension of detector pixel (microns)")
+		if IsNotWX4():
+			self.pixely.label.SetToolTipString("Dimension of detector pixel (microns)")
+		else:
+			self.pixely.label.SetToolTip("Dimension of detector pixel (microns)")
 		hbox1.Add(self.pixely ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(hbox1 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=0)
 		self.waveln = NumberObject(self,"Wavelengh (nm):",0.13,140)
-		self.waveln.label.SetToolTipString("Wavelengh of light (nanometers)")
+		if IsNotWX4():
+			self.waveln.label.SetToolTipString("Wavelengh of light (nanometers)")
+		else:
+			self.waveln.label.SetToolTip("Wavelengh of light (nanometers)")
 		vbox.Add(self.waveln ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.armln = NumberObject(self,"Arm length (m):",1.0,140)
-		self.armln.label.SetToolTipString("Distance from sample to detector center (meters)")
+		if IsNotWX4():
+			self.armln.label.SetToolTipString("Distance from sample to detector center (meters)")
+		else:
+			self.armln.label.SetToolTip("Distance from sample to detector center (meters)")
 		vbox.Add(self.armln,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.chkbox_ccdflip = wx.CheckBox(self, -1, 'CCD x-axis flip', size=(200, 30))
@@ -2478,7 +2864,10 @@ class SubPanel_Save_Sequence(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Save sequence data to Numpy array")
-		title.SetToolTipString("Save sequence to Numpy array. "+os.linesep+"No co-ordinate transformation is performed.")
+		if IsNotWX4():
+			title.SetToolTipString("Save sequence to Numpy array. "+os.linesep+"No co-ordinate transformation is performed.")
+		else:
+			title.SetToolTip("Save sequence to Numpy array. "+os.linesep+"No co-ordinate transformation is performed.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.output_filename = TextPanelObject(self, "Output File: ", "output.npy",150,'*.npy')
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2494,7 +2883,10 @@ class SubPanel_Save_Support(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Save support to Numpy array")
-		title.SetToolTipString("Save support to Numpy array. "+os.linesep+"No co-ordinate transformation is performed.")
+		if IsNotWX4():
+			title.SetToolTipString("Save support to Numpy array. "+os.linesep+"No co-ordinate transformation is performed.")
+		else:
+			title.SetToolTip("Save support to Numpy array. "+os.linesep+"No co-ordinate transformation is performed.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.output_filename = TextPanelObject(self, "Output File: ", "output_support.npy",150,'*.npy')
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2510,7 +2902,10 @@ class SubPanel_Save_Residual(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Save residual data")
-		title.SetToolTipString("Save residual error data to file (ascii format).")
+		if IsNotWX4():
+			title.SetToolTipString("Save residual error data to file (ascii format).")
+		else:
+			title.SetToolTip("Save residual error data to file (ascii format).")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.output_filename = TextPanelObject(self, "Output File: ", "output_residual.csv",150,'*.csv')
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2526,7 +2921,10 @@ class SubPanel_Save_Coordinates(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Save Coordinates to Numpy array")
-		title.SetToolTipString("Save coordinates to Numpy array. "+os.linesep+"A prior co-ordinate transformation\nshould have occured.")
+		if IsNotWX4():
+			title.SetToolTipString("Save coordinates to Numpy array. "+os.linesep+"A prior co-ordinate transformation\nshould have occured.")
+		else:
+			title.SetToolTip("Save coordinates to Numpy array. "+os.linesep+"A prior co-ordinate transformation\nshould have occured.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.output_filename = TextPanelObject(self, "Output File: ", "output_coordinates.npy",150,'*.npy')
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2579,7 +2977,10 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 		vbox.Add((-1, 5))
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
 		origintext = wx.StaticText(self, label="Origin:",size=(70, 30))
-		origintext.SetToolTipString("Origin of cut plane")
+		if IsNotWX4():
+			origintext.SetToolTipString("Origin of cut plane")
+		else:
+			origintext.SetToolTip("Origin of cut plane")
 		self.ox = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,1,10,15,80)
 		self.oy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,1,10,15,80)
 		self.oz = SpinnerObject(self,"z",MAX_INT_16,MIN_INT_16,1,10,15,80)
@@ -2590,7 +2991,10 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 		vbox.Add(self.hbox3 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
 		normaltext = wx.StaticText(self, label="Normal:",size=(70, 30))
-		normaltext.SetToolTipString("Normal to cut plane")
+		if IsNotWX4():
+			normaltext.SetToolTipString("Normal to cut plane")
+		else:
+			normaltext.SetToolTip("Normal to cut plane")
 		self.nx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
 		self.ny = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,0,15,80)
 		self.nz = SpinnerObject(self,"z",MAX_INT_16,MIN_INT_16,0.1,0,15,80)
@@ -2697,7 +3101,10 @@ class SubPanel_View_VTK(wx.ScrolledWindow):
 		vbox.Add((-1, 5))
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
 		origintext = wx.StaticText(self, label="Origin:",size=(70, 30))
-		origintext.SetToolTipString("Origin of cut plane")
+		if IsNotWX4():
+			origintext.SetToolTipString("Origin of cut plane")
+		else:
+			origintext.SetToolTip("Origin of cut plane")
 		self.ox = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,1,0,15,80)
 		self.oy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,1,0,15,80)
 		self.oz = SpinnerObject(self,"z",MAX_INT_16,MIN_INT_16,1,0,15,80)
@@ -2708,7 +3115,10 @@ class SubPanel_View_VTK(wx.ScrolledWindow):
 		vbox.Add(self.hbox3 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
 		normaltext = wx.StaticText(self, label="Normal:",size=(70, 30))
-		normaltext.SetToolTipString("Normal to cut plane")
+		if IsNotWX4():
+			normaltext.SetToolTipString("Normal to cut plane")
+		else:
+			normaltext.SetToolTip("Normal to cut plane")
 		self.nx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
 		self.ny = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,0,15,80)
 		self.nz = SpinnerObject(self,"z",MAX_INT_16,MIN_INT_16,0.1,0,15,80)
@@ -2767,7 +3177,10 @@ class SubPanel_InterpolateObject(wx.Panel):
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label=" Interpolate array with coordinates onto a regular grid Numpy array")
-		title.SetToolTipString("")
+		if IsNotWX4():
+			title.SetToolTipString("")
+		else:
+			title.SetToolTip("")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.input_filename = TextPanelObject(self, "Input file: ", "output.npy",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2777,7 +3190,10 @@ class SubPanel_InterpolateObject(wx.Panel):
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 10))
 		title2 = wx.StaticText(self, label=" Array grid size (i,j,k): ")
-		title2.SetToolTipString("Grid Size")
+		if IsNotWX4():
+			title2.SetToolTipString("Grid Size")
+		else:
+			title2.SetToolTip("Grid Size")
 		vbox.Add(title2 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.spacer=[{} for i in range(3)]
 		self.spacer[0] = SpinnerObject(self,"i",MAX_INT_16,1,1,100,20,100)
@@ -2790,7 +3206,10 @@ class SubPanel_InterpolateObject(wx.Panel):
 		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 10))
 		self.interp_range = SpinnerObject(self,"Interpolation Range:",1.0,0.0,0.001,0.001,180,60)
-		self.interp_range.label.SetToolTipString(" Specify influence distance of each input point. This distance is "+os.linesep+" a fraction of the length of the diagonal of the sample space. "+os.linesep+" Thus, values of 1.0 will cause each input point to influence "+os.linesep+" all points in the structured point dataset. Values less than 1.0 "+os.linesep+" can improve performance significantly.")
+		if IsNotWX4():
+			self.interp_range.label.SetToolTipString(" Specify influence distance of each input point. This distance is "+os.linesep+" a fraction of the length of the diagonal of the sample space. "+os.linesep+" Thus, values of 1.0 will cause each input point to influence "+os.linesep+" all points in the structured point dataset. Values less than 1.0 "+os.linesep+" can improve performance significantly.")
+		else:
+			self.interp_range.label.SetToolTip(" Specify influence distance of each input point. This distance is "+os.linesep+" a fraction of the length of the diagonal of the sample space. "+os.linesep+" Thus, values of 1.0 will cause each input point to influence "+os.linesep+" all points in the structured point dataset. Values less than 1.0 "+os.linesep+" can improve performance significantly.")
 		vbox.Add(self.interp_range, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )

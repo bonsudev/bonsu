@@ -21,6 +21,7 @@
 import math, os, sys
 import wx
 import vtk
+from .common import IsNotWX4
 try:
 	True
 except NameError:
@@ -158,17 +159,26 @@ class wxVTKRenderWindowInteractor(baseClass):
 		return 1
 	def _CursorChangedEvent(self, obj, evt):
 		cur = self._cursor_map[obj.GetCurrentCursor()]
-		c = wx.StockCursor(cur)
+		if IsNotWX4():
+			c = wx.StockCursor(cur)
+		else:
+			c = wx.Cursor(cur)
 		self.SetCursor(c)
 	def CursorChangedEvent(self, obj, evt):
 		wx.CallAfter(self._CursorChangedEvent, obj, evt)
 	def HideCursor(self):
-		c = wx.StockCursor(wx.CURSOR_BLANK)
+		if IsNotWX4():
+			c = wx.StockCursor(wx.CURSOR_BLANK)
+		else:
+			c = wx.Cursor(wx.CURSOR_BLANK)
 		self.SetCursor(c)
 	def ShowCursor(self):
 		rw = self._Iren.GetRenderWindow()
 		cur = self._cursor_map[rw.GetCurrentCursor()]
-		c = wx.StockCursor(cur)
+		if IsNotWX4():
+			c = wx.StockCursor(cur)
+		else:
+			c = wx.Cursor(cur)
 		self.SetCursor(c)
 	def GetDisplayId(self):
 		d = None
@@ -191,7 +201,10 @@ class wxVTKRenderWindowInteractor(baseClass):
 	def OnPaint(self,event):
 		event.Skip()
 		dc = wx.PaintDC(self)
-		self._Iren.GetRenderWindow().SetSize(self.GetSizeTuple())
+		if IsNotWX4():
+			self._Iren.GetRenderWindow().SetSize(self.GetSizeTuple())
+		else:
+			self._Iren.GetRenderWindow().SetSize(self.GetSize())
 		if not self.__handle:
 			self.__handle = self.GetHandle()
 			self._Iren.GetRenderWindow().SetWindowInfo(str(self.__handle))
@@ -199,7 +212,10 @@ class wxVTKRenderWindowInteractor(baseClass):
 		self.Render()
 	def OnWindowCreate(self,event):
 		event.Skip
-		width,height = self.GetSizeTuple()
+		if IsNotWX4():
+			width,height = self.GetSizeTuple()
+		else:
+			width,height = self.GetSize()
 		self._Iren.SetSize(width, height)
 		self._Iren.ConfigureEvent()
 		self.Render()

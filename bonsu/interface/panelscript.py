@@ -29,7 +29,7 @@ class PanelScript(wx.Panel):
 		self.shell.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown, self.shell)
 		self.ih = 0
 		sizer = wx.BoxSizer(wx.VERTICAL)
-		sizer.Add(item = self.shell, proportion = 1, flag = wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		sizer.Add(self.shell, 1, flag = wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		sizer.Fit(self)
 		self.SetSizer(sizer)
 		self.SetAutoLayout(True)

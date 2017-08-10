@@ -123,6 +123,7 @@ import string as _string
 import time as _time
 import sys
 import wx
+from .common import IsNotWX4
 if wx.VERSION < (2, 9, 5) or not 'phoenix' in wx.version():
 	wx.PENSTYLE_SOLID = wx.SOLID
 	wx.PENSTYLE_DOT = wx.DOT
@@ -251,7 +252,10 @@ class PolyLine(PolyPoints):
         width = self.attributes['width'] * printerScale * self._pointSize[0]
         style = self.attributes['style']
         if not isinstance(colour, wx.Colour):
-            colour = wx.NamedColour(colour)
+            if IsNotWX4():
+                colour = wx.NamedColour(colour)
+            else:
+                colour = wx.Colour(colour)
         pen = wx.Pen(colour, width, style)
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
@@ -529,9 +533,14 @@ class PlotCanvas(wx.Panel):
         self.Bind(wx.EVT_SCROLL_LINEDOWN, self.OnScroll)
         # set curser as cross-hairs
         self.canvas.SetCursor(wx.CROSS_CURSOR)
-        self.HandCursor = self.HandCursor = wx.StockCursor(wx.CURSOR_HAND)
-        self.GrabHandCursor = self.HandCursor = wx.StockCursor(wx.CURSOR_HAND)
-        self.MagCursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
+        if IsNotWX4():
+            self.HandCursor = self.HandCursor = wx.StockCursor(wx.CURSOR_HAND)
+            self.GrabHandCursor = self.HandCursor = wx.StockCursor(wx.CURSOR_HAND)
+            self.MagCursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
+        else:
+            self.HandCursor = self.HandCursor = wx.Cursor(wx.CURSOR_HAND)
+            self.GrabHandCursor = self.HandCursor = wx.Cursor(wx.CURSOR_HAND)
+            self.MagCursor = wx.Cursor(wx.CURSOR_MAGNIFIER)
         # Things for printing
         self._print_data = None
         self._pageSetupData = None
@@ -1326,8 +1335,12 @@ class PlotCanvas(wx.Panel):
         # current drawing in it, so it can be used to save the image to
         # a file, or whatever.
         #self._Buffer = wx.Bitmap(Size.width, Size.height)
-        self._img = wx.EmptyImage(Size.width,Size.height)
-        self._Buffer = wx.BitmapFromImage(self._img)
+        if IsNotWX4():
+            self._img = wx.EmptyImage(Size.width,Size.height)
+            self._Buffer = wx.BitmapFromImage(self._img)
+        else:
+            self._img = wx.Image(Size.width,Size.height)
+            self._Buffer = wx.Bitmap(self._img)
         self._Buffer.SetHeight(Size.height)
         self._Buffer.SetWidth(Size.width)
         self._setSize()
