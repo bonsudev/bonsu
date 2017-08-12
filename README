@@ -14,7 +14,7 @@ doi:10.1107/S0021889812026751
 HISTORY
 ============
 
-Version 2.3.0
+Version 2.3.1
 
 	+ Check box to pipeline items to optionally exempt from execution.
 	+ XYZ orientation widget. 

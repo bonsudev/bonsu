@@ -22,7 +22,7 @@ __author__ = "Marcus C. Newton"
 __copyright__ = "Copyright 2011-2017 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "2.3.0"
+__version__ = "2.3.1"
 __maintainer__ = "Marcus C. Newton"
 __email__ = "Bonsu.Devel@gmail.com"
 __status__ = "Production"
@@ -180,7 +180,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		panelphase = self.GetChildren()[1].GetPage(0)
 		if panelphase.pipeline_started == False:
 			cwd = self.CurrentWD()
-			dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.OPEN)
+			if IsNotWX4():
+				dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.OPEN)
+			else:
+				dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.FD_OPEN)
 			if dlg.ShowModal() == wx.ID_OK:
 				self.filename = dlg.GetFilename()
 				self.dirname = dlg.GetDirectory()
@@ -190,7 +193,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		panelphase = self.GetChildren()[1].GetPage(0)
 		if panelphase.pipeline_started == False:
 			cwd = self.CurrentWD()
-			dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.SAVE | wx.OVERWRITE_PROMPT)
+			if IsNotWX4():
+				dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.SAVE | wx.OVERWRITE_PROMPT)
+			else:
+				dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 			if dlg.ShowModal() == wx.ID_OK:
 				self.filename=dlg.GetFilename()
 				self.dirname=dlg.GetDirectory()
