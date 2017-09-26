@@ -182,6 +182,7 @@ void RAARMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
 						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
 						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2, int accel);
 
+
 void MaskedSetPCAmplitudes( double* seqdata, double* expdata, double* itnsty, double* mask, int32_t* nn );
 void lorentz_ft_fill( double* data, int32_t* nn, double gammaHWHM );
 void SumArray( double* data, int32_t* nn, double* sum );

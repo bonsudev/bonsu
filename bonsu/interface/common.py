@@ -475,6 +475,54 @@ pipelineignore24 = PyEmbeddedImage(
     "MTEtMTEtMTRUMTM6MzA6MjErMDE6MDAY1z98AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2Nh"
     "cGUub3Jnm+48GgAAAABJRU5ErkJggg==")
 getpipelineignore24Bitmap = pipelineignore24.GetBitmap
+class StaticTextNew(wx.StaticText):
+	def __init__(self, parent, id=wx.ID_ANY, label="", style=wx.ALIGN_LEFT, size=(-1,-1)):
+		wx.StaticText.__init__(self, parent, id, label=label, style=style, size=size)
+	def SetToolTipNew(self, string):
+		if IsNotWX4():
+			self.SetToolTipString(string)
+		else:
+			self.SetToolTip(string)
+class TextCtrlNew(wx.TextCtrl):
+	def __init__(self, parent, id=wx.ID_ANY, value="", style=wx.ALIGN_LEFT, size=(-1,-1)):
+		wx.TextCtrl.__init__(self, parent, id, value=value, style=style, size=size)
+	def SetToolTipNew(self, string):
+		if IsNotWX4():
+			self.SetToolTipString(string)
+		else:
+			self.SetToolTip(string)
+class ButtonNew(wx.Button):
+	def __init__(self, parent, id=wx.ID_ANY, label="", style=wx.ALIGN_LEFT, size=(-1,-1)):
+		wx.Button.__init__(self, parent, id, label=label, style=style, size=size)
+	def SetToolTipNew(self, string):
+		if IsNotWX4():
+			self.SetToolTipString(string)
+		else:
+			self.SetToolTip(string)
+class BitmapButtonNew(wx.BitmapButton):
+	def __init__(self, parent, id=wx.ID_ANY, bitmap=wx.NullBitmap, style=wx.ALIGN_LEFT, size=(-1,-1)):
+		wx.BitmapButton.__init__(self, parent, id, bitmap=bitmap, style=style, size=size)
+	def SetToolTipNew(self, string):
+		if IsNotWX4():
+			self.SetToolTipString(string)
+		else:
+			self.SetToolTip(string)
+class CheckBoxNew(wx.CheckBox):
+	def __init__(self, parent, id=wx.ID_ANY, label="", style=wx.ALIGN_LEFT, size=(-1,-1)):
+		wx.CheckBox.__init__(self, parent, id, label=label, style=style, size=size)
+	def SetToolTipNew(self, string):
+		if IsNotWX4():
+			self.SetToolTipString(string)
+		else:
+			self.SetToolTip(string)
+class RadioBoxNew(wx.RadioBox):
+	def __init__(self, parent, id=wx.ID_ANY, label="", size=(-1,-1), choices=[], majorDimension=0, style=wx.ALIGN_LEFT):
+		wx.RadioBox.__init__(self, parent, id, label=label, size=size, choices=choices, majorDimension=majorDimension, style=style)
+	def SetToolTipNew(self, string):
+		if IsNotWX4():
+			self.SetToolTipString(string)
+		else:
+			self.SetToolTip(string)
 def IsNumber(input):
 	try:
 		float(input)
@@ -505,24 +553,18 @@ class TextPanelObject(wx.BoxSizer):
 		else:
 			labelw = textwidth
 		wx.BoxSizer.__init__(self, wx.HORIZONTAL)
-		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(labelw,-1) )
+		self.label = StaticTextNew(parent, -1, name, style =wx.ALIGN_RIGHT, size=(labelw,-1) )
 		self.label.SetFont(self.font)
 		self.Add( self.label, 0, wx.CENTER )
-		self.objectpath = wx.TextCtrl(parent, -1)
+		self.objectpath = TextCtrlNew(parent, -1)
 		self.objectpath.SetFont(self.font)
 		self.objectpath.SetValue(objectpath)
-		if IsNotWX4():
-			self.objectpath.SetToolTipString("Browse for file or type "+os.linesep+"path and name")
-		else:
-			self.objectpath.SetToolTip("Browse for file or type "+os.linesep+"path and name")
+		self.objectpath.SetToolTipNew("Browse for file or type "+os.linesep+"path and name")
 		self.objectpath.Bind(wx.EVT_TEXT_ENTER, OnEdit)
 		self.Add( self.objectpath, 1, wx.CENTER |wx.EXPAND )
-		self.button = wx.Button(parent, -1, "Browse")
+		self.button = ButtonNew(parent, -1, "Browse")
 		self.button.SetFont(self.font)
-		if IsNotWX4():
-			self.button.SetToolTipString("Browse for file or type "+os.linesep+"path and name")
-		else:
-			self.button.SetToolTip("Browse for file or type "+os.linesep+"path and name")
+		self.button.SetToolTipNew("Browse for file or type "+os.linesep+"path and name")
 		self.button.Bind(wx.EVT_BUTTON, OnBrowse)
 		self.Add( self.button, 0, wx.LEFT|wx.CENTER)
 	def Hide(self):
@@ -573,10 +615,10 @@ class SpinnerObject(wx.BoxSizer):
 		else:
 			labelw = stextwidth
 		wx.BoxSizer.__init__(self, wx.HORIZONTAL)
-		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(labelw,-1) )
+		self.label = StaticTextNew(parent, -1, name, style=wx.ALIGN_RIGHT, size=(labelw,-1) )
 		self.label.SetFont(self.font)
 		self.Add( self.label, 0, wx.CENTER )
-		self.value = wx.TextCtrl(parent, value=str(sinit),size=(swidth, -1), style=wx.TE_PROCESS_ENTER)
+		self.value = TextCtrlNew(parent, value=str(sinit),size=(swidth, -1), style=wx.TE_PROCESS_ENTER)
 		self.value.SetWindowStyle(wx.TE_RIGHT)
 		self.value.SetFont(self.font)
 		self.value.Bind(wx.EVT_TEXT, OnEdit)
@@ -635,10 +677,10 @@ class NumberObject(wx.BoxSizer):
 			labelw = textw
 		else:
 			labelw = stextwidth
-		self.label = wx.StaticText(parent, -1, name, style =wx.ALIGN_RIGHT, size=(labelw,-1) )
+		self.label = StaticTextNew(parent, -1, name, style =wx.ALIGN_RIGHT, size=(labelw,-1) )
 		self.label.SetFont(self.font)
 		self.Add( self.label, 0, wx.CENTER )
-		self.value = wx.TextCtrl(parent, value=str(init), style=wx.TE_PROCESS_ENTER)
+		self.value = TextCtrlNew(parent, value=str(init), style=wx.TE_PROCESS_ENTER)
 		self.value.SetWindowStyle(wx.TE_RIGHT)
 		self.value.SetFont(self.font)
 		self.value.Bind(wx.EVT_TEXT, OnEdit)

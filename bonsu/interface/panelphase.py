@@ -120,16 +120,10 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.CurrentListItem = -1
 		self.vbox1 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox1.Add((-1,200))
-		self.spin_up = wx.BitmapButton(self.panel1, -1, getspinupBitmap(), size=(20, 50))
-		if IsNotWX4():
-			self.spin_up.SetToolTipString('Change item positon in list.')
-		else:
-			self.spin_up.SetToolTip('Change item positon in list.')
-		self.spin_down = wx.BitmapButton(self.panel1, -1, getspindownBitmap(), size=(20, 50))
-		if IsNotWX4():
-			self.spin_down.SetToolTipString('Change item positon in list.')
-		else:
-			self.spin_down.SetToolTip('Change item positon in list.')
+		self.spin_up = BitmapButtonNew(self.panel1, -1, getspinupBitmap(), size=(20, 50))
+		self.spin_up.SetToolTipNew('Change item positon in list.')
+		self.spin_down = BitmapButtonNew(self.panel1, -1, getspindownBitmap(), size=(20, 50))
+		self.spin_down.SetToolTipNew('Change item positon in list.')
 		self.vbox1.Add(self.spin_up)
 		self.vbox1.Add(self.spin_down)
 		self.Bind(wx.EVT_BUTTON, self.OnClickUp, self.spin_up)
@@ -150,27 +144,18 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		buttonx = OptIconSize()
 		buttonsize = (2*buttonx,2*buttonx)
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
-		self.button_start = wx.BitmapButton(self.panel3, -1, getstart48Bitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_start.SetToolTipString('Start pipline execution.')
-		else:
-			self.button_start.SetToolTip('Start pipline execution.')
+		self.button_start = BitmapButtonNew(self.panel3, -1, getstart48Bitmap(), size=buttonsize)
+		self.button_start.SetToolTipNew('Start pipline execution.')
 		self.hbox_btn.Add(self.button_start)
 		self.Bind(wx.EVT_BUTTON, self.OnClickStart,self.button_start)
 		self.hbox_btn.Add((2, -1))
-		self.button_pause = wx.BitmapButton(self.panel3, -1, getpause48Bitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_pause.SetToolTipString('Pause pipline execution.')
-		else:
-			self.button_pause.SetToolTip('Pause pipline execution.')
+		self.button_pause = BitmapButtonNew(self.panel3, -1, getpause48Bitmap(), size=buttonsize)
+		self.button_pause.SetToolTipNew('Pause pipline execution.')
 		self.hbox_btn.Add(self.button_pause)
 		self.Bind(wx.EVT_BUTTON, self.OnClickPause,self.button_pause)
 		self.hbox_btn.Add((2, -1))
-		self.button_stop = wx.BitmapButton(self.panel3, -1, getstop48Bitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_stop.SetToolTipString('Stop pipline execution.')
-		else:
-			self.button_stop.SetToolTip('Stop pipline execution.')
+		self.button_stop = BitmapButtonNew(self.panel3, -1, getstop48Bitmap(), size=buttonsize)
+		self.button_stop.SetToolTipNew('Stop pipline execution.')
 		self.hbox_btn.Add(self.button_stop)
 		self.Bind(wx.EVT_BUTTON, self.OnClickStop,self.button_stop)
 		self.sbox1 = wx.StaticBox(self.panel3, label="Visualisation Options", style=wx.SUNKEN_BORDER)
@@ -192,53 +177,32 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		if rstextw > rschkw-25: rschkw = rstextw+35;
 		if fstextw > fschkw-25: fschkw = fstextw+35;
 		if sstextw > sschkw-25: sschkw = sstextw+35;
-		self.chkbox_amp_real = wx.CheckBox(self.panel3, -1, rstext, size=(rschkw, 25))
+		self.chkbox_amp_real = CheckBoxNew(self.panel3, -1, rstext, size=(rschkw, 25))
 		self.chkbox_amp_real.SetFont(self.font)
-		if IsNotWX4():
-			self.chkbox_amp_real.SetToolTipString("Visualise")
-		else:
-			self.chkbox_amp_real.SetToolTip("Visualise")
+		self.chkbox_amp_real.SetToolTipNew("Visualise")
 		self.chkbox_amp_real.SetValue(True)
 		self.amp_real_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
-		if IsNotWX4():
-			self.amp_real_update_interval.value.SetToolTipString("Real space update interval")
-		else:
-			self.amp_real_update_interval.value.SetToolTip("Real space update interval")
-		self.chkbox_amp_recip = wx.CheckBox(self.panel3, -1, fstext, size=(fschkw, 25))
+		self.amp_real_update_interval.value.SetToolTipNew("Real space update interval")
+		self.chkbox_amp_recip = CheckBoxNew(self.panel3, -1, fstext, size=(fschkw, 25))
 		self.chkbox_amp_recip.SetFont(self.font)
-		if IsNotWX4():
-			self.chkbox_amp_recip.SetToolTipString("Visualise")
-		else:
-			self.chkbox_amp_recip.SetToolTip("Visualise")
+		self.chkbox_amp_recip.SetToolTipNew("Visualise")
 		self.chkbox_amp_recip.SetValue(False)
 		self.amp_recip_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
-		if IsNotWX4():
-			self.amp_recip_update_interval.value.SetToolTipString("Fourier space update interval")
-		else:
-			self.amp_recip_update_interval.value.SetToolTip("Fourier space update interval")
+		self.amp_recip_update_interval.value.SetToolTipNew("Fourier space update interval")
 		self.hbox_chk1.Add(self.chkbox_amp_real , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add(self.amp_real_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add((20, -1))
 		self.hbox_chk1.Add(self.chkbox_amp_recip , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add(self.amp_recip_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
-		self.chkbox_support = wx.CheckBox(self.panel3, -1, sstext, size=(sschkw , 25))
+		self.chkbox_support = CheckBoxNew(self.panel3, -1, sstext, size=(sschkw , 25))
 		self.chkbox_support.SetFont(self.font)
-		if IsNotWX4():
-			self.chkbox_support.SetToolTipString("Visualise")
-		else:
-			self.chkbox_support.SetToolTip("Visualise")
+		self.chkbox_support.SetToolTipNew("Visualise")
 		self.chkbox_support.SetValue(True)
 		self.support_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
-		if IsNotWX4():
-			self.support_update_interval.value.SetToolTipString("Update interval")
-		else:
-			self.support_update_interval.value.SetToolTip("Update interval")
-		self.chkbox_phase = wx.CheckBox(self.panel3, -1, 'Phase', size=(150, 25))
+		self.support_update_interval.value.SetToolTipNew("Update interval")
+		self.chkbox_phase = CheckBoxNew(self.panel3, -1, 'Phase', size=(150, 25))
 		self.chkbox_phase.SetFont(self.font)
-		if IsNotWX4():
-			self.chkbox_phase.SetToolTipString("Visualise")
-		else:
-			self.chkbox_phase.SetToolTip("Visualise")
+		self.chkbox_phase.SetToolTipNew("Visualise")
 		self.chkbox_phase.SetValue(False)
 		self.hbox_chk2.Add(self.chkbox_support , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk2.Add(self.support_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
@@ -249,12 +213,8 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.sbox2.SetFont(self.font)
 		self.vbox_thrd = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
 		self.nthreads = SpinnerObject(self.panel3,"",65535,1,1,1,5,90)
-		if IsNotWX4():
-			self.nthreads.value.SetToolTipString("Maximum number of FFTW threads")
-			self.nthreads.label.SetToolTipString("Maximum number of FFTW threads")
-		else:
-			self.nthreads.value.SetToolTip("Maximum number of FFTW threads")
-			self.nthreads.label.SetToolTip("Maximum number of FFTW threads")
+		self.nthreads.value.SetToolTipNew("Maximum number of FFTW threads")
+		self.nthreads.label.SetToolTipNew("Maximum number of FFTW threads")
 		self.vbox_thrd.Add(self.nthreads , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.vbox_thrd.Add((-1,25))
 		self.vbox_chk.Add(self.hbox_chk1)

@@ -24,7 +24,8 @@ from wx.py.shell import Shell
 class PanelScript(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
-		self.shell = Shell(parent = self, id = wx.ID_ANY)
+		self.intro = "Interactive Phase Retrieval Suite"
+		self.shell = Shell(parent = self, id = wx.ID_ANY, introText=self.intro)
 		self.shell.zoom(2)
 		self.shell.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown, self.shell)
 		self.ih = 0

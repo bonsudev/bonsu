@@ -105,6 +105,8 @@ def SaveArray(self, filename, array):
 			self.memory[filename] = self.memory.pop(filename+"_tmp")
 		else:
 			self.memory[filename] = array
+		panelscript = self.ancestor.GetPage(3)
+		panelscript.shell.interp.locals[filename] = array
 	else:
 		pathname = os.path.dirname(filename)
 		base = os.path.basename(filename)

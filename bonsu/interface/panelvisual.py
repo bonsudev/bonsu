@@ -24,7 +24,7 @@ import vtk
 from .render import wxVTKRenderWindowInteractor
 import numpy
 from vtk.util import numpy_support
-from time import strftime
+from time import strftime, sleep
 from .plot import PlotCanvas, PolyLine, PlotGraphics
 from .common import *
 from ..operations.wrap import WrapArray
@@ -33,28 +33,25 @@ import threading, time
 from Queue import Queue
 class AnimateDialog(wx.Dialog):
 	def __init__(self, parent):
-		wx.Dialog.__init__(self, parent, title="Animate Scene", size=(460,300))
+		wx.Dialog.__init__(self, parent, title="Animate Scene", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 		self.SetSizeHints(450,300,-1,-1)
 		self.count = 0
 		self.count_total = 0
 		self.xstep = 0
 		self.ystep = 0
 		self.zstep = 0
+		self.sleep = 0
 		self.filename=""
-		self.timer = wx.Timer(self)
+		self.stopmotion = False
 		self.parent = parent
 		self.panelvisual = self.GetParent()
-		self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		sbox1 = wx.StaticBox(self, label="Rotate Scene", style=wx.SUNKEN_BORDER)
 		sboxs1 = wx.StaticBoxSizer(sbox1,wx.VERTICAL)
 		sboxs1.Add((-1, 5))
 		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-		text1 = wx.StaticText(self, label="Axis:",size=(50, 30))
-		if IsNotWX4():
-			text1.SetToolTipString("Axis about which the scene will rotate.")
-		else:
-			text1.SetToolTip("Axis about which the scene will rotate.")
+		text1 = StaticTextNew(self, label="Axis:",size=(50, 30))
+		text1.SetToolTipNew("Axis about which the scene will rotate.")
 		self.x = SpinnerObject(self,"x: ",MAX_INT_16,0,1,0,15,80)
 		self.y = SpinnerObject(self,"y: ",MAX_INT_16,0,1,0,15,80)
 		self.z = SpinnerObject(self,"z: ",MAX_INT_16,0,1,1,15,80)
@@ -66,10 +63,7 @@ class AnimateDialog(wx.Dialog):
 		sboxs1.Add((-1, 5))
 		hbox2 = wx.BoxSizer(wx.HORIZONTAL)
 		self.angle = SpinnerObject(self,"Angle: ",360,-360,0.1,5.0,75,80)
-		if IsNotWX4():
-			self.angle.label.SetToolTipString("Angle (degrees) by which the rotation is incremented.")
-		else:
-			self.angle.label.SetToolTip("Angle (degrees) by which the rotation is incremented.")
+		self.angle.label.SetToolTipNew("Angle (degrees) by which the rotation is incremented.")
 		hbox2.Add(self.angle ,0, flag=wx.EXPAND|wx.RIGHT, border=5)
 		sboxs1.Add(hbox2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		hbox3 = wx.BoxSizer(wx.HORIZONTAL)
@@ -77,7 +71,9 @@ class AnimateDialog(wx.Dialog):
 		hbox3.Add(self.steps ,0, flag=wx.EXPAND|wx.RIGHT, border=5)
 		sboxs1.Add(hbox3, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(sboxs1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		vbox.Add((-1, 5))
+		self.delay = SpinnerObject(self,"Delay (ms): ",MAX_INT_16,0,10,0,75,80)
+		vbox.Add(self.delay ,0, flag=wx.EXPAND|wx.RIGHT, border=5)
+		vbox.Add((-1, 10))
 		self.chkbox_save = wx.CheckBox(self, -1, 'Save scene', size=(200, 20))
 		self.chkbox_save.SetValue(False)
 		vbox.Add(self.chkbox_save, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
@@ -102,7 +98,11 @@ class AnimateDialog(wx.Dialog):
 		vbox.Add((-1, 5))
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+		self.Fit()
+		self.Layout()
+		self.Show()
 	def Start(self,event):
+		self.stopmotion = False
 		self.count_total = int(self.steps.value.GetValue())
 		if self.count >= self.count_total:
 			return
@@ -111,12 +111,17 @@ class AnimateDialog(wx.Dialog):
 		self.ystep = float(self.angle.value.GetValue())*float(self.y.value.GetValue())
 		self.zstep = float(self.angle.value.GetValue())*float(self.z.value.GetValue())
 		self.filename = file_ext = os.path.splitext( self.filename_path.objectpath.GetValue() )[0]
-		self.timer.Start(50)
-	def Stop(self,event):
-		self.timer.Stop()
+		for i in range(self.count,self.count_total):
+			if self.stopmotion == False:
+				self.OnTimer(None)
+				sleep(float(self.delay.value.GetValue())/1000.0)
+			else:
+				break
+			wx.Yield()
 		self.count = 0
 		self.count_total = 0
-		self.gauge.SetValue(0)
+	def Stop(self,event):
+		self.stopmotion = True
 	def OnTimer(self, event):
 		renderers = self.parent.renWin.GetRenderWindow().GetRenderers()
 		renderers.InitTraversal()
@@ -127,6 +132,7 @@ class AnimateDialog(wx.Dialog):
 			renderers.GetItemAsObject(i).GetActiveCamera().Roll(self.ystep)
 			renderers.GetItemAsObject(i).GetActiveCamera().Azimuth(self.zstep)
 		self.panelvisual.RefreshScene()
+		wx.Yield()
 		if(self.chkbox_save.GetValue() == True):
 			image = vtk.vtkWindowToImageFilter()
 			image.SetInput(self.parent.renWin.GetRenderWindow())
@@ -141,14 +147,9 @@ class AnimateDialog(wx.Dialog):
 			writer.Write()
 		self.count = self.count +1
 		self.gauge.SetValue(self.count)
-		wx.Yield()
-		if self.count == self.count_total:
-			self.timer.Stop()
-			self.count = 0
-			return
 class MeasureDialog(wx.Dialog):
 	def __init__(self, parent):
-		wx.Dialog.__init__(self, parent, title="Measure Scene", size=(640,480))
+		wx.Dialog.__init__(self, parent, title="Measure Scene", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 		self.SetSizeHints(640,480,-1,-1)
 		self.Bind(wx.EVT_CLOSE, self.OnExit)
 		self.panelvisual = self.GetParent()
@@ -160,6 +161,8 @@ class MeasureDialog(wx.Dialog):
 		sizer.Add(self.nb, 1, wx.EXPAND)
 		self.SetSizer(sizer)
 		self.Fit()
+		self.Layout()
+		self.Show()
 	def Update(self):
 		self.nb.GetPage(0).linewidget.SetEnabled(0)
 		bounds = self.panelvisual.image_probe.GetBounds()
@@ -192,11 +195,8 @@ class OrientXYZ(wx.Panel):
 		self.panelvisual = self.GetParent().GetParent().GetParent()
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
-		self.chkbox_enable = wx.CheckBox(self, -1, 'Enable XYZ Axes', size=(240, 35))
-		if IsNotWX4():
-			self.chkbox_enable.SetToolTipString("Enable Widget")
-		else:
-			self.chkbox_enable.SetToolTip("Enable Widget")
+		self.chkbox_enable = CheckBoxNew(self, -1, 'Enable XYZ Axes')
+		self.chkbox_enable.SetToolTipNew("Enable Widget")
 		if self.panelvisual.widget.GetEnabled() == 0:
 			self.chkbox_enable.SetValue(False)
 		else:
@@ -260,7 +260,7 @@ class MeasureLine(wx.Panel):
 		self.hbox_p2.Add(self.p2z ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		self.vbox.Add(self.hbox_p2, 0, flag=wx.LEFT | wx.TOP | wx.EXPAND)
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
-		self.button_save = wx.Button(self, label="Save Data", size=(120, 30))
+		self.button_save = wx.Button(self, label="Save Data")
 		self.Bind(wx.EVT_BUTTON, self.OnClickSaveButton, self.button_save)
 		self.hbox_btn.Add(self.button_save)
 		self.hbox_btn.Add((10, -1))
@@ -269,19 +269,13 @@ class MeasureLine(wx.Panel):
 		self.Bind(wx.EVT_TEXT, self.OnDataPoints, self.pointcount.value)
 		self.hbox_btn.Add(self.pointcount)
 		self.hbox_btn.Add((10, -1))
-		self.chkbox_enable = wx.CheckBox(self, -1, 'Enable', size=(80, 25))
-		if IsNotWX4():
-			self.chkbox_enable.SetToolTipString("Enable Widget")
-		else:
-			self.chkbox_enable.SetToolTip("Enable Widget")
+		self.chkbox_enable = CheckBoxNew(self, -1, 'Enable')
+		self.chkbox_enable.SetToolTipNew("Enable Widget")
 		self.chkbox_enable.SetValue(False)
 		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, self.chkbox_enable)
 		self.hbox_btn.Add(self.chkbox_enable)
-		self.chkbox_log = wx.CheckBox(self, -1, 'Log', size=(80, 25))
-		if IsNotWX4():
-			self.chkbox_log.SetToolTipString("Log Scale")
-		else:
-			self.chkbox_log.SetToolTip("Log Scale")
+		self.chkbox_log = CheckBoxNew(self, -1, 'Log')
+		self.chkbox_log.SetToolTipNew("Log Scale")
 		self.chkbox_log.SetValue(False)
 		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLog, self.chkbox_log)
 		self.hbox_btn.Add(self.chkbox_log)
@@ -432,51 +426,49 @@ class MeasureAngle(wx.Panel):
 		self.panelvisual = self.GetParent().GetParent().GetParent()
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add((-1, 10))
-		self.info = wx.StaticText(self, -1, label="First, select three points in free "+os.linesep+"space to create an angle.", style=wx.ALIGN_CENTER, size=(320,50) )
-		self.vbox.Add(self.info, 0, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=160)
+		self.info = wx.StaticText(self, -1, label="First, select three points in free "+os.linesep+"space to create an angle.", style=wx.ALIGN_LEFT)
+		self.vbox.Add(self.info, 1, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=15)
 		self.vbox.Add((-1, 10))
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-		txtp1label = wx.StaticText(self, -1, label="Point 1:", style=wx.ALIGN_RIGHT, size=(80,30))
+		txtp1label = wx.StaticText(self, -1, label="Point 1:", style=wx.ALIGN_RIGHT, size=(120,30))
 		self.hbox1.Add(txtp1label, 0, flag=wx.LEFT | wx.RIGHT, border=0)
-		self.txtp1 = wx.TextCtrl(self, value="", style=wx.TE_READONLY, size=(550,30))
+		self.txtp1 = wx.TextCtrl(self, value="", style=wx.TE_READONLY, size=(-1,30))
 		self.txtp1.SetEditable(False)
-		self.hbox1.Add(self.txtp1, 0, flag=wx.LEFT | wx.RIGHT, border=0)
-		self.vbox.Add(self.hbox1, 1, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=5)
+		self.hbox1.Add(self.txtp1, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=0)
+		self.vbox.Add(self.hbox1, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=5)
 		self.vbox.Add((-1, 10))
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-		txtp2label = wx.StaticText(self, -1, label="Point 2:", style=wx.ALIGN_RIGHT, size=(80,30))
+		txtp2label = wx.StaticText(self, -1, label="Point 2:", style=wx.ALIGN_RIGHT, size=(120,30))
 		self.hbox2.Add(txtp2label, 0, flag=wx.LEFT | wx.RIGHT, border=0)
-		self.txtp2 = wx.TextCtrl(self, value="", style=wx.TE_READONLY, size=(550,30))
+		self.txtp2 = wx.TextCtrl(self, value="", style=wx.TE_READONLY, size=(-1,30))
 		self.txtp2.SetEditable(False)
-		self.hbox2.Add(self.txtp2, 0, flag=wx.LEFT | wx.RIGHT, border=0)
-		self.vbox.Add(self.hbox2, 1, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=5)
+		self.hbox2.Add(self.txtp2, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=0)
+		self.vbox.Add(self.hbox2, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=5)
 		self.vbox.Add((-1, 10))
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-		txtc0label = wx.StaticText(self, -1, label="Centre:", style=wx.ALIGN_RIGHT, size=(80,30))
+		txtc0label = wx.StaticText(self, -1, label="Centre:", style=wx.ALIGN_RIGHT, size=(120,30))
 		self.hbox3.Add(txtc0label, 0, flag=wx.LEFT | wx.RIGHT, border=0)
-		self.txtc0 = wx.TextCtrl(self, value="", style=wx.TE_READONLY, size=(550,30))
+		self.txtc0 = wx.TextCtrl(self, value="", style=wx.TE_READONLY, size=(-1,30))
 		self.txtc0.SetEditable(False)
-		self.hbox3.Add(self.txtc0, 0, flag=wx.LEFT | wx.RIGHT, border=0)
-		self.vbox.Add(self.hbox3, 1, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=5)
+		self.hbox3.Add(self.txtc0, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=0)
+		self.vbox.Add(self.hbox3, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=5)
 		self.vbox.Add((-1, 10))
 		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
-		txtanglelabel = wx.StaticText(self, -1, label="Angle:", style=wx.ALIGN_RIGHT, size=(80,30))
+		txtanglelabel = wx.StaticText(self, -1, label="Angle:", style=wx.ALIGN_RIGHT, size=(120,30))
 		self.hbox4.Add(txtanglelabel, 0, flag=wx.LEFT | wx.RIGHT, border=0)
-		self.txtangle = wx.TextCtrl(self, value="", style=wx.TE_READONLY , size=(550,30))
+		self.txtangle = wx.TextCtrl(self, value="", style=wx.TE_READONLY , size=(-1,30))
 		self.txtangle.SetEditable(False)
-		self.hbox4.Add(self.txtangle, 0, flag=wx.LEFT | wx.RIGHT, border=0)
-		self.vbox.Add(self.hbox4, 1, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=5)
+		self.hbox4.Add(self.txtangle, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=0)
+		self.vbox.Add(self.hbox4, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=5)
 		self.vbox.Add((-1, 10))
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
-		self.chkbox_enable = wx.CheckBox(self, -1, 'Enable', size=(120, 25))
-		if IsNotWX4():
-			self.chkbox_enable.SetToolTipString("Enable Widget")
-		else:
-			self.chkbox_enable.SetToolTip("Enable Widget")
+		self.chkbox_enable = CheckBoxNew(self, -1, 'Enable', size=(120, 25))
+		self.chkbox_enable.SetToolTipNew("Enable Widget")
 		self.chkbox_enable.SetValue(False)
 		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, self.chkbox_enable)
 		self.hbox_btn.Add(self.chkbox_enable, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=260)
 		self.vbox.Add(self.hbox_btn, 0, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.TOP | wx.EXPAND, border=5)
+		self.vbox.Add((-1, 10))
 		self.SetSizer(self.vbox)
 		self.Fit()
 		bounds = self.panelvisual.image_probe.GetBounds()
@@ -570,7 +562,7 @@ class MeasureAngle(wx.Panel):
 			self.panelvisual.ancestor.GetParent().Refresh()
 class DataRangeDialog(wx.Dialog):
 	def __init__(self, parent):
-		wx.Dialog.__init__(self, parent, title="Set lookup table data range", size=(410,308))
+		wx.Dialog.__init__(self, parent, title="Set lookup table data range", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 		self.SetSizeHints(410,308,-1,-1)
 		from math import floor, log10, pi
 		self.parent = parent
@@ -666,11 +658,8 @@ class DataRangeDialog(wx.Dialog):
 		self.vbox.Add(self.sboxs[-1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 	def MakeLogOption(self, i):
 		self.vbox.Add((-1, 5))
-		self.chkbox_log.append( wx.CheckBox(self, -1, 'Log Scale (when: Min > 0)', size=(300, 30)) )
-		if IsNotWX4():
-			self.chkbox_log[-1].SetToolTipString("Log Scale")
-		else:
-			self.chkbox_log[-1].SetToolTip("Log Scale")
+		self.chkbox_log.append( CheckBoxNew(self, -1, 'Log Scale (when: Min > 0)', size=(300, 30)) )
+		self.chkbox_log[-1].SetToolTipNew("Log Scale")
 		if self.scalebars[i].GetLookupTable().GetScale() > 0:
 			self.chkbox_log[-1].SetValue(True)
 		else:
@@ -727,7 +716,7 @@ class DataRangeDialog(wx.Dialog):
 		self.panelvisual.RefreshSceneFull()
 class LUTDialog(wx.Dialog):
 	def __init__(self, parent):
-		wx.Dialog.__init__(self, parent, title="Lookup Table", size=(720,480))
+		wx.Dialog.__init__(self, parent, title="Lookup Table", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 		self.SetSizeHints(720,480,-1,-1)
 		self.parent = parent
 		self.Bind(wx.EVT_CLOSE, self.OnExit)
@@ -739,7 +728,7 @@ class LUTDialog(wx.Dialog):
 		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.vbox1 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox2 = wx.BoxSizer(wx.VERTICAL)
-		self.font = wx.Font(14, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		self.font = self.panelvisual.font
 		self.panels = []
 		self.listtitles = ["Real Amp","Real Phase", "Fourier Amp","Fourier Phase"]
 		self.list = wx.ListCtrl(self,wx.ID_ANY,style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.LC_HRULES|wx.SUNKEN_BORDER, size=(200,-1))
@@ -830,6 +819,7 @@ class ColourDialog(wx.ScrolledWindow):
 		self.panel = wx.ScrolledWindow.__init__(self, parent)
 		self.SetScrollRate(5, 5)
 		self.panelphase = self.GetParent().panelphase
+		self.panelvisual = self.GetParent().panelvisual
 		self.cmvbox = wx.BoxSizer(wx.VERTICAL)
 		self.cmhbox = []
 		self.imglist = []
@@ -837,7 +827,10 @@ class ColourDialog(wx.ScrolledWindow):
 		self.rb = []
 		self.chkb = []
 		array = self.panelphase.cms[0][1]
-		height = 20
+		dc = wx.ScreenDC()
+		dc.SetFont(self.panelvisual.font)
+		w,h = dc.GetTextExtent("TestString")
+		height = h
 		image = wx.EmptyImage(array.shape[0],height)
 		newarray = numpy.zeros((height, array.shape[0], 3), dtype=numpy.uint8)
 		for i in range(self.panelphase.cms.shape[0]):
@@ -849,11 +842,11 @@ class ColourDialog(wx.ScrolledWindow):
 			image.SetData( newarray.tostring())
 			bmp = image.ConvertToBitmap()
 			self.imglist.append(wx.StaticBitmap(self, -1, bmp))
-			self.rb.append( wx.RadioButton(self, -1, label=name, size=(120, height) ) )
+			self.rb.append( wx.RadioButton(self, -1, label=name, size=(160, height) ) )
 			self.cmhbox[-1].Add(self.rb[-1], 0)
 			self.cmhbox[-1].Add((5, -1))
 			self.cmhbox[-1].Add(self.imglist[-1], 1, wx.EXPAND)
-			self.chkb.append( wx.CheckBox(self, -1, 'Reverse', size=(80, height)) )
+			self.chkb.append( wx.CheckBox(self, -1, 'Reverse', size=(160, height)) )
 			self.cmhbox[-1].Add(self.chkb[-1], 0, wx.EXPAND)
 			self.cmvbox.Add(self.cmhbox[-1], 1, wx.EXPAND)
 		self.SetSizer(self.cmvbox)
@@ -872,6 +865,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.panel = wx.Panel.__init__(self, parent)
 		self.VTKIsNot6 = IsNotVTK6()
 		self.nblock_dialogs = 0
+		self.font = self.ancestor.GetParent().font
 		self.flat_data = None
 		self.flat_data2 = None
 		self.flat_data_phase = None
@@ -1031,101 +1025,65 @@ class PanelVisual(wx.Panel,wx.App):
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
 		buttonx = OptIconSize()
 		buttonsize = (buttonx,buttonx)
-		self.button_start = wx.BitmapButton(self, -1, getstartBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_start.SetToolTipString('Start pipline execution')
-		else:
-			self.button_start.SetToolTip('Start pipline execution')
+		self.button_start = BitmapButtonNew(self, -1, getstartBitmap(), size=buttonsize)
+		self.button_start.SetToolTipNew('Start pipline execution')
 		self.hbox_btn.Add(self.button_start, flag=wx.LEFT, border=10)
 		self.Bind(wx.EVT_BUTTON, ParseStart, self.button_start)
 		self.hbox_btn.Add((2, -1))
-		self.button_pause = wx.BitmapButton(self, -1, getpauseBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_pause.SetToolTipString('Pause pipline execution')
-		else:
-			self.button_pause.SetToolTip('Pause pipline execution')
+		self.button_pause = BitmapButtonNew(self, -1, getpauseBitmap(), size=buttonsize)
+		self.button_pause.SetToolTipNew('Pause pipline execution')
 		self.hbox_btn.Add(self.button_pause)
 		self.Bind(wx.EVT_BUTTON, ParsePause, self.button_pause)
 		self.hbox_btn.Add((2, -1))
-		self.button_stop = wx.BitmapButton(self, -1, getstopBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_stop.SetToolTipString('Stop pipline execution')
-		else:
-			self.button_stop.SetToolTip('Stop pipline execution')
+		self.button_stop = BitmapButtonNew(self, -1, getstopBitmap(), size=buttonsize)
+		self.button_stop.SetToolTipNew('Stop pipline execution')
 		self.hbox_btn.Add(self.button_stop)
 		self.Bind(wx.EVT_BUTTON, ParseStop, self.button_stop)
 		self.hbox_btn.Add((2, -1))
-		self.button_save = wx.BitmapButton(self, -1, wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE), size=buttonsize)
-		if IsNotWX4():
-			self.button_save.SetToolTipString('Save scene')
-		else:
-			self.button_save.SetToolTip('Save scene')
+		self.button_save = BitmapButtonNew(self, -1, wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE), size=buttonsize)
+		self.button_save.SetToolTipNew('Save scene')
 		self.hbox_btn.Add(self.button_save)
 		self.Bind(wx.EVT_BUTTON, self.SaveScene, self.button_save)
 		self.hbox_btn.Add((2, -1))
-		self.button_animate = wx.BitmapButton(self, -1, getanimateBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_animate.SetToolTipString('Animate scene')
-		else:
-			self.button_animate.SetToolTip('Animate scene')
+		self.button_animate = BitmapButtonNew(self, -1, getanimateBitmap(), size=buttonsize)
+		self.button_animate.SetToolTipNew('Animate scene')
 		self.hbox_btn.Add(self.button_animate)
 		self.Bind(wx.EVT_BUTTON, self.AnimateScene, self.button_animate)
 		self.button_animate.Enable(False)
 		self.hbox_btn.Add((2, -1))
-		self.button_measure = wx.BitmapButton(self, -1, getrulerBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_measure.SetToolTipString('Measure scene')
-		else:
-			self.button_measure.SetToolTip('Measure scene')
+		self.button_measure = BitmapButtonNew(self, -1, getrulerBitmap(), size=buttonsize)
+		self.button_measure.SetToolTipNew('Measure scene')
 		self.hbox_btn.Add(self.button_measure)
 		self.Bind(wx.EVT_BUTTON, self.MeasureScene, self.button_measure)
 		self.button_measure.Enable(False)
 		self.hbox_btn.Add((2, -1))
-		self.button_vremove = wx.BitmapButton(self, -1, getvcutBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_vremove.SetToolTipString('Voxel Remove')
-		else:
-			self.button_vremove.SetToolTip('Voxel Remove')
+		self.button_vremove = BitmapButtonNew(self, -1, getvcutBitmap(), size=buttonsize)
+		self.button_vremove.SetToolTipNew('Voxel Remove')
 		self.button_vremove.Hide()
 		self.hbox_btn.Add(self.button_vremove)
 		self.button_vremove.Enable(False)
 		self.hbox_btn.Add((2, -1))
-		self.button_rgb = wx.BitmapButton(self, -1, getcolorpickBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_rgb.SetToolTipString('Scene background colour')
-		else:
-			self.button_rgb.SetToolTip('Scene background colour')
+		self.button_rgb = BitmapButtonNew(self, -1, getcolorpickBitmap(), size=buttonsize)
+		self.button_rgb.SetToolTipNew('Scene background colour')
 		self.Bind(wx.EVT_BUTTON, self.OnColourSelect, self.button_rgb)
 		self.hbox_btn.Add(self.button_rgb)
-		self.button_spectrum = wx.BitmapButton(self, -1, getspectrumBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_spectrum.SetToolTipString('Lookup table')
-		else:
-			self.button_spectrum.SetToolTip('Lookup table')
+		self.button_spectrum = BitmapButtonNew(self, -1, getspectrumBitmap(), size=buttonsize)
+		self.button_spectrum.SetToolTipNew('Lookup table')
 		self.Bind(wx.EVT_BUTTON, self.OnLUTSelect, self.button_spectrum)
 		self.hbox_btn.Add(self.button_spectrum)
-		self.button_scalerange = wx.BitmapButton(self, -1, getsliderBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_scalerange.SetToolTipString('Lookup table data range')
-		else:
-			self.button_scalerange.SetToolTip('Lookup table data range')
+		self.button_scalerange = BitmapButtonNew(self, -1, getsliderBitmap(), size=buttonsize)
+		self.button_scalerange.SetToolTipNew('Lookup table data range')
 		self.button_scalerange.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.DataRange, self.button_scalerange)
 		self.hbox_btn.Add(self.button_scalerange)
-		self.button_contour = wx.BitmapButton(self, -1, getsphereBitmap(), size=buttonsize)
-		if IsNotWX4():
-			self.button_contour.SetToolTipString('Isosurfaces for 3D phasing')
-		else:
-			self.button_contour.SetToolTip('Isosurfaces for 3D phasing')
+		self.button_contour = BitmapButtonNew(self, -1, getsphereBitmap(), size=buttonsize)
+		self.button_contour.SetToolTipNew('Isosurfaces for 3D phasing')
 		self.button_contours_shown = 0
 		self.Bind(wx.EVT_BUTTON, self.OnContourSelect, self.button_contour)
 		self.hbox_btn.Add(self.button_contour)
 		self.hbox_btn.Add((2, -1))
 		self.contour_real = SpinnerObject(self,"RSI:",MAX_INT,0,1,100,30,90)
-		if IsNotWX4():
-			self.contour_real.label.SetToolTipString("Real space isosurface")
-		else:
-			self.contour_real.label.SetToolTip("Real space isosurface")
+		self.contour_real.label.SetToolTipNew("Real space isosurface")
 		self.contour_real.label.Disable()
 		self.Bind(wx.EVT_SPIN, self.OnContourReal, self.contour_real.spin)
 		self.contour_real.value.Bind(wx.EVT_KEY_UP, self.OnContourRealKey)
@@ -1133,10 +1091,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.contour_real.Hide()
 		self.hbox_btn.Add((5, -1))
 		self.contour_recip = SpinnerObject(self,"FSI:",MAX_INT,0,1,100,30,90)
-		if IsNotWX4():
-			self.contour_recip.label.SetToolTipString("Fourier space isosurface")
-		else:
-			self.contour_recip.label.SetToolTip("Fourier space isosurface")
+		self.contour_recip.label.SetToolTipNew("Fourier space isosurface")
 		self.contour_recip.label.Disable()
 		self.Bind(wx.EVT_SPIN, self.OnContourRecip, self.contour_recip.spin)
 		self.contour_recip.value.Bind(wx.EVT_KEY_UP, self.OnContourRecipKey)
@@ -1144,10 +1099,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.contour_recip.Hide()
 		self.hbox_btn.Add((5, -1))
 		self.contour_support = SpinnerObject(self,"SI:",1.0,0.0,0.1,0.5,30,90)
-		if IsNotWX4():
-			self.contour_support.label.SetToolTipString("Support isosurface")
-		else:
-			self.contour_support.label.SetToolTip("Support isosurface")
+		self.contour_support.label.SetToolTipNew("Support isosurface")
 		self.contour_support.label.Disable()
 		self.Bind(wx.EVT_SPIN, self.OnContourSupport, self.contour_support.spin)
 		self.contour_support.value.Bind(wx.EVT_KEY_UP, self.OnContourSupportKey)
