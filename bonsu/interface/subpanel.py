@@ -21,7 +21,6 @@
 import wx
 import os
 import numpy
-from StringIO import StringIO
 from PIL import Image
 from ..sequences.functions import *
 from ..sequences.algorithms import *
@@ -111,42 +110,55 @@ class ROIDialog(wx.Dialog):
 		self.vbox1 = wx.BoxSizer(wx.VERTICAL)
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.vbox21 = wx.BoxSizer(wx.VERTICAL)
+		self.vbox22 = wx.BoxSizer(wx.VERTICAL)
+		self.vbox23 = wx.BoxSizer(wx.VERTICAL)
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-		self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(0,0))
+		if IsNotWX4():
+			self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(0,0))
+		else:
+			self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(0,0))
 		self.vbox1.Add(self.image, 1, wx.EXPAND | wx.ALL, border=0)
 		self.scrollaxis = SpinnerObject(self,"Axis",3,1,1,1,50,40)
-		self.Bind(wx.EVT_SPIN, self.OnAxisSpin, self.scrollaxis.spin)
+		self.scrollaxis.spin.SetEventFunc(self.OnAxisSpin)
 		self.hbox1.Add(self.scrollaxis, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		self.slider = wx.Slider(self, -1, pos=wx.DefaultPosition, size=(150, -1),style=wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
 		self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScrollAxis, self.slider)
 		self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScrollAxis, self.slider)
 		self.hbox1.Add(self.slider, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		self.roi = [None]*6
-		self.roi[0] = SpinnerObject(self,"x:",1,1,1,1,15,40)
+		self.roi[0] = SpinnerObject(self,"x:",1,1,1,1,40,60)
 		self.roi[0].label.SetToolTipNew("x, start index")
-		self.roi[1] = SpinnerObject(self,"",1,1,1,1,0,40)
+		self.roi[1] = SpinnerObject(self,"",1,1,1,1,40,60)
 		self.roi[1].label.SetToolTipNew("x, end index")
-		self.roi[2] = SpinnerObject(self,"y:",1,1,1,1,15,40)
+		self.roi[2] = SpinnerObject(self,"y:",1,1,1,1,40,60)
 		self.roi[2].label.SetToolTipNew("y, start index")
-		self.roi[3] = SpinnerObject(self,"",1,1,1,1,0,40)
+		self.roi[3] = SpinnerObject(self,"",1,1,1,1,40,60)
 		self.roi[3].label.SetToolTipNew("y, end index")
-		self.roi[4] = SpinnerObject(self,"z:",1,1,1,1,15,40)
+		self.roi[4] = SpinnerObject(self,"z:",1,1,1,1,40,60)
 		self.roi[4].label.SetToolTipNew("z, start index")
-		self.roi[5] = SpinnerObject(self,"",1,1,1,1,0,40)
+		self.roi[5] = SpinnerObject(self,"",1,1,1,1,40,60)
 		self.roi[5].label.SetToolTipNew("z, end index")
 		self.SetROILimits()
 		axis = int(self.scrollaxis.value.GetValue())
 		self.slider.SetRange(1,self.object.shape[axis - 1])
 		for i in range(len(self.roi)):
-			self.Bind(wx.EVT_SPIN, self.OnROISpin, self.roi[i].spin)
+			self.roi[i].spin.SetEventFunc(self.OnROISpin)
 			self.Bind(wx.EVT_TEXT, self.OnROINumEntry, self.roi[i].value)
-		for i in range(len(self.roi)):
-			self.hbox2.Add(self.roi[i], 0, border=2)
-		self.button_open = wx.Button(self, id=wx.ID_OPEN, label="Set ROI", size=(100, 30))
+		for i in range(2):
+			self.vbox21.Add(self.roi[i], 0, flag=wx.ALIGN_RIGHT, border=2)
+			self.vbox22.Add(self.roi[2+i], 0, flag=wx.ALIGN_RIGHT, border=2)
+			self.vbox23.Add(self.roi[4+i], 0, flag=wx.ALIGN_RIGHT, border=2)
+		self.hbox2.Add(self.vbox21, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
+		self.hbox2.Add((20, -1))
+		self.hbox2.Add(self.vbox22, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
+		self.hbox2.Add((20, -1))
+		self.hbox2.Add(self.vbox23, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
+		self.button_open = wx.Button(self, id=wx.ID_OPEN, label="Set ROI", size=(160, -1))
 		self.hbox3.Add(self.button_open, 0, flag=wx.TOP, border=15)
 		self.Bind(wx.EVT_BUTTON, self.SetROI, self.button_open)
 		self.hbox3.Add((5, -1))
-		self.button_cancel = wx.Button(self, id=wx.ID_CANCEL, label="Cancel", size=(100, 30))
+		self.button_cancel = wx.Button(self, id=wx.ID_CANCEL, label="Cancel", size=(160, -1))
 		self.hbox3.Add(self.button_cancel, 0, flag=wx.TOP, border=15)
 		self.Bind(wx.EVT_BUTTON, self.CancelROI, self.button_cancel)
 		self.vbox.Add(self.vbox1, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
@@ -229,10 +241,19 @@ class ROIDialog(wx.Dialog):
 			imagedata = 255.0*imagedata
 		imagedatalow = numpy.uint8(imagedata)
 		self.impil = Image.fromarray(imagedatalow, 'L').resize((self.sx,self.sy))
-		self.imwx = wx.EmptyImage( self.impil.size[0], self.impil.size[1] )
+		if IsNotWX4():
+			self.imwx = wx.EmptyImage( self.impil.size[0], self.impil.size[1] )
+		else:
+			self.imwx = wx.Image( self.impil.size[0], self.impil.size[1] )
 		self.imwx.SetData( self.impil.convert( 'RGB' ).tobytes() )
-		bitmap = wx.BitmapFromImage(self.imwx)
-		self.bmp = wx.BitmapFromImage(self.imwx)
+		if IsNotWX4():
+			bitmap = wx.BitmapFromImage(self.imwx)
+		else:
+			bitmap = wx.Bitmap(self.imwx)
+		if IsNotWX4():
+			self.bmp = wx.BitmapFromImage(self.imwx)
+		else:
+			self.bmp = wx.Bitmap(self.imwx)
 		self.image.SetBitmap(bitmap)
 		self.Refresh()
 		self.Layout()
@@ -370,7 +391,6 @@ class SubPanel_HDF_to_Numpy(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_HDF_to_Numpy(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0017
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		self.panelphase = self.GetParent().GetParent().GetParent()
 		self.font = self.GetParent().font
@@ -434,7 +454,10 @@ class KeyDialog(wx.Dialog):
 		self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelTreeItem)
 		self.tree.__collapsing = False
 		self.treeroot = self.tree.AddRoot(self.file.name)
-		self.tree.SetItemPyData(self.treeroot, self.treeid)
+		if IsNotWX4():
+			self.tree.SetItemPyData(self.treeroot, self.treeid)
+		else:
+			self.tree.SetItemData(self.treeroot, self.treeid)
 		self.treeid += 1
 		self.MakeBranch(self.file.get(self.file.name), self.treeroot)
 		self.im = wx.ImageList(16, 16)
@@ -446,48 +469,62 @@ class KeyDialog(wx.Dialog):
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox1.Add(self.tree, 1,  flag=wx.EXPAND|wx.RIGHT|wx.TOP, border=2)
 		self.vbox1 = wx.BoxSizer(wx.VERTICAL)
-		self.rb = wx.RadioBox(self, label="View data", choices=['None','Array', 'Image'],  majorDimension=3, style=wx.RA_SPECIFY_COLS, size=(-1,40))
+		self.rb = wx.RadioBox(self, label="View data", choices=['None','Array', 'Image'],  majorDimension=3, style=wx.RA_SPECIFY_COLS, size=(-1,-1))
 		self.Bind(wx.EVT_RADIOBOX, self.OnRadioSelect, self.rb)
-		self.vbox1.Add(self.rb,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox1.Add(self.rb,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		self.dataview = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
 		self.vbox1.Add(self.dataview, 1, wx.EXPAND | wx.ALL, border=2)
 		self.vbox2 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox3 = wx.BoxSizer(wx.VERTICAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
 		self.scrollaxis = SpinnerObject(self,"Axis",3,1,1,1,50,40)
-		self.Bind(wx.EVT_SPIN, self.OnAxisSpin, self.scrollaxis.spin)
+		self.scrollaxis.spin.SetEventFunc(self.OnAxisSpin)
 		self.hbox2.Add(self.scrollaxis, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		self.slider = wx.Slider(self, -1, pos=wx.DefaultPosition, size=(150, -1),style=wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
 		self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScrollAxis, self.slider)
 		self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScrollAxis, self.slider)
 		self.hbox2.Add(self.slider, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-		self.roi_enable = CheckBoxNew(self, -1, 'ROI', size=(50, 20))
+		self.vbox41 = wx.BoxSizer(wx.VERTICAL)
+		self.vbox42 = wx.BoxSizer(wx.VERTICAL)
+		self.vbox43 = wx.BoxSizer(wx.VERTICAL)
+		self.roi_enable = CheckBoxNew(self, -1, 'ROI', size=(-1, 20))
 		self.roi_enable.SetValue(False)
 		self.Bind(wx.EVT_CHECKBOX, self.OnROI, self.roi_enable)
 		self.roi_enable.SetToolTipNew("Enable ROI")
 		self.roi = [None]*6
-		self.roi[0] = SpinnerObject(self,"x:",1,1,1,1,15,40)
+		self.roi[0] = SpinnerObject(self,"x:",1,1,1,1,40,60)
 		self.roi[0].label.SetToolTipNew("x, start index")
-		self.roi[1] = SpinnerObject(self,"",1,1,1,1,0,40)
+		self.roi[1] = SpinnerObject(self,"",1,1,1,1,40,60)
 		self.roi[1].label.SetToolTipNew("x, end index")
-		self.roi[2] = SpinnerObject(self,"y:",1,1,1,1,15,40)
+		self.roi[2] = SpinnerObject(self,"y:",1,1,1,1,40,60)
 		self.roi[2].label.SetToolTipNew("y, start index")
-		self.roi[3] = SpinnerObject(self,"",1,1,1,1,0,40)
+		self.roi[3] = SpinnerObject(self,"",1,1,1,1,40,60)
 		self.roi[3].label.SetToolTipNew("y, end index")
-		self.roi[4] = SpinnerObject(self,"z:",1,1,1,1,15,40)
+		self.roi[4] = SpinnerObject(self,"z:",1,1,1,1,40,60)
 		self.roi[4].label.SetToolTipNew("z, start index")
-		self.roi[5] = SpinnerObject(self,"",1,1,1,1,0,40)
+		self.roi[5] = SpinnerObject(self,"",1,1,1,1,40,60)
 		self.roi[5].label.SetToolTipNew("z, end index")
 		for i in range(len(self.roi)):
 			self.roi[i].Disable()
 		for i in range(len(self.roi)):
-			self.Bind(wx.EVT_SPIN, self.OnROISpin, self.roi[i].spin)
+			self.roi[i].spin.SetEventFunc(self.OnROISpin)
 			self.Bind(wx.EVT_TEXT, self.OnROINumEntry, self.roi[i].value)
-		self.hbox3.Add(self.roi_enable, 0, border=2)
-		for i in range(len(self.roi)):
-			self.hbox3.Add(self.roi[i], 0, border=2)
-		self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(0,0))
+		self.hbox3.Add(self.roi_enable, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox3.Add((10, -1))
+		for i in range(2):
+			self.vbox41.Add(self.roi[i], 0, flag=wx.ALIGN_RIGHT, border=2)
+			self.vbox42.Add(self.roi[2+i], 0, flag=wx.ALIGN_RIGHT, border=2)
+			self.vbox43.Add(self.roi[4+i], 0, flag=wx.ALIGN_RIGHT, border=2)
+		self.hbox3.Add(self.vbox41, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
+		self.hbox3.Add((20, -1))
+		self.hbox3.Add(self.vbox42, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
+		self.hbox3.Add((20, -1))
+		self.hbox3.Add(self.vbox43, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
+		if IsNotWX4():
+			self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(0,0))
+		else:
+			self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(0,0))
 		self.vbox3.Add(self.image, 1, wx.EXPAND | wx.ALL, border=0)
 		self.vbox2.Add(self.vbox3, 1, wx.EXPAND | wx.ALL, border=2)
 		self.vbox2.Add(self.hbox2, 0, wx.EXPAND | wx.ALL, border=2)
@@ -502,11 +539,11 @@ class KeyDialog(wx.Dialog):
 		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
 		self.info = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL, size=(300,55))
 		self.hbox.Add(self.info, 1, wx.EXPAND | wx.ALL, border=2)
-		self.button_open = wx.Button(self, id=wx.ID_OPEN, label="Open", size=(100, 30))
+		self.button_open = wx.Button(self, id=wx.ID_OPEN, label="Open", size=(160, -1))
 		self.hbox.Add(self.button_open, 0, flag=wx.TOP, border=15)
 		self.Bind(wx.EVT_BUTTON, self.OpenKeyItem, self.button_open)
 		self.hbox.Add((5, -1))
-		self.button_cancel = wx.Button(self, id=wx.ID_CANCEL, label="Cancel", size=(100, 30))
+		self.button_cancel = wx.Button(self, id=wx.ID_CANCEL, label="Cancel", size=(160, -1))
 		self.hbox.Add(self.button_cancel, 0, flag=wx.TOP, border=15)
 		self.Bind(wx.EVT_BUTTON, self.CancelKeyItem, self.button_cancel)
 		self.vbox.Add(self.hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -614,9 +651,15 @@ class KeyDialog(wx.Dialog):
 			imagedata = 255.0*imagedata
 		imagedatalow = numpy.uint8(imagedata)
 		self.impil = Image.fromarray(imagedatalow, 'L').resize((self.sx,self.sy))
-		self.imwx = wx.EmptyImage( self.impil.size[0], self.impil.size[1] )
+		if IsNotWX4():
+			self.imwx = wx.EmptyImage( self.impil.size[0], self.impil.size[1] )
+		else:
+			self.imwx = wx.Image( self.impil.size[0], self.impil.size[1] )
 		self.imwx.SetData( self.impil.convert( 'RGB' ).tobytes() )
-		bitmap = wx.BitmapFromImage(self.imwx)
+		if IsNotWX4():
+			bitmap = wx.BitmapFromImage(self.imwx)
+		else:
+			bitmap = wx.Bitmap(self.imwx)
 		self.bmp = bitmap
 		self.image.SetBitmap(bitmap)
 		self.Refresh()
@@ -642,7 +685,10 @@ class KeyDialog(wx.Dialog):
 				for key in keys:
 					newitem = item.get(key)
 					newlimb = self.tree.AppendItem(limb, key)
-					self.tree.SetItemPyData(newlimb, self.treeid)
+					if IsNotWX4():
+						self.tree.SetItemPyData(newlimb, self.treeid)
+					else:
+						self.tree.SetItemData(newlimb, self.treeid)
 					self.treeid += 1
 					try:
 						subkey = newitem.keys()
@@ -656,12 +702,19 @@ class KeyDialog(wx.Dialog):
 		hdfpath = []
 		parent = item
 		hdfpath.append(itemtext)
-		parentobj = self.tree.GetItemPyData(self.treeroot)
-		atroot = cmp(parentobj, self.tree.GetItemPyData(parent))
-		if atroot != 0:
-			while atroot != 0:
+		if IsNotWX4():
+			parentobj = self.tree.GetItemPyData(self.treeroot)
+			atroot = (parentobj is self.tree.GetItemPyData(parent))
+		else:
+			parentobj = self.tree.GetItemData(self.treeroot)
+			atroot = (parentobj is self.tree.GetItemData(parent))
+		if (atroot is not True):
+			while (atroot is not True):
 				parent = self.tree.GetItemParent(parent)
-				atroot = cmp(parentobj, self.tree.GetItemPyData(parent))
+				if IsNotWX4():
+					atroot = parentobj is self.tree.GetItemPyData(parent)
+				else:
+					atroot = parentobj is self.tree.GetItemData(parent)
 				itemtext = self.tree.GetItemText(parent)
 				hdfpath.append(itemtext)
 			hdfpath.reverse()
@@ -807,7 +860,6 @@ class SubPanel_SPE_to_Numpy(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_SPE_to_Numpy(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0010
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Convert SPE to Numpy array")
@@ -823,7 +875,6 @@ class SubPanel_Image_to_Numpy(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Image_to_Numpy(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0032
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Convert Image file to Numpy array")
@@ -839,7 +890,6 @@ class SubPanel_Array_to_Memory(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Array_to_Memory(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0050
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Load Array to Memory Location")
@@ -901,7 +951,6 @@ class SubPanel_Crop_Pad(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Crop_Pad(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0011
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Crop and Pad Numpy Array")
@@ -962,7 +1011,6 @@ class SubPanel_Mask(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Mask(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0012
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Create binary mask from Numpy array")
@@ -984,7 +1032,6 @@ class SubPanel_Bin(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Bin(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0014
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Bin Numpy Array")
@@ -1012,7 +1059,6 @@ class SubPanel_AutoCentre(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_AutoCentre(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0015
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Auto Centre Numpy Array")
@@ -1029,7 +1075,6 @@ class SubPanel_Wrap(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Wrap(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0016
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Wrap Numpy Array")
@@ -1052,7 +1097,6 @@ class SubPanel_Threshold(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Threshold(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0013
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Threshold data in Numpy array")
@@ -1070,10 +1114,11 @@ class SubPanel_Threshold(wx.Panel):
 		vbox.Add(self.min, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+class SubPanel_Voxel_Replace(wx.Panel):
+	treeitem = {'name':  'Voxel Replace' , 'type': 'operpre'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_Voxel_Replace(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0033
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Replace Voxels in Numpy Array")
@@ -1122,7 +1167,6 @@ class SubPanel_Median_Filter(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Median_Filter(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0051
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Filter array with median filter.")
@@ -1152,7 +1196,6 @@ class SubPanel_GaussianFill(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_GaussianFill(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0035
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Fill Numpy array with Gaussian distribution.")
@@ -1171,7 +1214,6 @@ class SubPanel_FFT(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_FFT(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0036
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Fourier Transform Array")
@@ -1191,7 +1233,6 @@ class SubPanel_Convolve(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Convolve(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0037
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Convolve Arrays")
@@ -1210,7 +1251,6 @@ class SubPanel_Conjugate_Reflect(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Conjugate_Reflect(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0034
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Conjugate and Reflect Array")
@@ -1227,7 +1267,6 @@ class SubPanel_Cuboid_Support(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Cuboid_Support(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0100
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label="Make Cuboid Support")
@@ -1266,7 +1305,6 @@ class SubPanel_ArraytoVTK(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_ArraytoVTK(selff, pipelineitem)
 	def __init__(self,parent):
-		self.pipeline_id = 0020
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Numpy array to VTK array")
@@ -1286,7 +1324,6 @@ class SubPanel_ObjecttoVTK(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_ObjecttoVTK(selff, pipelineitem)
 	def __init__(self,parent):
-		self.pipeline_id = 0021
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Numpy array with coordinates to VTK array")
@@ -1320,7 +1357,7 @@ class SubPanel_View_Support(wx.ScrolledWindow):
 		self.input_filename = TextPanelObject(self, "Data array: ", "",100,'*.npy')
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
-		self.sbox1 = wx.StaticBox(self, label="Isosurface", style=wx.SUNKEN_BORDER)
+		self.sbox1 = wx.StaticBox(self, label="Isosurface", style=wx.BORDER_DEFAULT)
 		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.contour_support = SpinnerObject(self,"Support:",1.0,0.0,0.1,0.5,100,100)
@@ -1365,7 +1402,6 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 	def __init__(self,parent,ancestor):
 		from math import pi
 		self.ancestor = ancestor
-		self.pipeline_id = 0001
 		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="View Numpy array")
@@ -1377,7 +1413,7 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		vbox.Add(self.rbampphase,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.Bind(wx.EVT_RADIOBOX, self.OnRadioSelect, self.rbampphase)
 		vbox.Add((-1, 5))
-		self.sbox1 = wx.StaticBox(self, label="Amplitude", style=wx.SUNKEN_BORDER)
+		self.sbox1 = wx.StaticBox(self, label="Amplitude", style=wx.BORDER_DEFAULT)
 		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.contour = SpinnerObject(self,"Isosurface:",MAX_INT,MIN_INT,1,100,100,100)
@@ -1390,7 +1426,7 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		self.sboxs1.Add(self.feature_angle,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.sboxs1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
-		self.sbox2 = wx.StaticBox(self, label="Phase", style=wx.SUNKEN_BORDER)
+		self.sbox2 = wx.StaticBox(self, label="Phase", style=wx.BORDER_DEFAULT)
 		self.sboxs2 = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
 		self.phasemax = SpinnerObject(self,"Max:",pi,0.0,0.01,pi,50,150)
@@ -1498,7 +1534,6 @@ class SubPanel_Random(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Random(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1002
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1513,7 +1548,6 @@ class SubPanel_ArrayStart(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_ArrayStart(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1003
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1529,7 +1563,6 @@ class SubPanel_HIO(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_HIO(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1010
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1545,7 +1578,7 @@ class SubPanel_HIO(wx.Panel):
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -1554,7 +1587,6 @@ class SubPanel_ER(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_ER(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1011
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1570,7 +1602,7 @@ class SubPanel_ER(wx.Panel):
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		#self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		#vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -1579,7 +1611,6 @@ class SubPanel_ERMask(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_ERMask(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1019
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1595,14 +1626,14 @@ class SubPanel_ERMask(wx.Panel):
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.chkbox = CheckBoxNew(self, -1, 'Relax Modulus Constraint', size=(200, 20))
 		self.chkbox.SetToolTipNew("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
 		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
 		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
-		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
+		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT,0,1,0,100,100)
 		self.niter_relax.label.SetToolTipNew("Reduce the relaxtion to zero linearly over this many iterations.")
 		self.niter_relax.Disable()
 		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1621,7 +1652,6 @@ class SubPanel_RAAR(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_RAAR(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1012
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1639,14 +1669,14 @@ class SubPanel_RAAR(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.chkbox = CheckBoxNew(self, -1, 'Relax Modulus Constraint', size=(200, 20))
 		self.chkbox.SetToolTipNew("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
 		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
 		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
-		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
+		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT,0,1,0,100,100)
 		self.niter_relax.label.SetToolTipNew("Reduce the relaxtion to zero linearly over this many iterations.")
 		self.niter_relax.Disable()
 		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1665,7 +1695,6 @@ class SubPanel_HPR(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_HPR(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1014
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1683,14 +1712,14 @@ class SubPanel_HPR(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.chkbox = CheckBoxNew(self, -1, 'Relax Modulus Constraint', size=(200, 20))
 		self.chkbox.SetToolTipNew("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
 		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
 		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
-		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
+		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT,0,1,0,100,100)
 		self.niter_relax.label.SetToolTipNew("Reduce the relaxtion to zero linearly over this many iterations.")
 		self.niter_relax.Disable()
 		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1709,7 +1738,6 @@ class SubPanel_HIOMask(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_HIOMask(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1015
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1727,14 +1755,14 @@ class SubPanel_HIOMask(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.chkbox = CheckBoxNew(self, -1, 'Relax Modulus Constraint', size=(200, 20))
 		self.chkbox.SetToolTipNew("Do not apply modulus constraint if the change in amplitude"+os.linesep+" is within the Poisson noise.")
 		self.chkbox.Bind(wx.EVT_CHECKBOX, self.OnCheck)
 		vbox.Add(self.chkbox, 0,flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
-		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT_16,0,1,0,100,100)
+		self.niter_relax = SpinnerObject(self,"Relax iters: ",MAX_INT,0,1,0,100,100)
 		self.niter_relax.label.SetToolTipNew("Reduce the relaxtion to zero linearly over this many iterations.")
 		self.niter_relax.Disable()
 		vbox.Add(self.niter_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1753,7 +1781,6 @@ class SubPanel_POER(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_POER(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1018
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1769,7 +1796,7 @@ class SubPanel_POER(wx.Panel):
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -1778,7 +1805,6 @@ class SubPanel_HIOPlus(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_HIOPlus(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1016
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1796,7 +1822,7 @@ class SubPanel_HIOPlus(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
@@ -1806,7 +1832,6 @@ class SubPanel_PCHIO(wx.Panel):
 		Sequence_PCHIO(selff, pipelineitem)
 	def __init__(self, parent):
 		from math import pi
-		self.pipeline_id = 1017
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1824,7 +1849,7 @@ class SubPanel_PCHIO(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.phasemax = SpinnerObject(self,"Phase Max: ",pi,0.0,0.01,pi,100,150)
 		vbox.Add(self.phasemax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1834,7 +1859,7 @@ class SubPanel_PCHIO(wx.Panel):
 		self.SetSizer( vbox )
 class QDialog(wx.Dialog):
 	def __init__(self, parent, subpanel):
-		wx.Dialog.__init__(self, parent, title="Calculate Q-vector", size=(300, 180))
+		wx.Dialog.__init__(self, parent, title="Calculate Q-vector", size=(300, 180),style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 		self.subpanel = subpanel
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		self.ttheta = NumberObject(self,"2 theta:",self.subpanel.ttheta,80)
@@ -1859,6 +1884,9 @@ class QDialog(wx.Dialog):
 		self.SetSizer(vbox)
 		self.ok.Bind(wx.EVT_BUTTON, self.OnOk)
 		self.cancel.Bind(wx.EVT_BUTTON, self.OnCancel)
+		self.Fit()
+		self.Layout()
+		self.Show()
 	def OnOk(self, event):
 		tth = float(self.ttheta.value.GetValue())
 		phi = float(self.phi.value.GetValue())
@@ -1896,7 +1924,6 @@ class SubPanel_PGCHIO(wx.Panel):
 		Sequence_PGCHIO(selff, pipelineitem)
 	def __init__(self, parent):
 		from math import pi
-		self.pipeline_id = 1022
 		self.start_iter = None
 		self.parent = parent
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
@@ -1916,7 +1943,7 @@ class SubPanel_PGCHIO(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.phasemax = SpinnerObject(self,"Phase Max: ",2.0*pi,0.0,0.01,pi,100,150)
 		vbox.Add(self.phasemax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -1950,7 +1977,6 @@ class SubPanel_ShrinkWrap(wx.Panel):
 		Sequence_ShrinkWrap(selff, pipelineitem)
 	def __init__(self, parent):
 		from math import pi
-		self.pipeline_id = 1020
 		self.start_iter = None
 		self.parent = parent
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
@@ -1971,10 +1997,10 @@ class SubPanel_ShrinkWrap(wx.Panel):
 		self.beta.label.SetToolTipNew("Relaxation parameter.")
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,100,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,100,100,100)
 		self.niter.label.SetToolTipNew("Total number of iterations.")
 		hbox1.Add(self.niter, 0,  flag=wx.EXPAND|wx.RIGHT, border=5)
-		self.cycle = SpinnerObject(self,"Cycle length: ",MAX_INT_16,1,1,30,120,80)
+		self.cycle = SpinnerObject(self,"Cycle length: ",MAX_INT,1,1,30,120,80)
 		self.cycle.label.SetToolTipNew("Number of iterations in a shrink-wrap cycle.")
 		hbox1.Add(self.cycle, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2122,7 +2148,6 @@ class SubPanel_CSHIO(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_CSHIO(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1040
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2140,7 +2165,7 @@ class SubPanel_CSHIO(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
 		self.cs_p = SpinnerObject(self,"p-norm: ",2.0,-2.0,0.01,1.0,100,100)
@@ -2169,7 +2194,6 @@ class SubPanel_HIOMaskPC(wx.Panel):
 		Sequence_PhasePC(selff, pipelineitem)
 		Sequence_HIOMaskPC(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1042
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2187,16 +2211,16 @@ class SubPanel_HIOMaskPC(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
-		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
+		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT,1,1,100,300,100)
 		self.niterrlpre.label.SetToolTipNew("Number of HIO iterations performed before R-L Optimisation occurs.")
 		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
+		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT,1,1,10,300,100)
 		self.niterrl.label.SetToolTipNew("Number of Richardon-Lucy iterations.")
 		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
+		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT,1,1,50,300,100)
 		self.niterrlinterval.label.SetToolTipNew("")
 		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
@@ -2228,7 +2252,6 @@ class SubPanel_ERMaskPC(wx.Panel):
 		Sequence_PhasePC(selff, pipelineitem)
 		Sequence_ERMaskPC(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1052
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2244,16 +2267,16 @@ class SubPanel_ERMaskPC(wx.Panel):
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
-		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
+		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT,1,1,100,300,100)
 		self.niterrlpre.label.SetToolTipNew("Number of ER iterations performed before R-L Optimisation occurs.")
 		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
+		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT,1,1,10,300,100)
 		self.niterrl.label.SetToolTipNew("Number of Richardon-Lucy iterations.")
 		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
+		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT,1,1,50,300,100)
 		self.niterrlinterval.label.SetToolTipNew("")
 		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
@@ -2285,7 +2308,6 @@ class SubPanel_HPRMaskPC(wx.Panel):
 		Sequence_PhasePC(selff, pipelineitem)
 		Sequence_HPRMaskPC(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1062
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2303,16 +2325,16 @@ class SubPanel_HPRMaskPC(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
-		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
+		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT,1,1,100,300,100)
 		self.niterrlpre.label.SetToolTipNew("Number of HPR iterations performed before R-L Optimisation occurs.")
 		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
+		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT,1,1,10,300,100)
 		self.niterrl.label.SetToolTipNew("Number of Richardon-Lucy iterations.")
 		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
+		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT,1,1,50,300,100)
 		self.niterrlinterval.label.SetToolTipNew("")
 		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
@@ -2344,7 +2366,6 @@ class SubPanel_RAARMaskPC(wx.Panel):
 		Sequence_PhasePC(selff, pipelineitem)
 		Sequence_RAARMaskPC(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 1072
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2362,16 +2383,16 @@ class SubPanel_RAARMaskPC(wx.Panel):
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT_16,1,1,1,100,100)
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((1,5))
-		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT_16,1,1,100,300,100)
+		self.niterrlpre = SpinnerObject(self,"Iterations preceding R-L optimisation:", MAX_INT,1,1,100,300,100)
 		self.niterrlpre.label.SetToolTipNew("Number of RAAR iterations performed before R-L Optimisation occurs.")
 		vbox.Add(self.niterrlpre, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT_16,1,1,10,300,100)
+		self.niterrl = SpinnerObject(self,"R-L iterations: ",MAX_INT,1,1,10,300,100)
 		self.niterrl.label.SetToolTipNew("Number of Richardon-Lucy iterations.")
 		vbox.Add(self.niterrl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT_16,1,1,50,300,100)
+		self.niterrlinterval = SpinnerObject(self,"Interval between R-L optimisation: ",MAX_INT,1,1,50,300,100)
 		self.niterrlinterval.label.SetToolTipNew("")
 		vbox.Add(self.niterrlinterval, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.accel = SpinnerObject(self,"Acceleration: ",MAX_INT_16,1,1,1,100,100)
@@ -2397,14 +2418,13 @@ class SubPanel_RAARMaskPC(wx.Panel):
 		vbox.Add(self.chkbox_reset_gamma, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
-class SubPanel_Transform(wx.Panel):
+class SubPanel_Transform(wx.ScrolledWindow):
 	treeitem = {'name':  'Co-ordinate Transformation' , 'type': 'operpost'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_Transform(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 2001
 		self.start_iter = None
-		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Rocking Curve Coordinate Transformation")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2466,12 +2486,13 @@ class SubPanel_Transform(wx.Panel):
 		vbox.Add(self.chkbox_ccdflip, flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+		self.FitInside()
+		self.SetScrollRate(5, 5)
 class SubPanel_Save_Sequence(wx.Panel):
 	treeitem = {'name':  'Save Sequence' , 'type': 'operpost'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_Save_Sequence(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 2010
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2487,7 +2508,6 @@ class SubPanel_Save_Support(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Save_Support(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 2012
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2503,7 +2523,6 @@ class SubPanel_Save_Residual(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Save_Residual(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 2013
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2519,7 +2538,6 @@ class SubPanel_Save_Coordinates(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_Save_Coordinates(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 2011
 		self.start_iter = None
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2537,7 +2555,6 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 	def __init__(self,parent,ancestor):
 		from math import pi
 		self.ancestor = ancestor
-		self.pipeline_id = 0002
 		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="View Numpy array with coordinate correction")
@@ -2551,7 +2568,7 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 		vbox.Add(self.rbampphase,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.Bind(wx.EVT_RADIOBOX, self.OnRadioSelect, self.rbampphase)
 		vbox.Add((-1, 10))
-		self.sbox1 = wx.StaticBox(self, label="Amplitude", style=wx.SUNKEN_BORDER)
+		self.sbox1 = wx.StaticBox(self, label="Amplitude", style=wx.BORDER_DEFAULT)
 		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.contour = SpinnerObject(self,"Isosurface: ",MAX_INT,MIN_INT,1,100,100,100)
@@ -2564,7 +2581,7 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 		self.sboxs1.Add(self.feature_angle,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.sboxs1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
-		self.sbox2 = wx.StaticBox(self, label="Phase", style=wx.SUNKEN_BORDER)
+		self.sbox2 = wx.StaticBox(self, label="Phase", style=wx.BORDER_DEFAULT)
 		self.sboxs2 = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
 		self.phasemax = SpinnerObject(self,"Max: ",pi,0.0,0.01,pi,50,150)
@@ -2657,7 +2674,6 @@ class SubPanel_View_VTK(wx.ScrolledWindow):
 	def __init__(self,parent,ancestor):
 		from math import pi
 		self.ancestor = ancestor
-		self.pipeline_id = 0003
 		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="View VTK array")
@@ -2761,7 +2777,6 @@ class SubPanel_InterpolateObject(wx.Panel):
 	def sequence(self, selff, pipelineitem):
 		Sequence_InterpolateObject(selff, pipelineitem)
 	def __init__(self, parent):
-		self.pipeline_id = 0030
 		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = StaticTextNew(self, label=" Interpolate array with coordinates onto a regular grid Numpy array")
@@ -2787,7 +2802,7 @@ class SubPanel_InterpolateObject(wx.Panel):
 		hbox.Add(self.spacer[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=2)
 		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 10))
-		self.interp_range = SpinnerObject(self,"Interpolation Range:",1.0,0.0,0.001,0.001,180,60)
+		self.interp_range = SpinnerObject(self,"Interpolation Range:",1.0,0.0,0.001,0.001,180,100)
 		self.interp_range.label.SetToolTipNew(" Specify influence distance of each input point. This distance is "+os.linesep+" a fraction of the length of the diagonal of the sample space. "+os.linesep+" Thus, values of 1.0 will cause each input point to influence "+os.linesep+" all points in the structured point dataset. Values less than 1.0 "+os.linesep+" can improve performance significantly.")
 		vbox.Add(self.interp_range, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)

@@ -43,9 +43,9 @@ class PanelStdOut(wx.Panel):
 		self.hbox_ent = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox_ent.AddSpacer(20)
 		self.font = self.ancestor.GetParent().font
-		self.label = wx.StaticText(self, -1,"Log Entry:", style=wx.ALIGN_CENTRE_HORIZONTAL, size=(110,-1) )
+		self.label = wx.StaticText(self, -1,"Log Entry:", style=wx.ALIGN_CENTRE_HORIZONTAL, size=(160,-1) )
 		self.label.SetFont(self.font)
-		self.hbox_ent.Add( self.label, 0, wx.EXPAND | wx.LEFT, 2)
+		self.hbox_ent.Add( self.label, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 2)
 		self.entry = wx.TextCtrl(self, -1, style=wx.TE_PROCESS_ENTER)
 		self.entry.SetFont(self.font)
 		self.entry.SetValue("")
@@ -54,7 +54,7 @@ class PanelStdOut(wx.Panel):
 		else:
 			self.entry.SetToolTip("Enter comments into the log here.")
 		self.entry.Bind(wx.EVT_TEXT_ENTER, self.OnEnterComments)
-		self.hbox_ent.Add( self.entry, 1, wx.CENTER |wx.EXPAND )
+		self.hbox_ent.Add( self.entry, 1, wx.EXPAND | wx.LEFT | wx.RIGHT)
 		self.vbox.Add(self.hbox_ent, 0, wx.EXPAND)
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox_btn.AddSpacer(20)

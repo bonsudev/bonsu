@@ -28,6 +28,8 @@ import sys
 import threading
 from ..interface.render import wxVTKRenderWindowInteractor
 from ..interface.common import CNTR_CLIP
+from ..interface.common import IsPy3
+from ..interface.common import IsNotVTK6
 from ..operations.wrap import WrapArray
 from ..operations.loadarray import NewArray
 from ..operations.loadarray import LoadArray
@@ -56,7 +58,10 @@ def Sequence_BlankLineFill(\
 			if ( '[' in roipath and ']' in roipath ):
 				roi = roipath.partition('[')[-1].rpartition(']')[0]
 				roiids_str = [x.split(":") for x in roi.split(',')]
-				roiids = [map(int, i) for i in roiids_str]
+				if IsPy3():
+					roiids = [list(map(int, i)) for i in roiids_str]
+				else:
+					roiids = [map(int, i) for i in roiids_str]
 			else:
 				roi = None
 		except AttributeError or roi == None:
@@ -206,7 +211,7 @@ def RotateSupport(inarray, axis, angle):
 			newcoord2d  = numpy.dot(coord2dcen,tr)
 			for ii in range(len(nn)*len(nn)):
 				newcoordsnn[ii][0], newcoordsnn[ii][1] = int(newcoord2d[0][0] + axx/2 + d[ii][0]), int(newcoord2d[0][1] + axy/2 + d[ii][1])
-				newarray2d[newcoordsnn[ii][0]][newcoordsnn[ii][1]] = array2d[coord2d[0][0]][coord2d[0][1]]
+				newarray2d[newcoordsnn[ii][0]][newcoordsnn[ii][1]] = array2d[int(coord2d[0][0])][int(coord2d[0][1])]
 	if axis == 1:
 		for i in range(axlen):
 			array2d = array[i,:,:]
@@ -283,7 +288,10 @@ def Sequence_HDF_to_Numpy(\
 				keypath2 = keypath.partition('[')[0]
 				roi = keypath.partition('[')[-1].rpartition(']')[0]
 				roiids_str = [x.split(":") for x in roi.split(',')]
-				roiids = [map(int, i) for i in roiids_str]
+				if IsPy3():
+					roiids = [lsit(map(int, i)) for i in roiids_str]
+				else:
+					roiids = [map(int, i) for i in roiids_str]
 			else:
 				roi = None
 				keypath2 = keypath
@@ -325,24 +333,24 @@ def Sequence_SPE_to_Numpy(\
 			self.pipeline_started = False
 			return
 		datatype=[numpy.float32, numpy.int32, numpy.int16, numpy.uint16]
-		SPE_file.seek(2) ; acc = numpy.int32(numpy.fromfile(SPE_file, numpy.int16, 1))
-		SPE_file.seek(4) ; exp = numpy.int32(numpy.fromfile(SPE_file, numpy.int16, 1))
+		SPE_file.seek(2) ; acc = int(numpy.fromfile(SPE_file, numpy.int16, 1))
+		SPE_file.seek(4) ; exp = int(numpy.fromfile(SPE_file, numpy.int16, 1))
 		if acc < 0 or (acc==1 and exp==1):
-			SPE_file.seek(668) ; acc = numpy.int32(numpy.fromfile(SPE_file, numpy.int32, 1))
-			SPE_file.seek(660) ; exp = numpy.int32(numpy.fromfile(SPE_file, numpy.int32, 1))
+			SPE_file.seek(668) ; acc = int(numpy.fromfile(SPE_file, numpy.int32, 1))
+			SPE_file.seek(660) ; exp = int(numpy.fromfile(SPE_file, numpy.int32, 1))
 		SPE_file.seek(10) ; exp_sec = numpy.double(numpy.fromfile(SPE_file, numpy.float32, 1))
-		SPE_file.seek(42) ; x = numpy.int32(numpy.fromfile(SPE_file, numpy.int16, 1))
-		SPE_file.seek(108) ; dtype_id = numpy.int32(numpy.fromfile(SPE_file, numpy.int16, 1))
-		SPE_file.seek(656) ; y = numpy.int32(numpy.fromfile(SPE_file, numpy.int16, 1))
-		SPE_file.seek(1446) ; z = numpy.int32(numpy.fromfile(SPE_file, numpy.int32, 1))
-		SPE_file.seek(1516) ; binx = numpy.int32(numpy.fromfile(SPE_file, numpy.int16, 1))
-		SPE_file.seek(1522) ; biny = numpy.int32(numpy.fromfile(SPE_file, numpy.int16, 1))
-		SPE_file.seek(1992) ; filever = numpy.float32(numpy.fromfile(SPE_file, numpy.float32, 1))
-		SPE_file.seek(1510) ; rois = numpy.int16(numpy.fromfile(SPE_file, numpy.int16, 1))
-		SPE_file.seek(1512) ; startx = numpy.uint16(numpy.fromfile(SPE_file, numpy.uint16, 1))
-		SPE_file.seek(1514) ; endx = numpy.uint16(numpy.fromfile(SPE_file, numpy.uint16, 1))
-		SPE_file.seek(1518) ; starty = numpy.uint16(numpy.fromfile(SPE_file, numpy.uint16, 1))
-		SPE_file.seek(1520) ; endy = numpy.uint16(numpy.fromfile(SPE_file, numpy.uint16, 1))
+		SPE_file.seek(42) ; x = int(numpy.fromfile(SPE_file, numpy.int16, 1))
+		SPE_file.seek(108) ; dtype_id = int(numpy.fromfile(SPE_file, numpy.int16, 1))
+		SPE_file.seek(656) ; y = int(numpy.fromfile(SPE_file, numpy.int16, 1))
+		SPE_file.seek(1446) ; z = int(numpy.fromfile(SPE_file, numpy.int32, 1))
+		SPE_file.seek(1516) ; binx = int(numpy.fromfile(SPE_file, numpy.int16, 1))
+		SPE_file.seek(1522) ; biny = int(numpy.fromfile(SPE_file, numpy.int16, 1))
+		SPE_file.seek(1992) ; filever = int(numpy.fromfile(SPE_file, numpy.float32, 1))
+		SPE_file.seek(1510) ; rois = int(numpy.fromfile(SPE_file, numpy.int16, 1))
+		SPE_file.seek(1512) ; startx = int(numpy.fromfile(SPE_file, numpy.uint16, 1))
+		SPE_file.seek(1514) ; endx = int(numpy.fromfile(SPE_file, numpy.uint16, 1))
+		SPE_file.seek(1518) ; starty = int(numpy.fromfile(SPE_file, numpy.uint16, 1))
+		SPE_file.seek(1520) ; endy = int(numpy.fromfile(SPE_file, numpy.uint16, 1))
 		self.ancestor.GetPage(0).queue_info.put("Size in x: %d" %x)
 		self.ancestor.GetPage(0).queue_info.put("Size in y: %d" %y)
 		self.ancestor.GetPage(0).queue_info.put("Size in z: %d" %z)
@@ -442,18 +450,19 @@ def Sequence_Image_to_Numpy(\
 		filename_npy = pipelineitem.output_filename.objectpath.GetValue()
 		from PIL import Image
 		try:
-			Image_file_raw=Image.open(filename_Image)
-			type = Image_file_raw.format
-			if type == 'TIFF':
-				imgobj = TIFFStackRead(Image_file_raw)
-				x,y = imgobj.im_sz
-				z = imgobj.nframes
-				array = NewArray(self,x,y,z)
-				for i in range(z):
-					array[:,:,i] = imgobj.get_frame(i)[:]
-			else:
-				Image_file=Image_file_raw.convert('L')
-				array = numpy.array(Image_file)
+			with open(filename_Image, 'rb') as Image_handle:
+				Image_file_raw=Image.open(Image_handle)
+				type = Image_file_raw.format
+				if type == 'TIFF':
+					imgobj = TIFFStackRead(Image_file_raw)
+					x,y = imgobj.im_sz
+					z = imgobj.nframes
+					array = NewArray(self,x,y,z)
+					for i in range(z):
+						array[:,:,i] = imgobj.get_frame(i)[:]
+				else:
+					Image_file=Image_file_raw.convert('L')
+					array = numpy.array(Image_file)
 		except:
 			msg = "Could not load array."
 			wx.CallAfter(self.UserMessage, title, msg)
@@ -601,9 +610,9 @@ def Sequence_Bin(\
 			self.pipeline_started = False
 			return
 		else:
-			nx = (shp[0]+binx -1)/binx
-			ny = (shp[1]+biny -1)/biny
-			nz = (shp[2]+binz -1)/binz
+			nx = (shp[0]+binx -1)//binx
+			ny = (shp[1]+biny -1)//biny
+			nz = (shp[2]+binz -1)//binz
 			nshp = numpy.array((nx, ny, nz),dtype=numpy.int)
 			try:
 				arraybin = NewArray(self,nx,ny,nz)
@@ -633,14 +642,14 @@ def Sequence_AutoCentre(\
 			return
 		max = numpy.array( numpy.unravel_index(array.argmax(), array.shape) )
 		shp = numpy.array(array.shape)
-		centre = numpy.array(array.shape) / 2
+		centre = numpy.array(array.shape) // 2
 		padding = (max - centre)
 		extra = numpy.abs(padding)
 		try:
 			arraycentred = NewArray(self,*(shp+ 2*extra))
 		except:
 			return
-		centre2 = numpy.array(arraycentred.shape) / 2
+		centre2 = numpy.array(arraycentred.shape) // 2
 		x_0 = extra[0] - padding[0]
 		x_1 = x_0 + shp[0]
 		y_0 = extra[1] - padding[1]
@@ -974,11 +983,11 @@ def Sequence_Cuboid_Support(\
 			support = NewArray(self,x,y,z)
 		except:
 			return
-		x1 = (x - sx)/2;
+		x1 = (x - sx)//2;
 		x2 = x1 + sx
-		y1 = (y - sy)/2
+		y1 = (y - sy)//2
 		y2 = y1 + sy
-		z1 = (z - sz)/2
+		z1 = (z - sz)//2
 		z2 = z1 + sz
 		support[x1:x2,y1:y2,z1:z2] = 1 + 1j*0
 		try:
@@ -1116,12 +1125,22 @@ def Sequence_ObjecttoVTK(\
 			self.pipeline_started = False
 			return
 def InterpolatedScalarDataset(InputDataSet, grid, range):
+	def TPObserver(obj, event):
+		pass
 	bounds=list(InputDataSet.GetBounds())
 	RegGrid=vtk.vtkShepardMethod()
 	RegGrid.SetMaximumDistance(range)
 	RegGrid.SetSampleDimensions(grid)
 	RegGrid.SetModelBounds(bounds)
-	RegGrid.SetInput(InputDataSet)
+	if IsNotVTK6():
+		RegGrid.SetInput(InputDataSet)
+	else:
+		tp = vtk.vtkTrivialProducer()
+		tp.SetOutput(InputDataSet)
+		tp.SetWholeExtent(InputDataSet.GetExtent())
+		tp.AddObserver(vtk.vtkCommand.ErrorEvent, TPObserver)
+		RegGrid.SetInputConnection(tp.GetOutputPort())
+	RegGrid.GetInputInformation().Set(vtk.vtkStreamingDemandDrivenPipeline.UNRESTRICTED_UPDATE_EXTENT(),1)
 	RegGrid.Update()
 	return RegGrid.GetOutput()
 def Sequence_InterpolateObject(\
@@ -1129,6 +1148,7 @@ def Sequence_InterpolateObject(\
 	pipelineitem
 	):
 	if self.pipeline_started == True:
+		self.thread_register.put(1)
 		title = "Sequence " + pipelineitem.treeitem['name']
 		self.ancestor.GetPage(0).queue_info.put("Interpolating object...")
 		input_filename  = pipelineitem.input_filename.objectpath.GetValue()
@@ -1138,24 +1158,7 @@ def Sequence_InterpolateObject(\
 		y =  int(pipelineitem.spacer[1].value.GetValue())
 		z =  int(pipelineitem.spacer[2].value.GetValue())
 		range =  float(pipelineitem.interp_range.value.GetValue())
-		try:
-			test_array = numpy.zeros([x,y,z], dtype=numpy.float)
-		except:
-			msg = "Array dimensions are too large for the available memory."
-			wx.CallAfter(self.UserMessage, title, msg)
-			self.pipeline_started = False
-			return
-		else:
-			del test_array
-		try:
-			data = LoadArray(self, input_filename)
-			coords = LoadCoordsArray(coords_filename)
-		except:
-			msg = "Could not load array."
-			wx.CallAfter(self.UserMessage, title, msg)
-			self.pipeline_started = False
-			return
-		else:
+		def Interpolate(self):
 			shp = numpy.array(data.shape, dtype=numpy.int)
 			vtk_coordarray = numpy_support.numpy_to_vtk(coords)
 			vtk_points = vtk.vtkPoints()
@@ -1168,14 +1171,14 @@ def Sequence_InterpolateObject(\
 			image_amp.SetPoints(vtk_points)
 			image_amp.GetPointData().SetScalars(vtk_data_array_amp)
 			image_amp.SetDimensions(shp)
-			image_amp.Update()
+			image_amp.Modified()
 			flat_data_phase = (numpy.angle(data)).transpose(2,1,0).flatten()
 			vtk_data_array_phase = numpy_support.numpy_to_vtk(flat_data_phase)
 			image_phase = vtk.vtkStructuredGrid()
 			image_phase.SetPoints(vtk_points)
 			image_phase.GetPointData().SetScalars(vtk_data_array_phase)
 			image_phase.SetDimensions(shp)
-			image_phase.Update()
+			image_phase.Modified()
 			bds = list(image_amp.GetBounds())
 			scale = [(bds[1] - bds[0])/float(x), (bds[3] - bds[2])/float(y), (bds[5] - bds[4])/float(z)]
 			self.ancestor.GetPage(0).queue_info.put("Array (x,y,z) spacing: " + str(scale))
@@ -1193,7 +1196,31 @@ def Sequence_InterpolateObject(\
 				msg = "Could not save array."
 				wx.CallAfter(self.UserMessage, title, msg)
 				self.pipeline_started = False
-				return
+			self.thread_register.get()
+		try:
+			test_array = numpy.zeros([x,y,z], dtype=numpy.float)
+		except:
+			msg = "Array dimensions are too large for the available memory."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			self.thread_register.get()
+			return
+		else:
+			del test_array
+		try:
+			data = LoadArray(self, input_filename)
+			coords = LoadCoordsArray(self, coords_filename)
+		except:
+			msg = "Could not load array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			self.thread_register.get()
+			return
+		else:
+			thd = threading.Thread(target=Interpolate, args=(self,))
+			thd.daemon = True
+			thd.start()
+			return
 def Sequence_View_Array(self, ancestor):
 	def ViewDataAmp(self, ancestor, data, r, g, b):
 		self.ancestor.GetPage(0).queue_info.put("Preparing array visualisation...")
@@ -2402,7 +2429,7 @@ def Sequence_Transform(\
 	if self.pipeline_started == True:
 		title = "Sequence " + pipelineitem.treeitem['name']
 		panelvisual = self.ancestor.GetPage(1)
-		self.thread_register.acquire()
+		self.thread_register.put(1)
 		self.ancestor.GetPage(0).queue_info.put("Starting transformation...")
 		filename_in = pipelineitem.input_filename.objectpath.GetValue()
 		filename_out_amp = pipelineitem.output_filename_amp.objectpath.GetValue()
@@ -2414,13 +2441,14 @@ def Sequence_Transform(\
 				msg = "Could not load array."
 				wx.CallAfter(self.UserMessage, title, msg)
 				self.pipeline_started = False
+				self.thread_register.get()
 				return
 		else:
 			if self.seqdata is None:
 				msg = "Could not load array."
 				wx.CallAfter(self.UserMessage, title, msg)
 				self.pipeline_started = False
-				self.thread_register.release()
+				self.thread_register.get()
 				return
 			else:
 				array = self.seqdata
@@ -2511,7 +2539,7 @@ def Sequence_Transform(\
 				writer.SetInputData(vtk_dataset)
 			writer.Update()
 			writer.Write()
-			self.thread_register.release()
+			self.thread_register.get()
 		thd = threading.Thread(target=Transform, args=(self,))
 		thd.daemon = True
 		thd.start()

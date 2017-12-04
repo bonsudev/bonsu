@@ -172,13 +172,13 @@ def OnClickStartAction(self, event):
 				return
 			def RunUnthreaded(objectsequence, self, object):
 				objectsequence(self, object)
-				self.thread_register.release()
+				self.thread_register.get()
 			i=0
 			for object in self.pipelineitems:
 				if self.mainlist.IsChecked(i):
 					if hasattr(object, 'treeitem'):
 						if object.treeitem['type'] == 'operpost':
-							if self.thread_register._Semaphore__value == 1000:
+							if self.thread_register.empty():
 								if self.citer_flow[0] == object.start_iter and (i not in self.pipeline_index_of_executed):
 									self.pipeline_index_of_executed.append(i)
 									object.sequence(self,object)
@@ -187,19 +187,19 @@ def OnClickStartAction(self, event):
 								self.pipeline_index_of_executed.append(i)
 								object.sequence(self,object)
 						elif object.treeitem['type'] == 'operpre':
-							if (self.thread_register._Semaphore__value == 1000) and (i not in self.pipeline_index_of_executed):
+							if (self.thread_register.empty()) and (i not in self.pipeline_index_of_executed):
 								self.pipeline_index_of_executed.append(i)
-								self.thread_register.acquire()
+								self.thread_register.put(1)
 								thd = threading.Thread(target=RunUnthreaded, args=(object.sequence, self, object))
 								thd.daemon = True
 								thd.start()
 						elif object.treeitem['type'] == 'operpreview':
-							if (self.thread_register._Semaphore__value == 1000) and (i not in self.pipeline_index_of_executed):
+							if (self.thread_register.empty()) and (i not in self.pipeline_index_of_executed):
 								self.pipeline_index_of_executed.append(i)
 				else:
 					if (i not in self.pipeline_index_of_executed):
 						self.pipeline_index_of_executed.append(i)
-				if (len(self.pipeline_index_of_executed) == len(self.pipelineitems) and (self.citer_flow[0] == self.total_iter or self.total_iter == 0) and self.thread_register._Semaphore__value == 1000):
+				if (len(self.pipeline_index_of_executed) == len(self.pipelineitems) and (self.citer_flow[0] == self.total_iter or self.total_iter == 0) and self.thread_register.empty()):
 					self.pipeline_started = False
 					self.compile = 0
 				i+=1

@@ -39,6 +39,10 @@
 	#define PRFFTW_PSLEEP 1
 #endif 
 
+#if PY_MAJOR_VERSION >= 3
+	#define PyInt_FromLong PyLong_FromLong
+	#define PyString_FromString PyUnicode_FromFormat
+#endif
 
 PyObject* prfftw_hiomask(PyObject *self, PyObject *args);
 PyObject* prfftw_hio(PyObject *self, PyObject *args);

@@ -617,9 +617,9 @@ def Sequence_HIO(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadHIO(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting HIO Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			HIO(self, beta, startiter, numiter)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadHIO, args=(self,))
 		self.thread.daemon = True
@@ -694,9 +694,9 @@ def Sequence_ER(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadER(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting ER Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			ER(self, startiter, numiter)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadER, args=(self,))
 		self.thread.daemon = True
@@ -786,9 +786,9 @@ def Sequence_ERMask(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadERMask(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting ER Mask Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			ERMask(self, startiter, numiter, numiter_relax)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadERMask, args=(self,))
 		self.thread.daemon = True
@@ -874,9 +874,9 @@ def Sequence_POER(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadPOER(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting PO-ER Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			POER(self, startiter, numiter)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadPOER, args=(self,))
 		self.thread.daemon = True
@@ -967,9 +967,9 @@ def Sequence_HPR(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadHPR(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting HPR Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			HPR(self, beta, startiter, numiter, numiter_relax)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadHPR, args=(self,))
 		self.thread.daemon = True
@@ -1060,9 +1060,9 @@ def Sequence_RAAR(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadRAAR(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting RAAR Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			RAAR(self, beta, startiter, numiter, numiter_relax)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadRAAR, args=(self,))
 		self.thread.daemon = True
@@ -1153,9 +1153,9 @@ def Sequence_HIOMask(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadHIOMask(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting HIO Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			HIOMask(self, beta, startiter, numiter, numiter_relax)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadHIOMask, args=(self,))
 		self.thread.daemon = True
@@ -1242,9 +1242,9 @@ def Sequence_HIOPlus(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadHIOPlus(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting HIO+ Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			HIOPlus(self, beta, startiter, numiter)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadHIOPlus, args=(self,))
 		self.thread.daemon = True
@@ -1333,9 +1333,9 @@ def Sequence_PCHIO(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadPCHIO(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting PCHIO Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			PCHIO(self, beta, startiter, numiter, phasemax, phasemin)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadPCHIO, args=(self,))
 		self.thread.daemon = True
@@ -1427,9 +1427,9 @@ def Sequence_PGCHIO(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadPGCHIO(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting PGCHIO Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			PGCHIO(self, beta, startiter, numiter, phasemax, phasemin, qx, qy, qz)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadPGCHIO, args=(self,))
 		self.thread.daemon = True
@@ -1550,7 +1550,7 @@ def Sequence_ShrinkWrap(\
 		wrap(temparray, 1)
 		def threadShrinkWrap(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting shrink wrap algorithm using "+RSConst +"..." )
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			from ..lib.prfftw import threshold
 			from ..lib.prfftw import rangereplace
 			from ..lib.prfftw import convolve
@@ -1570,7 +1570,7 @@ def Sequence_ShrinkWrap(\
 				if self.ancestor.GetPage(0).citer_flow[4] > 0:
 					wx.CallAfter(self.ancestor.GetPage(1).UpdateSupport,)
 			if RSConst == 'HIO':
-				for i in range( (numiter + cycle - 1)/cycle ):
+				for i in range( (numiter + cycle - 1)//cycle ):
 					sw_startiter = startiter + (i * cycle)
 					if  numiter <  ((i+1) * cycle):
 						sw_numiter =  numiter - (i * cycle)
@@ -1582,7 +1582,7 @@ def Sequence_ShrinkWrap(\
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'PCHIO':
-				for i in range( (numiter + cycle - 1)/cycle ):
+				for i in range( (numiter + cycle - 1)//cycle ):
 					sw_startiter = startiter + (i * cycle)
 					if  numiter <  ((i+1) * cycle):
 						sw_numiter =  numiter - (i * cycle)
@@ -1594,7 +1594,7 @@ def Sequence_ShrinkWrap(\
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'PGCHIO':
-				for i in range( (numiter + cycle - 1)/cycle ):
+				for i in range( (numiter + cycle - 1)//cycle ):
 					sw_startiter = startiter + (i * cycle)
 					if  numiter <  ((i+1) * cycle):
 						sw_numiter =  numiter - (i * cycle)
@@ -1606,7 +1606,7 @@ def Sequence_ShrinkWrap(\
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'HIOMask':
-				for i in range( (numiter + cycle - 1)/cycle ):
+				for i in range( (numiter + cycle - 1)//cycle ):
 					sw_startiter = startiter + (i * cycle)
 					if  numiter <  ((i+1) * cycle):
 						sw_numiter =  numiter - (i * cycle)
@@ -1618,7 +1618,7 @@ def Sequence_ShrinkWrap(\
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'HIOPlus':
-				for i in range( (numiter + cycle - 1)/cycle ):
+				for i in range( (numiter + cycle - 1)//cycle ):
 					sw_startiter = startiter + (i * cycle)
 					if  numiter <  ((i+1) * cycle):
 						sw_numiter =  numiter - (i * cycle)
@@ -1630,7 +1630,7 @@ def Sequence_ShrinkWrap(\
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'ER':
-				for i in range( (numiter + cycle - 1)/cycle ):
+				for i in range( (numiter + cycle - 1)//cycle ):
 					sw_startiter = startiter + (i * cycle)
 					if  numiter <  ((i+1) * cycle):
 						sw_numiter =  numiter - (i * cycle)
@@ -1642,7 +1642,7 @@ def Sequence_ShrinkWrap(\
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'HPR':
-				for i in range( (numiter + cycle - 1)/cycle ):
+				for i in range( (numiter + cycle - 1)//cycle ):
 					sw_startiter = startiter + (i * cycle)
 					if  numiter <  ((i+1) * cycle):
 						sw_numiter =  numiter - (i * cycle)
@@ -1654,7 +1654,7 @@ def Sequence_ShrinkWrap(\
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'RAAR':
-				for i in range( (numiter + cycle - 1)/cycle ):
+				for i in range( (numiter + cycle - 1)//cycle ):
 					sw_startiter = startiter + (i * cycle)
 					if  numiter <  ((i+1) * cycle):
 						sw_numiter =  numiter - (i * cycle)
@@ -1666,7 +1666,7 @@ def Sequence_ShrinkWrap(\
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'CSHIO':
-				for i in range( (numiter + cycle - 1)/cycle ):
+				for i in range( (numiter + cycle - 1)//cycle ):
 					sw_startiter = startiter + (i * cycle)
 					if  numiter <  ((i+1) * cycle):
 						sw_numiter =  numiter - (i * cycle)
@@ -1677,7 +1677,7 @@ def Sequence_ShrinkWrap(\
 						break
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadShrinkWrap, args=(self,))
 		self.thread.daemon = True
@@ -1773,9 +1773,9 @@ def Sequence_CSHIO(\
 				PrepareVisualisation(self,pipelineitem)
 		def threadCSHIO(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting CSHIO Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			CSHIO(self, beta, startiter, numiter, cs_p, cs_epsilon, cs_epsilon_min, cs_d, cs_eta, relax)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadCSHIO, args=(self,))
 		self.thread.daemon = True
@@ -1894,9 +1894,9 @@ def Sequence_HIOMaskPC(\
 			reset_gamma = 0
 		def threadHIOMaskPC(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting HIO Mask PC Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			HIOMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadHIOMaskPC, args=(self,))
 		self.thread.daemon = True
@@ -1923,9 +1923,9 @@ def Sequence_ERMaskPC(\
 			reset_gamma = 0
 		def threadERMaskPC(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting ER Mask PC Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			ERMaskPC(self, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadERMaskPC, args=(self,))
 		self.thread.daemon = True
@@ -1953,9 +1953,9 @@ def Sequence_HPRMaskPC(\
 			reset_gamma = 0
 		def threadHPRMaskPC(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting HPR Mask PC Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			HPRMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadHPRMaskPC, args=(self,))
 		self.thread.daemon = True
@@ -1983,9 +1983,9 @@ def Sequence_RAARMaskPC(\
 			reset_gamma = 0
 		def threadRAARMaskPC(self):
 			self.ancestor.GetPage(0).queue_info.put("Starting RAAR Mask PC Algorithm...")
-			self.thread_register.acquire()
+			self.thread_register.put(1)
 			RAARMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
-			self.thread_register.release()
+			self.thread_register.get()
 			return
 		self.thread = threading.Thread(target=threadRAARMaskPC, args=(self,))
 		self.thread.daemon = True

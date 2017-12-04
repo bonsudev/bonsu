@@ -22,6 +22,7 @@ import gzip
 import pickle
 import os
 from .subpanel import *
+from .common import IsNotWX4
 def NewInstance(self):
 	panelphase = self.GetChildren()[1].GetPage(0)
 	if panelphase.pipeline_started == False:
@@ -540,9 +541,15 @@ def RestoreInstance(self):
 	panelphase = self.GetChildren()[1].GetPage(0)
 	for i in range(len(instance_list)):
 		itemcount = panelphase.mainlist.GetItemCount()
-		mainlistidx = panelphase.mainlist.InsertStringItem((itemcount+i),"")
+		if IsNotWX4():
+			mainlistidx = panelphase.mainlist.InsertStringItem((itemcount+i),"")
+		else:
+			mainlistidx = panelphase.mainlist.InsertItem((itemcount+i),"")
 		panelphase.mainlist.CheckItem(mainlistidx)
-		panelphase.mainlist.SetStringItem(mainlistidx, 1, instance_list[i][0])
+		if IsNotWX4():
+			panelphase.mainlist.SetStringItem(mainlistidx, 1, instance_list[i][0])
+		else:
+			panelphase.mainlist.SetItem(mainlistidx, 1, instance_list[i][0])
 		object = instance_list[i][1]
 		subpanelname = instance_list[i][2]
 		if subpanelname == 'Comments':
@@ -595,21 +602,21 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
 			DoListCheck(panelphase, object, 2)
-		if subpanelname == 'SPE to Numpy' or subpanelname == 0010:
+		if subpanelname == 'SPE to Numpy':
 			panelphase.pipelineitems.append(SubPanel_SPE_to_Numpy(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
 			DoListCheck(panelphase, object, 2)
-		if subpanelname == 'Image to Numpy' or subpanelname == 0032:
+		if subpanelname == 'Image to Numpy':
 			panelphase.pipelineitems.append(SubPanel_Image_to_Numpy(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
 			DoListCheck(panelphase, object, 2)
-		if subpanelname == 'Crop Pad' or subpanelname == 0011:
+		if subpanelname == 'Crop Pad':
 			panelphase.pipelineitems.append(SubPanel_Crop_Pad(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -628,7 +635,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].pedims[1].value.SetValue(object[12])
 			panelphase.pipelineitems[-1].pedims[2].value.SetValue(object[13])
 			DoListCheck(panelphase, object, 14)
-		if subpanelname == 'Mask' or subpanelname == 0012:
+		if subpanelname == 'Mask':
 			panelphase.pipelineitems.append(SubPanel_Mask(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -637,7 +644,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].max.value.SetValue(object[2])
 			panelphase.pipelineitems[-1].min.value.SetValue(object[3])
 			DoListCheck(panelphase, object, 4)
-		if subpanelname == 'Threshold Data' or subpanelname == 0013:
+		if subpanelname == 'Threshold Data':
 			panelphase.pipelineitems.append(SubPanel_Threshold(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -646,7 +653,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].max.value.SetValue(object[2])
 			panelphase.pipelineitems[-1].min.value.SetValue(object[3])
 			DoListCheck(panelphase, object, 4)
-		if subpanelname == 'Bin' or subpanelname == 0014:
+		if subpanelname == 'Bin':
 			panelphase.pipelineitems.append(SubPanel_Bin(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -656,14 +663,14 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].bdims[1].value.SetValue(object[3])
 			panelphase.pipelineitems[-1].bdims[2].value.SetValue(object[4])
 			DoListCheck(panelphase, object, 5)
-		if subpanelname == 'Auto Centre' or subpanelname == 0015:
+		if subpanelname == 'Auto Centre':
 			panelphase.pipelineitems.append(SubPanel_AutoCentre(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
 			DoListCheck(panelphase, object, 2)
-		if subpanelname == 'Wrap Data'or subpanelname == 0016:
+		if subpanelname == 'Wrap Data':
 			panelphase.pipelineitems.append(SubPanel_Wrap(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -674,7 +681,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 3)
-		if subpanelname == 'HDF5 to Numpy' or subpanelname == 0017:
+		if subpanelname == 'HDF5 to Numpy':
 			panelphase.pipelineitems.append(SubPanel_HDF_to_Numpy(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -682,7 +689,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].objectpath.SetValue(object[1])
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[2])
 			DoListCheck(panelphase, object, 3)
-		if subpanelname == 'Array to VTK' or subpanelname == 0020:
+		if subpanelname == 'Array to VTK':
 			panelphase.pipelineitems.append(SubPanel_ArraytoVTK(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -690,7 +697,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
 			panelphase.pipelineitems[-1].rbampphase.SetStringSelection(object[2])
 			DoListCheck(panelphase, object, 3)
-		if subpanelname == 'Interpolate Object' or subpanelname == 0030:
+		if subpanelname == 'Interpolate Object':
 			panelphase.pipelineitems.append(SubPanel_InterpolateObject(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -702,7 +709,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].spacer[2].value.SetValue(object[5])
 			panelphase.pipelineitems[-1].interp_range.value.SetValue(object[6])
 			DoListCheck(panelphase, object, 7)
-		if subpanelname == 'Voxel Replace' or subpanelname == 0033:
+		if subpanelname == 'Voxel Replace':
 			panelphase.pipelineitems.append(SubPanel_Voxel_Replace(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -717,14 +724,14 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].real.value.SetValue(object[8])
 			panelphase.pipelineitems[-1].imag.value.SetValue(object[9])
 			DoListCheck(panelphase, object, 10)
-		if subpanelname == 'Conjugate Reflect' or subpanelname == 0034:
+		if subpanelname == 'Conjugate Reflect':
 			panelphase.pipelineitems.append(SubPanel_Conjugate_Reflect(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
 			DoListCheck(panelphase, object, 2)
-		if subpanelname == 'Gaussian Fill' or subpanelname == 0035:
+		if subpanelname == 'Gaussian Fill':
 			panelphase.pipelineitems.append(SubPanel_GaussianFill(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -732,7 +739,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
 			panelphase.pipelineitems[-1].sigma.value.SetValue(object[2])
 			DoListCheck(panelphase, object, 3)
-		if subpanelname == 'Fourier Transform' or subpanelname == 0036:
+		if subpanelname == 'Fourier Transform':
 			panelphase.pipelineitems.append(SubPanel_FFT(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -740,7 +747,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
 			panelphase.pipelineitems[-1].rbdirection.SetStringSelection(object[2])
 			DoListCheck(panelphase, object, 3)
-		if subpanelname == 'Convolve' or subpanelname == 0037:
+		if subpanelname == 'Convolve':
 			panelphase.pipelineitems.append(SubPanel_Convolve(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -748,7 +755,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].input_filename2.objectpath.SetValue(object[1])
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[2])
 			DoListCheck(panelphase, object, 3)
-		if subpanelname == 'Object to VTK' or subpanelname == 0021:
+		if subpanelname == 'Object to VTK':
 			panelphase.pipelineitems.append(SubPanel_ObjecttoVTK(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -757,7 +764,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[2])
 			panelphase.pipelineitems[-1].rbampphase.SetStringSelection(object[3])
 			DoListCheck(panelphase, object, 4)
-		if subpanelname == 'Array to Memory' or subpanelname == 0050:
+		if subpanelname == 'Array to Memory':
 			panelphase.pipelineitems.append(SubPanel_Array_to_Memory(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -783,7 +790,7 @@ def RestoreInstance(self):
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[0])
 			DoListCheck(panelphase, object, 1)
-		if subpanelname == 'Median Filter' or subpanelname == 0051:
+		if subpanelname == 'Median Filter':
 			panelphase.pipelineitems.append(SubPanel_Median_Filter(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -794,7 +801,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].kdims[2].value.SetValue(object[4])
 			panelphase.pipelineitems[-1].maxdev.value.SetValue(object[5])
 			DoListCheck(panelphase, object, 6)
-		if subpanelname == 'Cuboid Support' or subpanelname == 0100:
+		if subpanelname == 'Cuboid Support':
 			panelphase.pipelineitems.append(SubPanel_Cuboid_Support(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -820,7 +827,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].chkbox_axes.SetValue(object[6])
 			panelphase.pipelineitems[-1].axes_fontfactor.value.SetValue(object[7])
 			DoListCheck(panelphase, object, 8)
-		if subpanelname == 'View Array' or subpanelname == 0001:
+		if subpanelname == 'View Array':
 			panelphase.pipelineitems.append(SubPanel_View_Array(panelphase.panel2, panelphase.ancestor))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -846,7 +853,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 18)
-		if subpanelname == 'View Object' or subpanelname == 0002:
+		if subpanelname == 'View Object':
 			panelphase.pipelineitems.append(SubPanel_View_Object(panelphase.panel2, panelphase.ancestor))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -870,7 +877,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 16)
-		if subpanelname == 'View VTK Array' or subpanelname == 0003:
+		if subpanelname == 'View VTK Array':
 			panelphase.pipelineitems.append(SubPanel_View_VTK(panelphase.panel2, panelphase.ancestor))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -892,19 +899,19 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 14)
-		if subpanelname == 'Random Start' or subpanelname == 1002 or subpanelname == 0200:
+		if subpanelname == 'Random Start':
 			panelphase.pipelineitems.append(SubPanel_Random(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 			panelphase.pipelineitems[-1].amp_max.value.SetValue(object[0])
 			DoListCheck(panelphase, object, 1)
-		if subpanelname == 'Array Start' or subpanelname == 1003:
+		if subpanelname == 'Array Start':
 			panelphase.pipelineitems.append(SubPanel_ArrayStart(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
 			DoListCheck(panelphase, object, 1)
-		if subpanelname == 'HIO' or subpanelname == 1010:
+		if subpanelname == 'HIO':
 			panelphase.pipelineitems.append(SubPanel_HIO(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -914,7 +921,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].beta.value.SetValue(object[3])
 			panelphase.pipelineitems[-1].niter.value.SetValue(object[4])
 			DoListCheck(panelphase, object, 5)
-		if subpanelname == 'ER' or subpanelname == 1011:
+		if subpanelname == 'ER':
 			panelphase.pipelineitems.append(SubPanel_ER(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -923,7 +930,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].support.objectpath.SetValue(object[2])
 			panelphase.pipelineitems[-1].niter.value.SetValue(object[3])
 			DoListCheck(panelphase, object, 4)
-		if subpanelname == 'RAAR' or subpanelname == 1012:
+		if subpanelname == 'RAAR':
 			panelphase.pipelineitems.append(SubPanel_RAAR(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -941,7 +948,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 9)
-		if subpanelname == 'HPR' or subpanelname == 1014:
+		if subpanelname == 'HPR':
 			panelphase.pipelineitems.append(SubPanel_HPR(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -959,7 +966,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 9)
-		if subpanelname == 'HIO Mask' or subpanelname == 1015:
+		if subpanelname == 'HIO Mask':
 			panelphase.pipelineitems.append(SubPanel_HIOMask(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -977,7 +984,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 9)
-		if subpanelname == 'HIO Plus' or subpanelname == 1016:
+		if subpanelname == 'HIO Plus':
 			panelphase.pipelineitems.append(SubPanel_HIOPlus(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -988,7 +995,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].beta.value.SetValue(object[4])
 			panelphase.pipelineitems[-1].niter.value.SetValue(object[5])
 			DoListCheck(panelphase, object, 6)
-		if subpanelname == 'PCHIO' or subpanelname == 1017:
+		if subpanelname == 'PCHIO':
 			panelphase.pipelineitems.append(SubPanel_PCHIO(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -1001,7 +1008,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].phasemax.value.SetValue(object[6])
 			panelphase.pipelineitems[-1].phasemin.value.SetValue(object[7])
 			DoListCheck(panelphase, object, 8)
-		if subpanelname == 'POER' or subpanelname == 1018:
+		if subpanelname == 'POER':
 			panelphase.pipelineitems.append(SubPanel_POER(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -1011,7 +1018,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].mask.objectpath.SetValue(object[3])
 			panelphase.pipelineitems[-1].niter.value.SetValue(object[4])
 			DoListCheck(panelphase, object, 5)
-		if subpanelname == 'ER Mask' or subpanelname == 1019:
+		if subpanelname == 'ER Mask':
 			panelphase.pipelineitems.append(SubPanel_ERMask(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -1028,7 +1035,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 8)
-		if subpanelname == 'Shrink Wrap' or subpanelname == 1020:
+		if subpanelname == 'Shrink Wrap':
 			panelphase.pipelineitems.append(SubPanel_ShrinkWrap(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -1065,7 +1072,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 26)
-		if subpanelname == 'PGCHIO' or subpanelname == 1022:
+		if subpanelname == 'PGCHIO':
 			panelphase.pipelineitems.append(SubPanel_PGCHIO(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -1084,7 +1091,7 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].phi = object[12]
 			panelphase.pipelineitems[-1].waveln = object[13]
 			DoListCheck(panelphase, object, 14)
-		if subpanelname == 'CSHIO' or subpanelname == 1040:
+		if subpanelname == 'CSHIO':
 			panelphase.pipelineitems.append(SubPanel_CSHIO(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -1107,7 +1114,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 12)
-		if subpanelname == 'HIO Mask PC' or subpanelname == 1042:
+		if subpanelname == 'HIO Mask PC':
 			panelphase.pipelineitems.append(SubPanel_HIOMaskPC(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -1130,7 +1137,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 15)
-		if subpanelname == 'ER Mask PC' or subpanelname == 1052:
+		if subpanelname == 'ER Mask PC':
 			panelphase.pipelineitems.append(SubPanel_ERMaskPC(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -1152,7 +1159,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 14)
-		if subpanelname == 'HPR PC' or subpanelname == 1062:
+		if subpanelname == 'HPR PC':
 			panelphase.pipelineitems.append(SubPanel_HPRMaskPC(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -1175,7 +1182,7 @@ def RestoreInstance(self):
 			except:
 				pass
 			DoListCheck(panelphase, object, 15)
-		if subpanelname == 'RAAR PC' or subpanelname == 1072:
+		if subpanelname == 'RAAR PC':
 			panelphase.pipelineitems.append(SubPanel_RAARMaskPC(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)

@@ -1,34 +1,33 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Installation &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</title>
-    
+    <title>Installation &#8212; Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.4',
+        VERSION:     '2.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation" href="bonsu.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="History and Licence" href="licence.html" />
     <link rel="prev" title="General Usage" href="usage.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -41,7 +40,7 @@
         <li class="right" >
           <a href="usage.html" title="General Usage"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -52,6 +51,23 @@
             
   <div class="section" id="installation">
 <span id="setup"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation-on-windows">
+<h2>Installation on Windows<a class="headerlink" href="#installation-on-windows" title="Permalink to this headline">¶</a></h2>
+<p>Binaries are provided for installation on (32-bit or 64bit) Microsoft Windows and are available for download in the <a class="reference external" href="https://pypi.python.org/pypi">Python Package Index</a>.</p>
+<ul class="simple">
+<li><a class="reference external" href="http://www.python.org">Python</a> 2.7 or <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 3.6</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/wxPython/">wxPython</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 2.8.10</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/numpy">NumPy</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 1.4.1</li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/vtk/">VTK</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 5.4.2 .</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/Pillow/">Pillow</a></li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/h5py">H5Py</a></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Prebuilt VTK packages <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 7.0 in <a class="reference external" href="https://pypi.python.org/pypi/vtk/">PyPI</a>  generally requre a graphics card with OpenGL 3 support.  VTK packages that do not require OpenGL 3 compatible graphics cards can be found <a class="reference external" href="http://cxs.phys.soton.ac.uk/Bonsu/Download">here</a> .</p>
+</div>
+<p>Alternatively, it is possible to install a stand alone python distribution such as <a class="reference external" href="https://anaconda.org/anaconda/python">Anaconda Python</a> or <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought Canopy</a>. This will likely include all of the above prerequisites.</p>
+</div>
 <div class="section" id="installation-on-linux-unix">
 <h2>Installation on Linux/Unix<a class="headerlink" href="#installation-on-linux-unix" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="system-preparation">
@@ -72,7 +88,7 @@
 </ul>
 <p>As most Linux systems and services require Python natively, it is likely that Python is already provided in your distribution. Also, many distributions package all of the above prerequisites.  Please check your distributions repositories.</p>
 <p>It is also possible to install a stand alone python distribution such as that provided by <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought</a>. This will include most of the above prerequisites. In order to compile and use any additional packages (such as FFTW) into the stand alone distribution, a number of environmental variables should be set. If you are using the <em>Bourne-again</em> (BASH) shell, append something akin to the following in your <code class="docutils literal"><span class="pre">.bashrc</span></code> profile:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>export EPD=&quot;/path/to/python/installation/&quot;
+<div class="highlight-default"><div class="highlight"><pre><span></span>export EPD=&quot;/path/to/python/installation/&quot;
 export PYVER=&quot;2.7&quot;
 export PYTHONSITE=$EPD/lib/python$PYVER/site-packages
 export PYTHONPATH=$EPD/lib:$EPD/lib/python$PYVER/:
@@ -155,7 +171,7 @@ $ make install
 </tr>
 </tbody>
 </table>
-<p>To make Python find the distributions installed with this scheme, it is necessary to modify Python&#8217;s search path(s) to include the above.</p>
+<p>To make Python find the distributions installed with this scheme, it is necessary to modify Python’s search path(s) to include the above.</p>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
@@ -168,17 +184,6 @@ $ make install
 <p class="last">For Linux users, a link to the program should be visible in the applications menu.</p>
 </div>
 </div>
-</div>
-<div class="section" id="installation-on-windows">
-<h2>Installation on Windows<a class="headerlink" href="#installation-on-windows" title="Permalink to this headline">¶</a></h2>
-<p>Binaries are provided for installation on (32-bit or 64bit) Microsoft Windows and are available for download <a class="reference external" href="http://cxs.phys.soton.ac.uk/Bonsu/Download">here</a>.  The following prerequisites are also available <a class="reference external" href="http://cxs.phys.soton.ac.uk/Bonsu/Download">here</a>.:</p>
-<ul class="simple">
-<li>2.6 <img class="math" src="_images/math/5ffbdb8f6fd40e856169dda4586fe9e70ab19466.png" alt="\leq"/> <a class="reference external" href="http://www.python.org">Python</a> <img class="math" src="_images/math/c1063a458139235d94b43817ed8d89dab9f9f811.png" alt="&lt;"/> 3.0</li>
-<li><a class="reference external" href="http://www.wxpython.org">wxPython</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 2.8.10</li>
-<li><a class="reference external" href="http://numpy.org">NumPy (FFTW aware)</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 1.4.1</li>
-<li><a class="reference external" href="http://www.vtk.org">VTK (compiled with python bindings)</a> <img class="math" src="_images/math/ed30a36cf8fc762b6f8ce2be32037e4fb3e0c0ad.png" alt="\geq"/> 5.4.2</li>
-</ul>
-<p>Alternatively, it is possible to install a stand alone python distribution such as <a class="reference external" href="http://code.google.com/p/pythonxy">Python(x,y)</a> or <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought Canopy</a>. This will likely include all of the above prerequisites.</p>
 </div>
 </div>
 
@@ -194,13 +199,13 @@ $ make install
   <h3><a href="bonsu.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#installation-on-windows">Installation on Windows</a></li>
 <li><a class="reference internal" href="#installation-on-linux-unix">Installation on Linux/Unix</a><ul>
 <li><a class="reference internal" href="#system-preparation">System Preparation</a></li>
 <li><a class="reference internal" href="#note-on-building-fftw">Note on Building FFTW</a></li>
 <li><a class="reference internal" href="#installing-bonsu">Installing Bonsu</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#installation-on-windows">Installation on Windows</a></li>
 </ul>
 </li>
 </ul>
@@ -214,14 +219,11 @@ $ make install
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -240,11 +242,11 @@ $ make install
         <li class="right" >
           <a href="usage.html" title="General Usage"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2011 - 2017, Marcus C. Newton.
+        &#169; Copyright 2011 - 2017, Marcus C. Newton.
     </div>
   </body>
 </html>

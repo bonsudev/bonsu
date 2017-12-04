@@ -1,34 +1,32 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Library Reference - Phasing Operations &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</title>
-    
+    <title>Library Reference - Phasing Operations &#8212; Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.4',
+        VERSION:     '2.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation" href="bonsu.html" />
-    <link rel="up" title="Library Reference" href="libref.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Library Reference – Phasing Algorithms" href="libref-algorithms.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -38,8 +36,8 @@
         <li class="right" >
           <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -89,7 +87,7 @@
 <div class="section" id="co-ordinate-transformation">
 <span id="libref-posterior-coord"></span><h2>Co-ordinate Transformation<a class="headerlink" href="#co-ordinate-transformation" title="Permalink to this headline">¶</a></h2>
 <p id="index-4">Perform a co-ordinate transformation on either <code class="docutils literal"><span class="pre">sequence</span> <span class="pre">data</span></code> or an input array.  The transformation is derived using the principles as demonstrated by <a class="reference external" href="https://www.ideals.illinois.edu/handle/2142/8859/browse?value=Pfeifer%2C+Mark+August&amp;type=author">Pfeifer, M.A.</a> .
-The generated co-ordinate array is stored internally and is accessible for  <a class="reference internal" href="libref-prephasing.html#libref-prephasing-viewobject"><span>viewing</span></a> with the <a class="reference internal" href="usage.html#usage-arrays"><span>memory array</span></a> keyword <code class="docutils literal"><span class="pre">memorycoords</span></code>.</p>
+The generated co-ordinate array is stored internally and is accessible for  <a class="reference internal" href="libref-prephasing.html#libref-prephasing-viewobject"><span class="std std-ref">viewing</span></a> with the <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">memory array</span></a> keyword <code class="docutils literal"><span class="pre">memorycoords</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Transform from</strong></dt>
@@ -105,7 +103,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
 <dt><strong>Rocking curve type</strong></dt>
 <dd>Theta (<img class="math" src="_images/math/a9cfbeb8ebee1f365919e147a79e242dcb67ee5d.png" alt="\theta"/>) or Phi (<img class="math" src="_images/math/10e009bdb83f96c5f47c58b34d5d4b12ef268d5b.png" alt="\phi"/>) rocking curve measurement.</dd>
 <dt><strong>Array binning</strong></dt>
-<dd>Amount by which the array was <code class="docutils literal"><span class="pre">binned</span></code>.  See the section on <a class="reference internal" href="libref-prephasing.html#libref-prephasing-bin"><span>binning</span></a> for further details.</dd>
+<dd>Amount by which the array was <code class="docutils literal"><span class="pre">binned</span></code>.  See the section on <a class="reference internal" href="libref-prephasing.html#libref-prephasing-bin"><span class="std std-ref">binning</span></a> for further details.</dd>
 <dt><strong>2theta</strong></dt>
 <dd><img class="math" src="_images/math/b17e72f8e256e3b826a540f277c29f00346e0240.png" alt="2 \theta"/> angle.</dd>
 <dt><strong>d theta</strong></dt>
@@ -124,7 +122,13 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
 <dd>Reverse the direction of detector x-axis readout. Required for some PI CCD detectors.</dd>
 </dl>
 <p><strong>Experimental geometry</strong>:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <a class="reference external image-reference" href="#"><img alt="Image" class="align-center" src="_images/geom.png" style="width: 300.0px; height: 120.5px;" /></a>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <p>Curved arrows show the direction of rotation of object (as opposed to the axis). The beam is assumed to travel along the positive <img class="math" src="_images/math/188c175aac0a8a9c22499336711b5d7256407254.png" alt="x"/> direction.</p>
 </div>
 <div class="section" id="save-co-ordinates">
@@ -169,14 +173,11 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -192,12 +193,12 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
         <li class="right" >
           <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2011 - 2017, Marcus C. Newton.
+        &#169; Copyright 2011 - 2017, Marcus C. Newton.
     </div>
   </body>
 </html>

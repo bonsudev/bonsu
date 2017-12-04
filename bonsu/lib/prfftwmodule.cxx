@@ -2038,10 +2038,31 @@ static PyMethodDef prfftwMethods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC
-initprfftw(void)
-{
-    (void) Py_InitModule("prfftw", prfftwMethods);
-	import_array();
-}
 
+#if PY_MAJOR_VERSION >= 3
+    static struct PyModuleDef prfftwmoddef = {
+        PyModuleDef_HEAD_INIT,
+        "prfftw",     /* m_name */
+        "docs",  /* m_doc */
+        -1,                  /* m_size */
+        prfftwMethods,    /* m_methods */
+        NULL,                /* m_reload */
+        NULL,                /* m_traverse */
+        NULL,                /* m_clear */
+        NULL,                /* m_free */
+    };
+	PyMODINIT_FUNC PyInit_prfftw(void)
+	{
+		return PyModule_Create(&prfftwmoddef);
+		import_array();
+	}
+#else
+	PyMODINIT_FUNC initprfftw(void)
+	{
+		(void) Py_InitModule("prfftw", prfftwMethods);
+		import_array();
+	}
+#endif
+
+
+	

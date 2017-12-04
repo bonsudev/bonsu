@@ -1,35 +1,33 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Library Reference - Functions &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</title>
-    
+    <title>Library Reference - Functions &#8212; Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.4',
+        VERSION:     '2.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation" href="bonsu.html" />
-    <link rel="up" title="Library Reference" href="libref.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Library Reference – Phasing Algorithms" href="libref-algorithms.html" />
     <link rel="prev" title="Library Reference" href="libref.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -42,8 +40,8 @@
         <li class="right" >
           <a href="libref.html" title="Library Reference"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -153,7 +151,7 @@
 </div>
 <div class="section" id="spe-to-numpy">
 <h2>SPE to Numpy<a class="headerlink" href="#spe-to-numpy" title="Permalink to this headline">¶</a></h2>
-<p id="index-7">Provides a means to import data from <a class="reference external" href="http://www.princetoninstruments.com">SPE</a> format into NumPy format. During conversion, additional information is provided and appears in the <a class="reference internal" href="usage.html#usage-log"><span>Log</span></a>.</p>
+<p id="index-7">Provides a means to import data from <a class="reference external" href="http://www.princetoninstruments.com">SPE</a> format into NumPy format. During conversion, additional information is provided and appears in the <a class="reference internal" href="usage.html#usage-log"><span class="std std-ref">Log</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input SPE file</strong></dt>
@@ -175,7 +173,7 @@
 </div>
 <div class="section" id="array-to-memory">
 <span id="libref-prephasing-arraytomem"></span><h2>Array to Memory<a class="headerlink" href="#array-to-memory" title="Permalink to this headline">¶</a></h2>
-<p id="index-9">Provides a means to load a NumPy array from disk directly into a memory by using either of the 10 keywords <code class="docutils literal"><span class="pre">memory0</span></code>, <code class="docutils literal"><span class="pre">memory1</span></code>, ... , <code class="docutils literal"><span class="pre">memory9</span></code> as a string in place of a NumPy file path.  See <a class="reference internal" href="usage.html#usage-arrays"><span>Array Creation and Storage</span></a> for furthr details.</p>
+<p id="index-9">Provides a means to load a NumPy array from disk directly into a memory by using either of the 10 keywords <code class="docutils literal"><span class="pre">memory0</span></code>, <code class="docutils literal"><span class="pre">memory1</span></code>, … , <code class="docutils literal"><span class="pre">memory9</span></code> as a string in place of a NumPy file path.  See <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">Array Creation and Storage</span></a> for furthr details.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -186,7 +184,7 @@
 </div>
 <div class="section" id="memory-to-array">
 <h2>Memory to Array<a class="headerlink" href="#memory-to-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-10">Provides a means to save to disk a NumPy array stored in memory.  See <a class="reference internal" href="#libref-prephasing-arraytomem"><span>Array to Memory</span></a> for furthr details.</p>
+<p id="index-10">Provides a means to save to disk a NumPy array stored in memory.  See <a class="reference internal" href="#libref-prephasing-arraytomem"><span class="std std-ref">Array to Memory</span></a> for furthr details.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -216,8 +214,8 @@
 </div>
 <div class="section" id="cuboid-support">
 <h2>Cuboid Support<a class="headerlink" href="#cuboid-support" title="Permalink to this headline">¶</a></h2>
-<p id="index-12">Creates a <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span>support</span></a> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/> inside the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span>support</span></a> and zero everywhere else.  The support is automatically centred within the array.</p>
-<p>If any array is supplied in the <code class="docutils literal"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field, the dimensions of this array will be used for the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span>support</span></a> array. Otherwise, the specified dimensions will be used.</p>
+<p id="index-12">Creates a <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">support</span></a> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/892d1c63005ceb30cf003528097261029579c31e.png" alt="1 + 0j"/> inside the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">support</span></a> and zero everywhere else.  The support is automatically centred within the array.</p>
+<p>If any array is supplied in the <code class="docutils literal"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field, the dimensions of this array will be used for the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">support</span></a> array. Otherwise, the specified dimensions will be used.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Support file</strong></dt>
@@ -398,13 +396,13 @@
 </div>
 <div class="section" id="object-to-vtk">
 <h2>Object to VTK<a class="headerlink" href="#object-to-vtk" title="Permalink to this headline">¶</a></h2>
-<p id="index-25">Convert an input NumPy array and it&#8217;s corresponding co-ordinates array into VTK file format. Uses either the amplitude or phase of the array.</p>
+<p id="index-25">Convert an input NumPy array and it’s corresponding co-ordinates array into VTK file format. Uses either the amplitude or phase of the array.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
 <dd>User provided path string to the input NumPy file.</dd>
-<dt><strong>Co-ord&#8217;s File</strong></dt>
-<dd>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><span>Coordinate transformation</span></a> operation.</dd>
+<dt><strong>Co-ord’s File</strong></dt>
+<dd>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><span class="std std-ref">Coordinate transformation</span></a> operation.</dd>
 <dt><strong>Output File</strong></dt>
 <dd>User provided path string for the output VTK file.</dd>
 <dt><strong>Type</strong></dt>
@@ -413,13 +411,13 @@
 </div>
 <div class="section" id="interpolate-object">
 <h2>Interpolate Object<a class="headerlink" href="#interpolate-object" title="Permalink to this headline">¶</a></h2>
-<p id="index-26">Interpolates an input NumPy array and it&#8217;s corresponding co-ordinates onto regular grid NumPy array with dimensions dictated by <code class="docutils literal"><span class="pre">Array</span> <span class="pre">grid</span> <span class="pre">size</span></code>. <a class="reference external" href="http://dx.doi.org/10.1145/800186.810616">Shepards famous algorithm</a> is used for the interpolation.</p>
+<p id="index-26">Interpolates an input NumPy array and it’s corresponding co-ordinates onto regular grid NumPy array with dimensions dictated by <code class="docutils literal"><span class="pre">Array</span> <span class="pre">grid</span> <span class="pre">size</span></code>. <a class="reference external" href="http://dx.doi.org/10.1145/800186.810616">Shepards famous algorithm</a> is used for the interpolation.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
 <dd>User provided path string to the input NumPy file.</dd>
-<dt><strong>Co-ord&#8217;s File</strong></dt>
-<dd>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><span>Coordinate transformation</span></a> operation.</dd>
+<dt><strong>Co-ord’s File</strong></dt>
+<dd>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><span class="std std-ref">Coordinate transformation</span></a> operation.</dd>
 <dt><strong>Output File</strong></dt>
 <dd>User provided path string for the output NumPy file.</dd>
 <dt><strong>Array grid size</strong></dt>
@@ -430,7 +428,7 @@
 </div>
 <div class="section" id="view-array">
 <span id="libref-prephasing-view"></span><h2>View Array<a class="headerlink" href="#view-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-27">Render an image of the two or three-dimensional input Numpy array to the <a class="reference internal" href="usage.html#usage-visual"><span>Visualisation tab</span></a>.</p>
+<p id="index-27">Render an image of the two or three-dimensional input Numpy array to the <a class="reference internal" href="usage.html#usage-visual"><span class="std std-ref">Visualisation tab</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -469,13 +467,13 @@
 </div>
 <div class="section" id="view-object">
 <span id="libref-prephasing-viewobject"></span><h2>View Object<a class="headerlink" href="#view-object" title="Permalink to this headline">¶</a></h2>
-<p id="index-28">Render an object of the three-dimensional input Numpy array with it&#8217;s corresponding co-ordinates array to the <a class="reference internal" href="usage.html#usage-visual"><span>Visualisation tab</span></a>.</p>
+<p id="index-28">Render an object of the three-dimensional input Numpy array with it’s corresponding co-ordinates array to the <a class="reference internal" href="usage.html#usage-visual"><span class="std std-ref">Visualisation tab</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
 <dd>User provided path string to the input NumPy file.</dd>
-<dt><strong>Co-ord&#8217;s File</strong></dt>
-<dd>User provided path string to the corresponding co-ordinates NumPy array file. Alternatively, the <a class="reference internal" href="usage.html#usage-arrays"><span>memory array</span></a> keyword <code class="docutils literal"><span class="pre">memorycoords</span></code> provides access to the internally stored coordinate array.  Generating a coordinate array is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><span>Coordinate transformation</span></a> operation.</dd>
+<dt><strong>Co-ord’s File</strong></dt>
+<dd>User provided path string to the corresponding co-ordinates NumPy array file. Alternatively, the <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">memory array</span></a> keyword <code class="docutils literal"><span class="pre">memorycoords</span></code> provides access to the internally stored coordinate array.  Generating a coordinate array is achieved using the <a class="reference internal" href="libref-posterior.html#libref-posterior-coord"><span class="std std-ref">Coordinate transformation</span></a> operation.</dd>
 <dt><strong>Type</strong></dt>
 <dd><ul class="first last simple">
 <li><strong>Amplitude</strong> - An iso-surface of the object amplitude.</li>
@@ -508,7 +506,7 @@
 </div>
 <div class="section" id="view-vtk-array">
 <h2>View VTK Array<a class="headerlink" href="#view-vtk-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-29">Render an input VTK array to the <a class="reference internal" href="usage.html#usage-visual"><span>Visualisation tab</span></a>.</p>
+<p id="index-29">Render an input VTK array to the <a class="reference internal" href="usage.html#usage-visual"><span class="std std-ref">Visualisation tab</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Input file</strong></dt>
@@ -542,7 +540,7 @@
 </div>
 <div class="section" id="view-support">
 <h2>View Support<a class="headerlink" href="#view-support" title="Permalink to this headline">¶</a></h2>
-<p id="index-30">Render an image of a three-dimensional input Numpy data array and its Support array to the <a class="reference internal" href="usage.html#usage-visual"><span>Visualisation tab</span></a>.</p>
+<p id="index-30">Render an image of a three-dimensional input Numpy data array and its Support array to the <a class="reference internal" href="usage.html#usage-visual"><span class="std std-ref">Visualisation tab</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="docutils">
 <dt><strong>Support file</strong></dt>
@@ -624,14 +622,11 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -650,12 +645,12 @@
         <li class="right" >
           <a href="libref.html" title="Library Reference"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2011 - 2017, Marcus C. Newton.
+        &#169; Copyright 2011 - 2017, Marcus C. Newton.
     </div>
   </body>
 </html>

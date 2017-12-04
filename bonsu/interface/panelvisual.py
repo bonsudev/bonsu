@@ -30,7 +30,10 @@ from .common import *
 from ..operations.wrap import WrapArray
 from ..operations.wrap import WrapArrayAmp
 import threading, time
-from Queue import Queue
+if IsPy3():
+    from queue import Queue
+else:
+    from Queue import Queue
 class AnimateDialog(wx.Dialog):
 	def __init__(self, parent):
 		wx.Dialog.__init__(self, parent, title="Animate Scene", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
@@ -265,7 +268,7 @@ class MeasureLine(wx.Panel):
 		self.hbox_btn.Add(self.button_save)
 		self.hbox_btn.Add((10, -1))
 		self.pointcount = SpinnerObject(self,"Data Points",MAX_INT_16,2,1,100,100,80)
-		self.Bind(wx.EVT_SPIN, self.OnDataPoints, self.pointcount.spin)
+		self.pointcount.spin.SetEventFunc(self.OnDataPoints)
 		self.Bind(wx.EVT_TEXT, self.OnDataPoints, self.pointcount.value)
 		self.hbox_btn.Add(self.pointcount)
 		self.hbox_btn.Add((10, -1))
@@ -736,7 +739,10 @@ class LUTDialog(wx.Dialog):
 		self.list.InsertColumn(0,'Settings', width = 200)
 		self.list.SetFont(self.font)
 		for i in range(len(self.listtitles)):
-			self.list.InsertStringItem(i,self.listtitles[i],i)
+			if IsNotWX4():
+				self.list.InsertStringItem(i,self.listtitles[i],i)
+			else:
+				self.list.InsertItem(i,self.listtitles[i],i)
 			self.list.SetItemFont(i, self.font)
 			self.panels.append(ColourDialog(self))
 			self.panels[-1].Hide()
@@ -831,7 +837,10 @@ class ColourDialog(wx.ScrolledWindow):
 		dc.SetFont(self.panelvisual.font)
 		w,h = dc.GetTextExtent("TestString")
 		height = h
-		image = wx.EmptyImage(array.shape[0],height)
+		if IsNotWX4():
+			image = wx.EmptyImage(array.shape[0],height)
+		else:
+			image = wx.Image(array.shape[0],height)
 		newarray = numpy.zeros((height, array.shape[0], 3), dtype=numpy.uint8)
 		for i in range(self.panelphase.cms.shape[0]):
 			self.cmhbox.append( wx.BoxSizer(wx.HORIZONTAL) )
@@ -1085,7 +1094,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.contour_real = SpinnerObject(self,"RSI:",MAX_INT,0,1,100,30,90)
 		self.contour_real.label.SetToolTipNew("Real space isosurface")
 		self.contour_real.label.Disable()
-		self.Bind(wx.EVT_SPIN, self.OnContourReal, self.contour_real.spin)
+		self.contour_real.spin.SetEventFunc(self.OnContourReal)
 		self.contour_real.value.Bind(wx.EVT_KEY_UP, self.OnContourRealKey)
 		self.hbox_btn.Add(self.contour_real,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.contour_real.Hide()
@@ -1093,7 +1102,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.contour_recip = SpinnerObject(self,"FSI:",MAX_INT,0,1,100,30,90)
 		self.contour_recip.label.SetToolTipNew("Fourier space isosurface")
 		self.contour_recip.label.Disable()
-		self.Bind(wx.EVT_SPIN, self.OnContourRecip, self.contour_recip.spin)
+		self.contour_recip.spin.SetEventFunc(self.OnContourRecip)
 		self.contour_recip.value.Bind(wx.EVT_KEY_UP, self.OnContourRecipKey)
 		self.hbox_btn.Add(self.contour_recip,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.contour_recip.Hide()
@@ -1101,7 +1110,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.contour_support = SpinnerObject(self,"SI:",1.0,0.0,0.1,0.5,30,90)
 		self.contour_support.label.SetToolTipNew("Support isosurface")
 		self.contour_support.label.Disable()
-		self.Bind(wx.EVT_SPIN, self.OnContourSupport, self.contour_support.spin)
+		self.contour_support.spin.SetEventFunc(self.OnContourSupport)
 		self.contour_support.value.Bind(wx.EVT_KEY_UP, self.OnContourSupportKey)
 		self.hbox_btn.Add(self.contour_support,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.contour_support.Hide()

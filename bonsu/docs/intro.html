@@ -1,34 +1,33 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Introduction &mdash; Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</title>
-    
+    <title>Introduction &#8212; Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.4',
+        VERSION:     '2.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="top" title="Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation" href="bonsu.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="General Usage" href="usage.html" />
-    <link rel="prev" title="Bonsu v2.4 documentation" href="bonsu.html" /> 
+    <link rel="prev" title="Bonsu v2.5 documentation" href="bonsu.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -39,9 +38,9 @@
           <a href="usage.html" title="General Usage"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="bonsu.html" title="Bonsu v2.4 documentation"
+          <a href="bonsu.html" title="Bonsu v2.5 documentation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -66,13 +65,13 @@
 </div>
 <div class="section" id="arrays">
 <h2>Arrays<a class="headerlink" href="#arrays" title="Permalink to this headline">¶</a></h2>
-<p>Bonsu uses NumPy array format (<a class="reference external" href="http://numpy.org">http://numpy.org</a>) internally for manipulating and outputting raw data.  Double-precision complex NumPy arrays are used for phase retrieval. NumPy is part of the &#8216;Scientific Computing Tools For Python&#8217; or SciPy package (<a class="reference external" href="http://scipy.org">http://scipy.org</a>) available in Python. There are a number of standard tools made available for array conversion, manipulation and viewing. Tools for cropping, padding, binning, support array creation and mask array creation are provided. Arrays can be exported in both NumPy array and VTK format.</p>
-<p>For further details see <a class="reference internal" href="usage.html#usage-arrays"><span>Array Creation and Storage</span></a>.</p>
+<p>Bonsu uses NumPy array format (<a class="reference external" href="http://numpy.org">http://numpy.org</a>) internally for manipulating and outputting raw data.  Double-precision complex NumPy arrays are used for phase retrieval. NumPy is part of the ‘Scientific Computing Tools For Python’ or SciPy package (<a class="reference external" href="http://scipy.org">http://scipy.org</a>) available in Python. There are a number of standard tools made available for array conversion, manipulation and viewing. Tools for cropping, padding, binning, support array creation and mask array creation are provided. Arrays can be exported in both NumPy array and VTK format.</p>
+<p>For further details see <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">Array Creation and Storage</span></a>.</p>
 </div>
 <div class="section" id="algorithms">
 <h2>Algorithms<a class="headerlink" href="#algorithms" title="Permalink to this headline">¶</a></h2>
-<p>Bonsu comes complete with a number of <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span>algorithms</span></a> for phase retrieval. They include Fienup&#8217;s hybrid input-output (HIO) (<a class="reference external" href="http://dx.doi.org/10.1364/AO.21.002758">Fienup, 1982</a>), HIO with positivity constraint, phase-constrained HIO (<a class="reference external" href="http://dx.doi.org/10.1088/1367-2630/12/3/035019">Harder et al., 2010</a>), hybrid projection reflection (<a class="reference external" href="http://dx.doi.org/10.1364/JOSAA.20.001025">Bauschke et al., 2003</a>), relaxed average alternating reflection (<a class="reference external" href="http://dx.doi.org/10.1088/0266-5611/21/1/004">Luke, 2005</a>) and the error reduction algorithm (Gerchberg &amp; Saxton, 1972). In addition, a shrink-wrap algorithm that is able to make use of either of the above algorithms is also provided (<a class="reference external" href="http://dx.doi.org/10.1103/PhysRevB.68.140101">Marchesini et al., 2003</a>; <a class="reference external" href="http://dx.doi.org/10.1038/nmat2702">Newton et al., 2010</a>).  Phase retrieval algorithms are implemented in the c language for fast execution and seamlessly integrated into the application.</p>
-<p>For a complete list see <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span>Library Reference – Phasing Algorithms</span></a>.</p>
+<p>Bonsu comes complete with a number of <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">algorithms</span></a> for phase retrieval. They include Fienup’s hybrid input-output (HIO) (<a class="reference external" href="http://dx.doi.org/10.1364/AO.21.002758">Fienup, 1982</a>), HIO with positivity constraint, phase-constrained HIO (<a class="reference external" href="http://dx.doi.org/10.1088/1367-2630/12/3/035019">Harder et al., 2010</a>), hybrid projection reflection (<a class="reference external" href="http://dx.doi.org/10.1364/JOSAA.20.001025">Bauschke et al., 2003</a>), relaxed average alternating reflection (<a class="reference external" href="http://dx.doi.org/10.1088/0266-5611/21/1/004">Luke, 2005</a>) and the error reduction algorithm (Gerchberg &amp; Saxton, 1972). In addition, a shrink-wrap algorithm that is able to make use of either of the above algorithms is also provided (<a class="reference external" href="http://dx.doi.org/10.1103/PhysRevB.68.140101">Marchesini et al., 2003</a>; <a class="reference external" href="http://dx.doi.org/10.1038/nmat2702">Newton et al., 2010</a>).  Phase retrieval algorithms are implemented in the c language for fast execution and seamlessly integrated into the application.</p>
+<p>For a complete list see <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">Library Reference – Phasing Algorithms</span></a>.</p>
 </div>
 </div>
 
@@ -97,21 +96,18 @@
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="bonsu.html"
-                        title="previous chapter">Bonsu v2.4 documentation</a></p>
+                        title="previous chapter">Bonsu v2.5 documentation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="usage.html"
                         title="next chapter">General Usage</a></p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -128,13 +124,13 @@
           <a href="usage.html" title="General Usage"
              >next</a> |</li>
         <li class="right" >
-          <a href="bonsu.html" title="Bonsu v2.4 documentation"
+          <a href="bonsu.html" title="Bonsu v2.5 documentation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.4 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 2.5 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2011 - 2017, Marcus C. Newton.
+        &#169; Copyright 2011 - 2017, Marcus C. Newton.
     </div>
   </body>
 </html>

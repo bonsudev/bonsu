@@ -22,7 +22,6 @@ import wx
 import os
 import numpy
 from threading import BoundedSemaphore
-from Queue import Queue
 import inspect
 from . import subpanel
 from .subpanel import *
@@ -33,6 +32,11 @@ from .common import getmainhoverBitmap
 from .common import OptIconSize
 from .common import CheckListCtrl
 from .common import IsNotWX4
+from .common import IsPy3
+if IsPy3():
+    from queue import Queue
+else:
+    from Queue import Queue
 class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 	def __init__(self,parent):
 		self.ancestor = parent
@@ -40,7 +44,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.pipeline_started = False
 		self.pipelineitems=[]
 		self.thread = None
-		self.thread_register = BoundedSemaphore(1000)
+		self.thread_register = Queue()
 		self.queue_info = Queue()
 		self.seqdata = None
 		self.seqdata_max = 0.0
@@ -158,7 +162,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.button_stop.SetToolTipNew('Stop pipline execution.')
 		self.hbox_btn.Add(self.button_stop)
 		self.Bind(wx.EVT_BUTTON, self.OnClickStop,self.button_stop)
-		self.sbox1 = wx.StaticBox(self.panel3, label="Visualisation Options", style=wx.SUNKEN_BORDER)
+		self.sbox1 = wx.StaticBox(self.panel3, label="Visualisation Options", style=wx.BORDER_DEFAULT)
 		self.sbox1.SetFont(self.font)
 		self.vbox_chk = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox_chk1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -209,7 +213,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.hbox_chk2.Add((20, -1))
 		self.hbox_chk2.Add(self.chkbox_phase , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk2.Add((20, -1))
-		self.sbox2 = wx.StaticBox(self.panel3, label="Threads", style=wx.SUNKEN_BORDER)
+		self.sbox2 = wx.StaticBox(self.panel3, label="Threads", style=wx.BORDER_DEFAULT)
 		self.sbox2.SetFont(self.font)
 		self.vbox_thrd = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
 		self.nthreads = SpinnerObject(self.panel3,"",65535,1,1,1,5,90)

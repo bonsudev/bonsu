@@ -46,34 +46,34 @@ try:
 	import wx
 except ImportError :
 	text  = "Bonsu requires wx.\n"
-	raise ImportError, text
+	raise ImportError(text)
 else:
 	v = wx.VERSION
 	if (v[0] <= 2):
 		if (v[1] <= 8):
 			if (v[2] <10):
 				text  = "Bonsu requires wx >= 2.8.10 .\n"
-				raise ValueError, text
+				raise ValueError(text)
 try:
 	import numpy
 except ImportError :
 	text  = "Bonsu requires numpy.\n"
-	raise ImportError, text
+	raise ImportError(text)
 else:
 	version = StrictVersion(numpy.version.version)
 	if (version < StrictVersion('1.4.1')):
 		text  = "Bonsu requires numpy >= 1.4.1 .\n"
-		raise ValueError, text
+		raise ValueError(text)
 try:
 	import vtk
 except ImportError :
 	text  = "Bonsu requires vtk.\n"
-	raise ImportError, text
+	raise ImportError(text)
 else:
 	version = StrictVersion(vtk.vtkVersion().GetVTKVersion())
 	if (version < StrictVersion('5.4.2')):
 		text  = "Bonsu requires vtk >= 5.4.2 .\n"
-		raise ValueError, text
+		raise ValueError(text)
 """
 try:
 	from numpy.distutils.system_info import get_info

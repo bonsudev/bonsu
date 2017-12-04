@@ -22,11 +22,6 @@ import math, os, sys
 import wx
 import vtk
 from .common import IsNotWX4
-try:
-	True
-except NameError:
-	True = 1
-	False = 0
 baseClass = wx.Window
 if wx.Platform == "__WXGTK__":
 	import wx.glcanvas
@@ -43,21 +38,21 @@ class wxVTKRenderWindowInteractor(baseClass):
 	def __init__(self, parent, ID, *args, **kw):
 		self.__RenderWhenDisabled = 0
 		stereo = 0
-		if kw.has_key('stereo'):
+		if 'stereo' in kw:
 			if kw['stereo']:
 				stereo = 1
 			del kw['stereo']
 		elif self.USE_STEREO:
 			stereo = 1
 		position, size = wx.DefaultPosition, wx.DefaultSize
-		if kw.has_key('position'):
+		if 'position' in kw:
 			position = kw['position']
 			del kw['position']
-		if kw.has_key('size'):
+		if 'size' in kw:
 			size = kw['size']
 			del kw['size']
 		style = wx.WANTS_CHARS | wx.NO_FULL_REPAINT_ON_RESIZE
-		if kw.has_key('style'):
+		if 'style' in kw:
 			style = style | kw['style']
 			del kw['style']
 		if wx.Platform != '__WXMSW__':
@@ -150,8 +145,7 @@ class wxVTKRenderWindowInteractor(baseClass):
 		elif hasattr(self._Iren, attr):
 			return getattr(self._Iren, attr)
 		else:
-			raise AttributeError, self.__class__.__name__ + \
-				  " has no attribute named " + attr
+			raise AttributeError(self.__class__.__name__ + " has no attribute named " + attr)
 	def CreateTimer(self, obj, evt):
 		self._timer = EventTimer(self)
 		self._timer.Start(10, True)

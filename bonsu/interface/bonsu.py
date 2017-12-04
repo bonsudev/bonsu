@@ -22,7 +22,7 @@ __author__ = "Marcus C. Newton"
 __copyright__ = "Copyright 2011-2017 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "2.4.0"
+__version__ = "2.5.0"
 __maintainer__ = "Marcus C. Newton"
 __email__ = "Bonsu.Devel@gmail.com"
 __status__ = "Production"
@@ -257,6 +257,7 @@ class main():
 		self.nb.AddPage(PanelStdOut(self.nb), "Log")
 		self.frame.nb = self.nb
 		self.frame.sizer.Add(self.nb, 1, wx.ALL|wx.EXPAND, 5)
+		self.frame.SetBackgroundColour(wx.NullColour)
 		self.frame.SetSizer(self.frame.sizer)
 		self.frame.Fit()
 		self.frame.Show()

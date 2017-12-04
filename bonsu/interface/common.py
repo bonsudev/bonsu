@@ -22,6 +22,7 @@ import wx
 import os
 import numpy
 from wx.lib.embeddedimage import PyEmbeddedImage
+from time import time
 MAX_INT = 2**31 - 1
 MIN_INT = -2**31
 MAX_INT_16 = 2**15 - 1
@@ -523,6 +524,97 @@ class RadioBoxNew(wx.RadioBox):
 			self.SetToolTipString(string)
 		else:
 			self.SetToolTip(string)
+class DummyEvent():
+	def __init__(self):
+		pass
+	def GetEventCategory(self):
+		return wx.EVT_CATEGORY_UI
+	def GetId(self):
+		return 0
+	def Skip(self):
+		pass
+class SpinButtonNew(wx.Panel):
+	def __init__(self, parent, id=wx.ID_ANY, style=wx.ALIGN_LEFT, size=(-1,-1), spinfunc=None):
+		wx.Panel.__init__(self, parent)
+		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.buttonP = wx.Button(self, -1, label="+", size=size)
+		self.buttonM = wx.Button(self, -1, label="-", size=size)
+		self.buttonP.Bind(wx.EVT_BUTTON, self.OnP)
+		self.buttonM.Bind(wx.EVT_BUTTON, self.OnM)
+		self.repeatTimerP = wx.Timer(self)
+		self.repeatTimerM = wx.Timer(self)
+		self.Bind(wx.EVT_TIMER, self.RepeatValueP, self.repeatTimerP)
+		self.Bind(wx.EVT_TIMER, self.RepeatValueM, self.repeatTimerM)
+		self.buttonP.Bind(wx.EVT_LEFT_DOWN, self.OnButPDown)
+		self.buttonM.Bind(wx.EVT_LEFT_DOWN, self.OnButMDown)
+		self.buttonP.Bind(wx.EVT_LEFT_UP, self.OnButPUp)
+		self.buttonM.Bind(wx.EVT_LEFT_UP, self.OnButMUp)
+		self.hbox.Add(self.buttonM, 0)
+		self.hbox.Add(self.buttonP, 0)
+		self.SetSizer(self.hbox)
+		self.Fit()
+		self.Layout()
+		self.Show()
+		self.max = 0
+		self.min = 0
+		self.range = 0
+		self.value = 0
+		self.SpinFunc = spinfunc
+		self.n = 1
+		self.t1 = time()
+		self.t2 = time()
+	def SetEventFunc(self, miscfunc):
+		self.MiscFunc = miscfunc
+		self.event = DummyEvent()
+		if miscfunc != None:
+			self.n = 2
+		else:
+			self.n = 1
+	def GetRange(self):
+		return (self.min,self.max)
+	def SetRange(self,min,max):
+		self.max = max
+		self.min = min
+	def GetValue(self):
+		return self.value
+	def SetValue(self,value):
+		self.value = value
+	def PostCall(self):
+		self.SpinFunc(self.value)
+		for i in range(1, self.n, 1):
+			self.MiscFunc(self.event)
+	def OnM(self, event):
+		if self.value > self.min:
+			self.value -= 1
+		if event != None:
+			self.t1 = time()
+		self.PostCall()
+	def OnP(self, event):
+		if self.value < self.max:
+			self.value += 1
+		if event != None:
+			self.t1 = time()
+		self.PostCall()
+	def RepeatValueM(self, event):
+		self.t2 = time()
+		if (self.t2-self.t1) > 0.75:
+			self.OnM(None)
+	def RepeatValueP(self, event):
+		self.t2 = time()
+		if (self.t2-self.t1) > 0.75:
+			self.OnP(None)
+	def OnButMDown(self, event):
+		self.repeatTimerM.Start(100)
+		event.Skip()
+	def OnButMUp(self, event):
+		self.repeatTimerM.Stop()
+		event.Skip()
+	def OnButPDown(self, event):
+		self.repeatTimerP.Start(100)
+		event.Skip()
+	def OnButPUp(self, event):
+		self.repeatTimerP.Stop()
+		event.Skip()
 def IsNumber(input):
 	try:
 		float(input)
@@ -585,9 +677,12 @@ class TextPanelObject(wx.BoxSizer):
 		self.button.Enable(False)
 class SpinnerObject(wx.BoxSizer):
 	def __init__(self, parent, name, smax, smin, sinc, sinit, stextwidth, swidth):
-		def OnSpin(event):
-			self.value.ChangeValue(str(sinc * event.GetPosition() + self.remainder))
-			event.Skip()
+		if abs(sinc) < 1.0:
+			self.precision = "%."+str(str(sinc)[::-1].find('.'))+"f"
+		else:
+			self.precision = "%d"
+		def OnSpin(pos):
+			self.value.ChangeValue(self.precision%(sinc * pos + self.remainder))
 		def OnEdit(event):
 			text = event.GetString()
 			point = self.value.GetInsertionPoint()
@@ -623,13 +718,16 @@ class SpinnerObject(wx.BoxSizer):
 		self.value.SetFont(self.font)
 		self.value.Bind(wx.EVT_TEXT, OnEdit)
 		self.Add( self.value, 0, wx.CENTER )
-		self.spin = wx.SpinButton(parent, style=wx.SP_VERTICAL)
+		bw,bh = dc.GetTextExtent("0")
+		spinw = int(1.5*bh)
+		self.spin = SpinButtonNew(parent, size=(spinw,-1), spinfunc=OnSpin)
 		self.spin.SetRange(int(smin/sinc), int(smax/sinc))
 		self.spin.SetValue(int(sinit/sinc))
 		self.remainder = smin%sinc
-		self.spin.Bind(wx.EVT_SPIN, OnSpin, self.spin)
 		self.Add( self.spin, 0, wx.CENTER )
 		self.IsEnabled = True
+		self.Layout()
+		self.Show()
 	def Hide(self):
 		self.label.Hide()
 		self.value.Hide()
@@ -701,6 +799,9 @@ class NumberObject(wx.BoxSizer):
 		self.label.Refresh()
 		self.value.Enable(True)
 		self.value.Refresh()
+def IsPy3():
+	from sys import version
+	return version[0] == '3'
 def IsNotVTK6():
 	from vtk import vtkVersion
 	VTKMajor = vtkVersion().GetVTKMajorVersion()
@@ -740,7 +841,10 @@ class CustomAboutDialog(wx.Dialog):
 		self.vboxborder = wx.BoxSizer(wx.VERTICAL)
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.icon = wx.Image(os.path.join(os.path.dirname(os.path.dirname(__file__)),'image',  'bonsu.ico'), wx.BITMAP_TYPE_ICO)
-		self.bitmap = wx.BitmapFromImage(self.icon)
+		if IsNotWX4():
+			self.bitmap = wx.BitmapFromImage(self.icon)
+		else:
+			self.bitmap = wx.Bitmap(self.icon)
 		self.staticbmp = wx.StaticBitmap(self, -1, self.bitmap)
 		self.vbox.Add(self.staticbmp, 0, flag=wx.CENTER, border=5)
 		namestr = info.GetName()+" "+info.GetVersion()

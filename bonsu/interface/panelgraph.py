@@ -21,20 +21,36 @@
 import wx
 import numpy
 from time import strftime
-from .plot import PlotCanvas, PolyLine, PlotGraphics
+from .common import IsNotWX4
+if IsNotWX4():
+	from .plot import PlotCanvas, PolyLine, PlotGraphics
+else:
+	from wx.lib.plot import PlotCanvas
+	from wx.lib.plot.polyobjects import PolyLine
+	from wx.lib.plot.polyobjects import PlotGraphics
 class PanelGraph(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 		self.ancestor = parent
+		self.fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		self.colour = wx.Colour(30,70,115, alpha=wx.ALPHA_OPAQUE)
 		self.canvas = PlotCanvas(self)
-		self.canvas.SetInitialSize(size=self.GetClientSize())
-		self.canvas.SetShowScrollbars(True)
-		self.canvas.SetEnableZoom(True)
-		self.canvas.SetFontSizeAxis(point=12)
-		self.canvas.SetFontSizeTitle(point=12)
-		self.canvas.SetGridColour(wx.Colour(0, 0, 0))
-		self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
-		self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
+		if IsNotWX4():
+			self.canvas.SetInitialSize(size=self.GetClientSize())
+			self.canvas.SetShowScrollbars(True)
+			self.canvas.SetEnableZoom(False)
+			self.canvas.SetFontSizeAxis(point=12)
+			self.canvas.SetFontSizeTitle(point=12)
+			self.canvas.SetGridColour(wx.Colour(0, 0, 0))
+			self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
+			self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
+		else:
+			self.canvas.axesPen = wx.Pen(self.colour, width=1, style=wx.PENSTYLE_SOLID)
+			self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
+			self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
+			self.canvas.enableGrid = (True,True)
+			self.canvas.fontSizeAxis = self.fontpointsize
+			self.canvas.fontSizeTitle = self.fontpointsize
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.GROW)
 		self.paused = False
@@ -55,6 +71,16 @@ class PanelGraph(wx.Panel):
 	def OnClickPauseButton(self, event):
 		self.paused = not self.paused
 		label = "Resume" if self.paused else "Pause Graph"
+		if self.paused == True:
+			if IsNotWX4():
+				self.canvas.SetEnableZoom(True)
+			else:
+				self.canvas.enableZoom = True
+		else:
+			if IsNotWX4():
+				self.canvas.SetEnableZoom(False)
+			else:
+				self.canvas.enableZoom = False
 		self.button_pause.SetLabel(label)
 	def OnClickSaveButton(self, event):
 		data_length = self.ancestor.GetPage(0).citer_flow[0]
@@ -76,7 +102,7 @@ class PanelGraph(wx.Panel):
 				x = numpy.arange(data_length)
 				y = self.ancestor.GetPage(0).residual[:data_length]
 				data = numpy.vstack((x,y)).T
-				line = PolyLine(data, colour='blue', width=2.5)
+				line = PolyLine(data, colour=self.colour, width=2.5)
 				graphic = PlotGraphics([line],"Error Residual", " Iteration", "Residual")
 				self.canvas.Draw(graphic, xAxis=(0, data_length), yAxis=(0.0, 1.2))
 			except:
