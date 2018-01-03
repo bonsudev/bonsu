@@ -1557,6 +1557,7 @@ def Sequence_ShrinkWrap(\
 			from ..lib.prfftw import medianfilter
 			def UpdateSupport(self):
 				if self.ancestor.GetPage(0).citer_flow[4] > 0:
+					self.ancestor.GetPage(0).queue_info.put("Updating support ...")
 					self.support[:] = numpy.abs(self.seqdata).copy()
 					maxvalue = numpy.abs(self.support).max()
 					threshold(self.support, (frac*maxvalue), maxvalue, 0.0)
@@ -1566,112 +1567,85 @@ def Sequence_ShrinkWrap(\
 					wrap(self.support, -1)
 					rangereplace(self.support, (frac*maxvalue), sys.float_info.max, 0.0, 1.0)
 					self.visual_support[:] = numpy.abs(self.support)
+					self.ancestor.GetPage(0).queue_info.put("... done.")
 			def UpdateVisualSupport(self):
 				if self.ancestor.GetPage(0).citer_flow[4] > 0:
 					wx.CallAfter(self.ancestor.GetPage(1).UpdateSupport,)
+			def GetIterVars(fstartiter, fnumiter, ii, fcycle):
+				fsw_startiter = fstartiter + (ii * fcycle)
+				if  fnumiter <  ((ii+1) * fcycle):
+					fsw_numiter =  fnumiter - (ii * fcycle)
+				else:
+					fsw_numiter = fcycle
+				return fsw_startiter, fsw_numiter
+			IterLoops = (numiter + cycle - 1)//cycle
 			if RSConst == 'HIO':
-				for i in range( (numiter + cycle - 1)//cycle ):
-					sw_startiter = startiter + (i * cycle)
-					if  numiter <  ((i+1) * cycle):
-						sw_numiter =  numiter - (i * cycle)
-					else:
-						sw_numiter = cycle
+				for i in range( IterLoops ):
+					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
 					HIO(self, beta, sw_startiter, sw_numiter)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'PCHIO':
-				for i in range( (numiter + cycle - 1)//cycle ):
-					sw_startiter = startiter + (i * cycle)
-					if  numiter <  ((i+1) * cycle):
-						sw_numiter =  numiter - (i * cycle)
-					else:
-						sw_numiter = cycle
+				for i in range( IterLoops ):
+					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
 					PCHIO(self, beta, sw_startiter, sw_numiter, phasemax, phasemin)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'PGCHIO':
-				for i in range( (numiter + cycle - 1)//cycle ):
-					sw_startiter = startiter + (i * cycle)
-					if  numiter <  ((i+1) * cycle):
-						sw_numiter =  numiter - (i * cycle)
-					else:
-						sw_numiter = cycle
+				for i in range( IterLoops ):
+					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
 					PGCHIO(self, beta, sw_startiter, sw_numiter, gc_phasemax, gc_phasemin, qx, qy, qz)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'HIOMask':
-				for i in range( (numiter + cycle - 1)//cycle ):
-					sw_startiter = startiter + (i * cycle)
-					if  numiter <  ((i+1) * cycle):
-						sw_numiter =  numiter - (i * cycle)
-					else:
-						sw_numiter = cycle
-					HIOMask(self, beta, sw_startiter, sw_numiter,0)
+				for i in range( IterLoops ):
+					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
+					HIOMask(self, beta, sw_startiter, sw_numiter, 0)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'HIOPlus':
-				for i in range( (numiter + cycle - 1)//cycle ):
-					sw_startiter = startiter + (i * cycle)
-					if  numiter <  ((i+1) * cycle):
-						sw_numiter =  numiter - (i * cycle)
-					else:
-						sw_numiter = cycle
+				for i in range( IterLoops ):
+					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
 					HIOPlus(self, beta, sw_startiter, sw_numiter)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'ER':
-				for i in range( (numiter + cycle - 1)//cycle ):
-					sw_startiter = startiter + (i * cycle)
-					if  numiter <  ((i+1) * cycle):
-						sw_numiter =  numiter - (i * cycle)
-					else:
-						sw_numiter = cycle
+				for i in range( IterLoops ):
+					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
 					ER(self, sw_startiter, sw_numiter)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'HPR':
-				for i in range( (numiter + cycle - 1)//cycle ):
-					sw_startiter = startiter + (i * cycle)
-					if  numiter <  ((i+1) * cycle):
-						sw_numiter =  numiter - (i * cycle)
-					else:
-						sw_numiter = cycle
+				for i in range( IterLoops ):
+					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
 					HPR(self, beta, sw_startiter, sw_numiter,0)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'RAAR':
-				for i in range( (numiter + cycle - 1)//cycle ):
-					sw_startiter = startiter + (i * cycle)
-					if  numiter <  ((i+1) * cycle):
-						sw_numiter =  numiter - (i * cycle)
-					else:
-						sw_numiter = cycle
+				for i in range( IterLoops ):
+					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
 					RAAR(self, beta, sw_startiter, sw_numiter,0)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break
 					UpdateSupport(self)
 					UpdateVisualSupport(self)
 			if RSConst == 'CSHIO':
-				for i in range( (numiter + cycle - 1)//cycle ):
-					sw_startiter = startiter + (i * cycle)
-					if  numiter <  ((i+1) * cycle):
-						sw_numiter =  numiter - (i * cycle)
-					else:
-						sw_numiter = cycle
+				for i in range( IterLoops ):
+					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
 					CSHIO(self, beta, sw_startiter, sw_numiter, cs_p, cs_epsilon, cs_epsilon_min, cs_d, cs_eta, cs_relax)
 					if self.ancestor.GetPage(0).citer_flow[1] == 2:
 						break

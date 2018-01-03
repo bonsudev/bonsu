@@ -27,6 +27,7 @@ from sys import exec_prefix
 from distutils.core import setup, Extension
 from distutils.version import StrictVersion
 from distutils.file_util import copy_file
+DEBUG = True
 args = argv[1:]
 filename_bonsu = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bonsu', 'interface', 'bonsu.py')
 f1_bonsu = open(filename_bonsu, 'r')
@@ -99,6 +100,10 @@ try:
 	os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
 except:
 	pass
+if DEBUG:
+	debug_compile_args = "-Wall"
+else:
+	debug_compile_args = ""
 if platform.startswith('win'):
 	scripts=['bonsu/bonsu', 'bonsupost']
 else:
@@ -133,6 +138,7 @@ else:
 modprfftw = Extension('prfftw',
 					include_dirs=['include', numpy.get_include(), os.path.join(numpy.get_include(), 'numpy')], # + get_info('fftw3')['include_dirs'],
 					libraries=modprfftw_lib,
+					extra_compile_args = [debug_compile_args],
 					sources = ['bonsu/lib/prfftwmodule.cxx', 'bonsu/lib/prfftwhiomask.cxx', 'bonsu/lib/prfftwhio.cxx', 'bonsu/lib/libphase.cxx',
 										'bonsu/lib/prfftwhioplus.cxx', 'bonsu/lib/prfftwpchiomask.cxx', 'bonsu/lib/prfftwpgchiomask.cxx','bonsu/lib/prfftwer.cxx',
 										'bonsu/lib/prfftwermask.cxx','bonsu/lib/prfftwpoermask.cxx','bonsu/lib/prfftwraar.cxx','bonsu/lib/prfftwhpr.cxx',

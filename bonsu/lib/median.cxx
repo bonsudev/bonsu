@@ -22,6 +22,8 @@
 */
 
 
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL prfftw_ARRAY_API
 #include <Python.h>
 #include <stdlib.h>
 #include "prfftwmodule.h"
@@ -91,9 +93,8 @@ void MedianFilter
 	double* k_array = (double*) malloc((k_x*k_y*k_z) * sizeof(double));
 	uint32_t n=0;
 	int32_t i,j,k,mx,my,mz;
-	uint32_t x,y,z;
+	int32_t x,y,z;
 	uint64_t index;
-	double amp;
 	double phase;
 		
 	k_x = ((abs(k_x) - 1)/2)*2 +1;

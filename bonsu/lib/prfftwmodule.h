@@ -70,6 +70,50 @@ PyObject* prfftw_wrap(PyObject *self, PyObject *args);
 PyObject* prfftw_medianfilter(PyObject *self, PyObject *args);
 PyObject* prfftw_conj_reflect(PyObject *self, PyObject *args);
 
+
+typedef struct _SeqObjects
+{
+	double* residual;
+	int32_t* citer_flow;
+	double* visual_amp_real;
+	double* visual_phase_real;
+	double* visual_amp_recip;
+	double* visual_phase_recip;
+	PyObject* updatereal;
+	PyObject* updaterecip;
+	PyObject* updatelog;
+	int startiter;
+	int numiter;
+	int maxiter;
+	double alpha;
+	double beta;
+	double gamma;
+	double delta;
+} SeqObjects;
+
+typedef struct _SeqArrayObjects
+{
+	int arraytype;
+	int ndim;
+	npy_intp *dims;
+    int32_t nn[3];
+	int32_t* citer_flow;
+	int startiter;
+	int numiter;
+    double* seqdata;
+    double* expdata;
+    double* support;
+    double* mask;
+    double* rho_m1;
+    double* rho_m2;
+    double* epsilon;
+    double* tmparray1;
+    double* tmparray2;
+    double* tmparray3;
+    double* tmparray4;
+} SeqArrayObjects;
+
+
 void conj_reflect(double* data, int32_t* nn);
 
 int convolve2(double* indata1, double* indata2, int32_t ndim, int32_t* dims);

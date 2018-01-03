@@ -22,11 +22,9 @@
 */
 
 #include <Python.h>
+#define PY_ARRAY_UNIQUE_SYMBOL prfftw_ARRAY_API
 #define NPY_NO_DEPRECATED_API NPY_1_10_API_VERSION
-#include <numpy/arrayobject.h> 
 #include "prfftwmodule.h"
-
-
 
 
 int wrap_array(double* indata, int32_t* nn, int drctn)
@@ -194,7 +192,7 @@ PyObject* prfftw_wrap(PyObject *self, PyObject *args)
 	int32_t nn[3];
 	PyArrayObject *arg1=NULL;
 	int drctn;
-	if (!PyArg_ParseTuple(args, "Oi", &arg1, &drctn)) return NULL;
+	if (!PyArg_ParseTuple(args, "Oi", &arg1, &drctn)){return NULL;};
 	indata = (double*) PyArray_DATA(arg1);
 	dims = PyArray_DIMS(arg1);
 	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
@@ -237,7 +235,7 @@ PyObject* prfftw_hio(PyObject *self, PyObject *args)
 		&arg1, &arg2, &arg3, &beta, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -308,7 +306,7 @@ PyObject* prfftw_hiomask(PyObject *self, PyObject *args)
 		&arg1, &arg2, &arg3, &arg4, &beta, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog, &numiter_relax))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -380,7 +378,7 @@ PyObject* prfftw_hioplus(PyObject *self, PyObject *args)
 		&arg1, &arg2, &arg3, &arg4, &beta, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -454,7 +452,7 @@ PyObject* prfftw_pchio(PyObject *self, PyObject *args)
 		&phasemax, &phasemin,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -530,7 +528,7 @@ PyObject* prfftw_pgchio(PyObject *self, PyObject *args)
 		&phasemax, &phasemin, &qx, &qy, &qz,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -603,7 +601,7 @@ PyObject* prfftw_er(PyObject *self, PyObject *args)
 		&arg1, &arg2, &arg3, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -674,7 +672,7 @@ PyObject* prfftw_ermask(PyObject *self, PyObject *args)
 		&arg1, &arg2, &arg3, &arg4, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog, &numiter_relax))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -746,7 +744,7 @@ PyObject* prfftw_poermask(PyObject *self, PyObject *args)
 		&arg1, &arg2, &arg3, &arg4, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -818,7 +816,7 @@ PyObject* prfftw_raar(PyObject *self, PyObject *args)
 		&arg1, &arg2, &arg3, &arg4, &beta, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog, &numiter_relax))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -890,7 +888,7 @@ PyObject* prfftw_hpr(PyObject *self, PyObject *args)
 		&arg1, &arg2, &arg3, &arg4, &beta, &startiter, &numiter, &ndim,
 		&arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog, &numiter_relax))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -969,7 +967,7 @@ PyObject* prfftw_cshio(PyObject *self, PyObject *args)
 		&cs_p, &arg5, &cs_d, &cs_eta, &relax,
 		&arg9, &arg6, &arg7, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15,
 		&arg16, &updatereal, &updaterecip, &updatelog))
-        return NULL;
+        {return NULL;};
 	
 	seqdata = (double*) PyArray_DATA(arg1);
 	expdata = (double*) PyArray_DATA(arg2);
@@ -1039,7 +1037,7 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 		&beta, &startiter, &numiter, &ndim,
 		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
 		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
-        return NULL;
+        {return NULL;};
 	
 	double *seqdata = (double*) PyArray_DATA(arg1);
 	double *expdata = (double*) PyArray_DATA(arg2);
@@ -1114,7 +1112,7 @@ PyObject* prfftw_ermaskpc(PyObject *self, PyObject *args)
 		&startiter, &numiter, &ndim,
 		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
 		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
-        return NULL;
+        {return NULL;};
 	
 	double *seqdata = (double*) PyArray_DATA(arg1);
 	double *expdata = (double*) PyArray_DATA(arg2);
@@ -1189,7 +1187,7 @@ PyObject* prfftw_hprmaskpc(PyObject *self, PyObject *args)
 		&beta, &startiter, &numiter, &ndim,
 		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
 		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
-        return NULL;
+        {return NULL;};
 	
 	double *seqdata = (double*) PyArray_DATA(arg1);
 	double *expdata = (double*) PyArray_DATA(arg2);
@@ -1264,7 +1262,7 @@ PyObject* prfftw_raarmaskpc(PyObject *self, PyObject *args)
 		&beta, &startiter, &numiter, &ndim,
 		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
 		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
-        return NULL;
+        {return NULL;};
 	
 	double *seqdata = (double*) PyArray_DATA(arg1);
 	double *expdata = (double*) PyArray_DATA(arg2);
@@ -1321,6 +1319,7 @@ PyObject* prfftw_raarmaskpc(PyObject *self, PyObject *args)
 }
 
 
+
 PyObject* prfftw_threshold(PyObject *self, PyObject *args)
 {
 	PyArrayObject *arg1=NULL;
@@ -1334,7 +1333,7 @@ PyObject* prfftw_threshold(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "Oddd",
 		&arg1, &threshmin, &threshmax, &newval))
-        return NULL;
+        {return NULL;};
 	
 	
 	dims = PyArray_DIMS(arg1);
@@ -1369,7 +1368,7 @@ PyObject* prfftw_rangereplace(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "Odddd",
 		&arg1, &threshmin, &threshmax, &newval_out, &newval_in))
-        return NULL;
+        {return NULL;};
 	
 	dims = PyArray_DIMS(arg1);
 	data = (double*) PyArray_DATA(arg1);
@@ -1452,13 +1451,11 @@ PyObject* prfftw_lorentz_ft_fill(PyObject *self, PyObject *args)
 	PyArrayObject *arg1=NULL;
 	npy_intp *dims;
 	double *indata;
-	int32_t ndim;
 	int32_t nn[3];
 	double gammaHWHM;
-    if (!PyArg_ParseTuple(args, "Od", &arg1, &gammaHWHM)) return NULL;
+    if (!PyArg_ParseTuple(args, "Od", &arg1, &gammaHWHM)){ return NULL;};
 	indata = (double*) PyArray_DATA(arg1);
 	dims = PyArray_DIMS(arg1);
-	ndim = PyArray_NDIM(arg1);
 	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
 	lorentz_ft_fill(indata, nn, gammaHWHM);
 	Py_INCREF(Py_None);
@@ -1470,7 +1467,7 @@ PyObject* prfftw_gaussian_fill(PyObject *self, PyObject *args)
 {
 	PyArrayObject *arg1=NULL;
 	double sigma;
-    if (!PyArg_ParseTuple(args, "Od", &arg1, &sigma)) return NULL;
+    if (!PyArg_ParseTuple(args, "Od", &arg1, &sigma)){ return NULL;};
 	gaussian_fill(arg1, sigma);
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1494,7 +1491,7 @@ PyObject* prfftw_gaussian_filter(PyObject *self, PyObject *args)
 	int32_t ndim;
 	int32_t nn[3];
 	int len;
-	if (!PyArg_ParseTuple(args, "OOd", &arg1, &arg2, &sigma)) return NULL;
+	if (!PyArg_ParseTuple(args, "OOd", &arg1, &arg2, &sigma)){ return NULL;};
 	seqdata = (double*) PyArray_DATA(arg1);
 	gaussian = (double*) PyArray_DATA(arg2);
 	dims = PyArray_DIMS(arg1);
@@ -1679,7 +1676,7 @@ PyObject* prfftw_convolve2(PyObject *self, PyObject *args)
 	npy_intp *dims;
 	int32_t ndim;
 	int32_t nn[3];
-	if (!PyArg_ParseTuple(args, "OO", &arg1, &arg2)) return NULL;
+	if (!PyArg_ParseTuple(args, "OO", &arg1, &arg2)){ return NULL;};
 	indata1 = (double*) PyArray_DATA(arg1);
 	indata2= (double*) PyArray_DATA(arg2);
 	dims = PyArray_DIMS(arg1);
@@ -1786,7 +1783,7 @@ PyObject* prfftw_convolve(PyObject *self, PyObject *args)
 	npy_intp *dims;
 	int32_t ndim;
 	int32_t nn[3];
-	if (!PyArg_ParseTuple(args, "OO", &arg1, &arg2)) return NULL;
+	if (!PyArg_ParseTuple(args, "OO", &arg1, &arg2)){ return NULL;};
 	indata1 = (double*) PyArray_DATA(arg1);
 	indata2 = (double*) PyArray_DATA(arg2);
 	dims = PyArray_DIMS(arg1);
@@ -1817,7 +1814,7 @@ PyObject* prfftw_fft(PyObject *self, PyObject *args)
 	double* data;
 	fftw_plan torecip;
 	fftw_plan toreal;
-	if (!PyArg_ParseTuple(args, "Oi", &arg1, &space)) return NULL;
+	if (!PyArg_ParseTuple(args, "Oi", &arg1, &space)){ return NULL;};
 	indata = (double*) PyArray_DATA(arg1);
 	dims = PyArray_DIMS(arg1);
 	ndim = PyArray_NDIM(arg1);
@@ -1926,7 +1923,7 @@ PyObject* prfftw_conj_reflect(PyObject *self, PyObject *args)
 	double *indata;
 	npy_intp *dims;
 	int32_t nn[3];
-	if (!PyArg_ParseTuple(args, "O", &arg1)) return NULL;
+	if (!PyArg_ParseTuple(args, "O", &arg1)){ return NULL;};
 	indata = (double*) PyArray_DATA(arg1);
 	dims = PyArray_DIMS(arg1);
 	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
@@ -1945,7 +1942,7 @@ PyObject* prfftw_medianfilter(PyObject *self, PyObject *args)
 	PyArrayObject *arg2=NULL;
 	int kx, ky, kz;
 	double maxerr;
-	if (!PyArg_ParseTuple(args, "OOiiid", &arg1, &arg2, &kx, &ky, &kz, &maxerr)) return NULL;
+	if (!PyArg_ParseTuple(args, "OOiiid", &arg1, &arg2, &kx, &ky, &kz, &maxerr)){ return NULL;};
 	data1 = (double*) PyArray_DATA(arg1);
 	data2 = (double*) PyArray_DATA(arg2);
 	dims = PyArray_DIMS(arg1);
@@ -1967,7 +1964,7 @@ PyObject* prfftw_blanklinereplace(PyObject *self, PyObject *args)
 	PyArrayObject *arg2=NULL;
 	int kx, ky, kz;
 	int x1, x2, y1, y2, z1, z2;
-	if (!PyArg_ParseTuple(args, "OOiiiiiiiii", &arg1, &arg2, &kx, &ky, &kz, &x1, &x2, &y1, &y2, &z1, &z2)) return NULL;
+	if (!PyArg_ParseTuple(args, "OOiiiiiiiii", &arg1, &arg2, &kx, &ky, &kz, &x1, &x2, &y1, &y2, &z1, &z2)){ return NULL;};
 	data1 = (double*) PyArray_DATA(arg1);
 	data2 = (double*) PyArray_DATA(arg2);
 	dims = PyArray_DIMS(arg1);

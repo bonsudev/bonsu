@@ -21,6 +21,9 @@
 #############################################
 */
 
+
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL prfftw_ARRAY_API
 #include "prfftwmodule.h"
 
 void SqrtArray

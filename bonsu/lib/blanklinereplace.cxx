@@ -22,6 +22,8 @@
 */
 
 
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL prfftw_ARRAY_API
 #include <Python.h>
 #include <stdlib.h>
 #include "prfftwmodule.h"
@@ -41,7 +43,7 @@ void BlankLineReplace
 )
 {
 	int32_t i,j,k,mx,my,mz;
-	uint32_t x,y,z;
+	int32_t x,y,z;
 	uint64_t index;
 	double ksum = 0.0;
 	double kcount = 0.0;
