@@ -22,11 +22,11 @@ __author__ = "Marcus C. Newton"
 __copyright__ = "Copyright 2011-2017 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "2.5.1"
+__version__ = "2.6.0"
 __maintainer__ = "Marcus C. Newton"
 __email__ = "Bonsu.Devel@gmail.com"
 __status__ = "Production"
-__builddate__ = ''
+__builddate__ = '2018-02-16 16:12:07'
 import os
 import sys
 import wx
@@ -81,10 +81,39 @@ class MainWindow(wx.Frame):
 		helpmenu= wx.Menu()
 		menuAbout= helpmenu.Append(wx.ID_ABOUT, "&About"," Information about Bonsu")
 		menuDoc= helpmenu.Append(wx.ID_HELP, "&Contents","Documentation")
+		scenemenu= wx.Menu()
+		fxaamenu = wx.Menu()
+		self.fxaamenuon = fxaamenu.Append(wx.ID_ANY,"On","Enable FX antialiasing")
+		self.fxaamenuoff = fxaamenu.Append(wx.ID_ANY,"Off","Enable FX antialiasing")
+		if IsNotWX4():
+			scenemenu.AppendMenu(wx.ID_ANY,"FX &Antialiasing", fxaamenu)
+		else:
+			scenemenu.Append(wx.ID_ANY,"FX &Antialiasing", fxaamenu)
+		self.scenemenu_save = scenemenu.Append(wx.ID_ANY, "&Save","Save Scene")
+		self.Bind(wx.EVT_MENU, self.OnSceneSave, self.scenemenu_save)
+		self.scenemenu_saveas = scenemenu.Append(wx.ID_ANY, "&Save As","Save Scene")
+		self.Bind(wx.EVT_MENU, self.OnSceneSaveAs, self.scenemenu_saveas)
+		self.scenemenu_animate = scenemenu.Append(wx.ID_ANY, "&Animate","Animate")
+		self.scenemenu_animate.Enable(0)
+		self.Bind(wx.EVT_MENU, self.OnSceneAnimate, self.scenemenu_animate)
+		self.scenemenu_measure = scenemenu.Append(wx.ID_ANY, "&Measure","Measure")
+		self.scenemenu_measure.Enable(0)
+		self.Bind(wx.EVT_MENU, self.OnSceneMeasure, self.scenemenu_measure)
+		self.scenemenu_background = scenemenu.Append(wx.ID_ANY, "&Background","Background")
+		self.Bind(wx.EVT_MENU, self.OnSceneBackground, self.scenemenu_background)
+		self.scenemenu_lut = scenemenu.Append(wx.ID_ANY, "Lookup &table","Lookup table")
+		self.Bind(wx.EVT_MENU, self.OnSceneLUT, self.scenemenu_lut)
+		self.scenemenu_scalebar = scenemenu.Append(wx.ID_ANY, "Scale &bar","Scale bar")
+		self.Bind(wx.EVT_MENU, self.OnSceneScalebar, self.scenemenu_scalebar)
+		self.scenemenu_light = scenemenu.Append(wx.ID_ANY, "&Lighting","Lighting")
+		self.Bind(wx.EVT_MENU, self.OnSceneLight, self.scenemenu_light)
+		self.Bind(wx.EVT_MENU, self.OnFXAAOn, self.fxaamenuon)
+		self.Bind(wx.EVT_MENU, self.OnFXAAOff, self.fxaamenuoff)
 		menuBar = wx.MenuBar()
 		menuBar.Append(filemenu,"&File")
 		menuBar.Append(viewmenu,"&View")
 		menuBar.Append(editmenu,"&Edit")
+		menuBar.Append(scenemenu,"&Scene")
 		menuBar.Append(helpmenu,"&Help")
 		self.SetMenuBar(menuBar)
 		self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
@@ -126,7 +155,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		info.SetName('Bonsu')
 		info.SetVersion(__version__)
 		info.SetDescription(description)
-		info.SetCopyright('Copyright (C) 2011-2017 Marcus C. Newton')
+		info.SetCopyright('Copyright (C) 2011-2018 Marcus C. Newton')
 		info.SetWebSite('github.com/bonsudev/bonsu')
 		info.SetLicence(licence)
 		info.AddDeveloper('Marcus C. Newton')
@@ -245,6 +274,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 					RestoreInstance(self)
 				except:
 					pass
+	def OnFXAAOn(self, event):
+		self.nb.GetPage(1).FXAAScene(True)
+	def OnFXAAOff(self, event):
+		self.nb.GetPage(1).FXAAScene(False)
+	def OnSceneSave(self, event):
+		self.nb.GetPage(1).SaveScene(None)
+	def OnSceneSaveAs(self, event):
+		self.nb.GetPage(1).SaveSceneAs(None)
+	def OnSceneAnimate(self, event):
+		self.nb.GetPage(1).AnimateScene(None)
+	def OnSceneMeasure(self, event):
+		self.nb.GetPage(1).MeasureScene(None)
+	def OnSceneBackground(self, event):
+		self.nb.GetPage(1).OnColourSelect(None)
+	def OnSceneLUT(self, event):
+		self.nb.GetPage(1).OnLUTSelect(None)
+	def OnSceneScalebar(self, event):
+		self.nb.GetPage(1).OnScalebarSelect(None)
+	def OnSceneLight(self, event):
+		self.nb.GetPage(1).OnLightSelect(None)
 class main():
 	def __init__(self):
 		app = wx.App()

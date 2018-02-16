@@ -546,6 +546,8 @@ def PrepareVisualisation2D(self,pipelineitem):
 	elif (self.visual_amp_real is not None) and (self.visual_amp_recip is not None):
 		panelvisual.renderer_amp_real.SetViewport(0,0,0.5,1)
 		panelvisual.renderer_amp_recip.SetViewport(0.5,0,1,1)
+	elif (self.visual_amp_real is not None):
+		panelvisual.renderer_amp_real.SetViewport(0,0,1,1)
 	panelvisual.RefreshSceneFull(gotovisual=True)
 def Sequence_HIO(\
 	self,

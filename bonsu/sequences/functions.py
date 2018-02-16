@@ -300,6 +300,9 @@ def Sequence_HDF_to_Numpy(\
 				newitem = newitem.get(key)
 				if newitem == None:
 					raise AttributeError(attriberrorstring)
+					break
+			if not any( tp in str(newitem.dtype.name) for tp in ["float", "int"]):
+				raise AttributeError(attriberrorstring)
 		except AttributeError:
 			msg = "Could not load key."
 			wx.CallAfter(self.UserMessage, title, msg)
@@ -949,6 +952,51 @@ def Sequence_Crop_Pad(\
 			array = numpy.concatenate((array, numpy.zeros((shp[0],shp[1],pez),dtype=numpy.cdouble, order='C')),axis=2) #z axis
 			array = numpy.asarray(array, dtype=numpy.cdouble, order='C')
 			SaveArray(self, filename_out,array)
+def Sequence_CentredResize(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Preparing centered array...")
+		x =  int(pipelineitem.dims[0].value.GetValue())
+		y =  int(pipelineitem.dims[1].value.GetValue())
+		z =  int(pipelineitem.dims[2].value.GetValue())
+		filename_in = pipelineitem.input_filename.objectpath.GetValue()
+		filename_out = pipelineitem.output_filename.objectpath.GetValue()
+		try:
+			array = LoadArray(self, filename_in)
+		except:
+			msg = "Could not load array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+		shp = array.shape
+		if x < 1 or y < 1 or z < 1:
+			msg = "Impossible resize dimensions."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+		else:
+			try:
+				arraycentred = NewArray(self,x,y,z)
+			except:
+				return
+			max = numpy.array( numpy.unravel_index(array.argmax(), array.shape) )
+			shp = numpy.array(array.shape)
+			shpnew = numpy.array([x,y,z])
+			idx_ns = (shpnew // 2)  - max
+			idx_ne = shp + (shpnew // 2)  - max
+			idx_s = numpy.array([0,0,0])
+			idx_e = numpy.array(array.shape)
+			mask = idx_ns < 0
+			idx_ns[mask] = 0
+			idx_s[mask] = max[mask] - (shpnew[mask] // 2)
+			mask = idx_ne > shpnew
+			idx_ne[mask] = shpnew[mask]
+			idx_e[mask] = max[mask] + (shpnew[mask] // 2)
+			arraycentred[idx_ns[0]:idx_ne[0],idx_ns[1]:idx_ne[1],idx_ns[2]:idx_ne[2]] = array[idx_s[0]:idx_e[0],idx_s[1]:idx_e[1],idx_s[2]:idx_e[2]]
+			SaveArray(self, filename_out, arraycentred)
 def Sequence_Cuboid_Support(\
 	self,
 	pipelineitem

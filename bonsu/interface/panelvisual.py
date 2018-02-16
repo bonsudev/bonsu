@@ -196,6 +196,8 @@ class OrientXYZ(wx.Panel):
 	def __init__(self,parent):
 		wx.Panel.__init__(self, parent)
 		self.panelvisual = self.GetParent().GetParent().GetParent()
+		self.cylinder_shaft = vtk.vtkAxesActor().CYLINDER_SHAFT
+		self.line_shaft = vtk.vtkAxesActor().LINE_SHAFT
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
 		self.chkbox_enable = CheckBoxNew(self, -1, 'Enable XYZ Axes')
@@ -205,11 +207,201 @@ class OrientXYZ(wx.Panel):
 		else:
 			self.chkbox_enable.SetValue(True)
 		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, self.chkbox_enable)
-		self.hbox_btn.Add(self.chkbox_enable, 1, flag=wx.CENTER)
-		self.vbox.Add(self.hbox_btn, 1, flag=wx.CENTER, border=2)
+		self.hbox_btn.Add(self.chkbox_enable, 1, flag=wx.EXPAND|wx.CENTER, border=2)
+		self.vbox.Add((-1, 5))
+		self.vbox.Add(self.hbox_btn, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.sbox1 = wx.StaticBox(self, label="Shaft", style=wx.BORDER_DEFAULT)
+		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
+		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.rbshaft1 = wx.RadioButton(self, wx.ID_ANY, label = 'Line', style = wx.RB_GROUP)
+		self.rbshaft2 = wx.RadioButton(self, wx.ID_ANY, label = 'Cylinder')
+		if self.panelvisual.axes.GetShaftType() == self.cylinder_shaft:
+			self.rbshaft1.SetValue(False)
+			self.rbshaft2.SetValue(True)
+		self.Bind(wx.EVT_RADIOBUTTON, self.OnShaft, self.rbshaft1)
+		self.Bind(wx.EVT_RADIOBUTTON, self.OnShaft, self.rbshaft2)
+		self.shaft = SpinnerObject(self,"Radius:",1.0,0.0,0.01,self.panelvisual.axes.GetCylinderRadius(),60,60)
+		self.shaft.spin.SetEventFunc(self.OnShaftRadiusChange)
+		self.shaft_opac = SpinnerObject(self,"Opacity:",1.0,0.0,0.1,self.panelvisual.axes.GetXAxisShaftProperty().GetOpacity(),60,60)
+		self.shaft_opac.spin.SetEventFunc(self.OnShaftOpacityChange)
+		self.hbox1.Add(self.rbshaft1, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox1.Add(self.rbshaft2, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox1.Add(self.shaft, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=4)
+		self.hbox1.Add(self.shaft_opac, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=4)
+		self.sboxs1.Add(self.hbox1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add(self.sboxs1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add((-1, 5))
+		self.sbox2 = wx.StaticBox(self, label="Cone", style=wx.BORDER_DEFAULT)
+		self.sboxs2 = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
+		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.cone = SpinnerObject(self,"Radius:",MAX_INT_16,0.0,0.1,self.panelvisual.axes.GetConeRadius(),80,100)
+		self.cone.spin.SetEventFunc(self.OnConeRadiusChange)
+		self.cone_opac = SpinnerObject(self,"Opacity:",1.0,0.0,0.1,self.panelvisual.axes.GetXAxisTipProperty().GetOpacity(),60,60)
+		self.cone_opac.spin.SetEventFunc(self.OnConeOpacityChange)
+		self.hbox2.Add(self.cone, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=4)
+		self.hbox2.Add(self.cone_opac, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=4)
+		self.sboxs2.Add(self.hbox2,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add(self.sboxs2,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add((-1, 5))
+		self.sbox3 = wx.StaticBox(self, label="Labels", style=wx.BORDER_DEFAULT)
+		self.sboxs3 = wx.StaticBoxSizer(self.sbox3,wx.VERTICAL)
+		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox31 = wx.BoxSizer(wx.HORIZONTAL)
+		self.label_enable = CheckBoxNew(self, -1, 'Enable Label')
+		if self.panelvisual.axes.GetAxisLabels() != 0:
+			self.label_enable.SetValue(True)
+		self.sboxs3.Add(self.label_enable, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLabel, self.label_enable)
+		self.labeltitle = wx.StaticText(self, label="Label text:")
+		self.labelx = TextCtrlNew(self, value=self.panelvisual.axes.GetXAxisLabelText(), size=(50,-1), style=wx.TE_PROCESS_ENTER)
+		self.labely = TextCtrlNew(self, value=self.panelvisual.axes.GetYAxisLabelText(), size=(50,-1), style=wx.TE_PROCESS_ENTER)
+		self.labelz = TextCtrlNew(self, value=self.panelvisual.axes.GetZAxisLabelText(), size=(50,-1), style=wx.TE_PROCESS_ENTER)
+		self.labelx.Bind(wx.EVT_TEXT, self.OnLabelEdit)
+		self.labely.Bind(wx.EVT_TEXT, self.OnLabelEdit)
+		self.labelz.Bind(wx.EVT_TEXT, self.OnLabelEdit)
+		self.hbox3.Add(self.labelx, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox3.Add(self.labely, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox3.Add(self.labelz, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.labelcolour = wx.StaticText(self, label="Label colour:")
+		labelcolours = self.panelvisual.axestext.GetColor()
+		self.labelr = SpinnerObject(self,"Red:",1.0,0.0,0.1,labelcolours[0],100,50)
+		self.labelg = SpinnerObject(self,"Green:",1.0,0.0,0.1,labelcolours[1],100,50)
+		self.labelb = SpinnerObject(self,"Blue:",1.0,0.0,0.1,labelcolours[2],100,50)
+		self.labelr.spin.SetEventFunc(self.OnLabelRGB)
+		self.labelg.spin.SetEventFunc(self.OnLabelRGB)
+		self.labelb.spin.SetEventFunc(self.OnLabelRGB)
+		self.hbox31.Add(self.labelr, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox31.Add(self.labelg, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox31.Add(self.labelb, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.labelfontsize = SpinnerObject(self,"Font size:",MAX_INT_16,1,1,self.panelvisual.axestext.GetFontSize(),100,150)
+		self.labelfontsize.spin.SetEventFunc(self.OnLabelFontSize)
+		self.label_shadow = CheckBoxNew(self, -1, 'Enable Label Shadows')
+		if self.panelvisual.axestext.GetShadow() != 0:
+			self.label_shadow.SetValue(True)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLabelShadow, self.label_shadow)
+		self.sboxs3.Add(self.labeltitle,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sboxs3.Add(self.hbox3,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sboxs3.Add(self.labelcolour,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sboxs3.Add(self.hbox31,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sboxs3.Add(self.labelfontsize,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=8)
+		self.sboxs3.Add(self.label_shadow, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=8)
+		self.vbox.Add(self.sboxs3,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sbox4 = wx.StaticBox(self, label="Rotation", style=wx.BORDER_DEFAULT)
+		self.sboxs4 = wx.StaticBoxSizer(self.sbox4,wx.VERTICAL)
+		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+		self.rotationangle1 = SpinnerObject(self,"x",180,-180,5,self.panelvisual.axestransformRX,20,40)
+		self.rotationangle1.label.SetToolTipNew("Rotation angle in degrees.")
+		self.rotationangle2 = SpinnerObject(self,"y",180,-180,5,self.panelvisual.axestransformRY,20,40)
+		self.rotationangle2.label.SetToolTipNew("Rotation angle in degrees.")
+		self.rotationangle3 = SpinnerObject(self,"z",180,-180,5,self.panelvisual.axestransformRZ,20,40)
+		self.rotationangle3.label.SetToolTipNew("Rotation angle in degrees.")
+		self.rotationangle1.GetItem(self.rotationangle1.value, recursive=False).SetFlag(wx.EXPAND)
+		self.rotationangle1.GetItem(self.rotationangle1.value, recursive=False).SetProportion(1)
+		self.rotationangle2.GetItem(self.rotationangle2.value, recursive=False).SetFlag(wx.EXPAND)
+		self.rotationangle2.GetItem(self.rotationangle2.value, recursive=False).SetProportion(1)
+		self.rotationangle3.GetItem(self.rotationangle3.value, recursive=False).SetFlag(wx.EXPAND)
+		self.rotationangle3.GetItem(self.rotationangle3.value, recursive=False).SetProportion(1)
+		self.rotationangle1.spin.SetEventFunc(self.OnRotateChange)
+		self.rotationangle1.value.Bind(wx.EVT_KEY_DOWN, self.OnRotateKey)
+		self.rotationangle2.spin.SetEventFunc(self.OnRotateChange)
+		self.rotationangle2.value.Bind(wx.EVT_KEY_DOWN, self.OnRotateKey)
+		self.rotationangle3.spin.SetEventFunc(self.OnRotateChange)
+		self.rotationangle3.value.Bind(wx.EVT_KEY_DOWN, self.OnRotateKey)
+		self.hbox4.Add(self.rotationangle1, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=0)
+		self.hbox4.Add(self.rotationangle2, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=0)
+		self.hbox4.Add(self.rotationangle3, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=0)
+		self.sboxs4.Add(self.hbox4,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add(self.sboxs4,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add((-1, 10))
+		self.resolution = SpinnerObject(self,"Resolution: ",MAX_INT_16,1.0,1,self.panelvisual.axes.GetCylinderResolution(),150,100)
+		self.resolution.spin.SetEventFunc(self.OnResolutionChange)
+		self.vbox.Add(self.resolution,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.SetSizer(self.vbox)
 		self.Fit()
 		self.Show()
+	def OnShaft(self, event):
+		rb = event.GetEventObject()
+		rselect = rb.GetLabel()
+		if rselect == 'Line':
+			self.panelvisual.axes.SetShaftTypeToLine()
+		elif rselect == 'Cylinder':
+			self.panelvisual.axes.SetShaftTypeToCylinder()
+		self.panelvisual.RefreshScene()
+	def OnShaftRadiusChange(self, event):
+		radius = float(self.shaft.value.GetValue())
+		self.panelvisual.axes.SetCylinderRadius(radius)
+		self.panelvisual.RefreshScene()
+	def OnShaftOpacityChange(self, event):
+		opac = float(self.shaft_opac.value.GetValue())
+		self.panelvisual.axes.GetXAxisShaftProperty().SetOpacity(opac)
+		self.panelvisual.axes.GetYAxisShaftProperty().SetOpacity(opac)
+		self.panelvisual.axes.GetZAxisShaftProperty().SetOpacity(opac)
+		self.panelvisual.RefreshScene()
+	def OnConeOpacityChange(self, event):
+		opac = float(self.cone_opac.value.GetValue())
+		self.panelvisual.axes.GetXAxisTipProperty().SetOpacity(opac)
+		self.panelvisual.axes.GetYAxisTipProperty().SetOpacity(opac)
+		self.panelvisual.axes.GetZAxisTipProperty().SetOpacity(opac)
+		self.panelvisual.RefreshScene()
+	def OnConeRadiusChange(self, event):
+		radius = float(self.cone.value.GetValue())
+		self.panelvisual.axes.SetConeRadius(radius)
+		self.panelvisual.RefreshScene()
+	def OnChkboxLabel(self, event):
+		if self.label_enable.GetValue() == True:
+			self.panelvisual.axes.AxisLabelsOn()
+		else:
+			self.panelvisual.axes.AxisLabelsOff()
+		self.panelvisual.RefreshScene()
+	def OnChkboxLabelShadow(self, event):
+		if self.label_shadow.GetValue() == True:
+			self.panelvisual.axestext.ShadowOn()
+		else:
+			self.panelvisual.axestext.ShadowOff()
+		self.panelvisual.RefreshScene()
+	def OnLabelEdit(self, event):
+		x = self.labelx.GetValue()
+		y = self.labely.GetValue()
+		z = self.labelz.GetValue()
+		self.panelvisual.axes.SetXAxisLabelText(x)
+		self.panelvisual.axes.SetYAxisLabelText(y)
+		self.panelvisual.axes.SetZAxisLabelText(z)
+		self.panelvisual.RefreshScene()
+	def OnLabelRGB(self, event):
+		r = float(self.labelr.value.GetValue())
+		g = float(self.labelg.value.GetValue())
+		b = float(self.labelb.value.GetValue())
+		self.panelvisual.axestext.SetColor(r,g,b)
+		self.panelvisual.RefreshScene()
+	def OnLabelFontSize(self, event):
+		size = int(float(self.labelfontsize.value.GetValue()))
+		self.panelvisual.axestext.SetFontSize(size)
+		self.panelvisual.RefreshScene()
+	def OnRotateKey(self, event):
+		if event.GetKeyCode() == wx.WXK_RETURN:
+			self.OnRotateChange(None)
+		else:
+			event.Skip()
+	def OnRotateChange(self, event):
+		angle1 = float(self.rotationangle1.value.GetValue())
+		angle2 = float(self.rotationangle2.value.GetValue())
+		angle3 = float(self.rotationangle3.value.GetValue())
+		dx = angle1 - self.panelvisual.axestransformRX
+		dy = angle2 - self.panelvisual.axestransformRY
+		dz = angle3 - self.panelvisual.axestransformRZ
+		self.panelvisual.axestransformRX = angle1
+		self.panelvisual.axestransformRY = angle2
+		self.panelvisual.axestransformRZ = angle3
+		self.panelvisual.axestransform.RotateZ(dz)
+		self.panelvisual.axestransform.RotateY(dy)
+		self.panelvisual.axestransform.RotateX(dx)
+		self.panelvisual.axes.Modified()
+		self.panelvisual.RefreshScene()
+	def OnResolutionChange(self, event):
+		res = int(float(self.resolution.value.GetValue()))
+		self.panelvisual.axes.SetCylinderResolution(res)
+		self.panelvisual.axes.SetConeResolution(res)
+		self.panelvisual.RefreshScene()
 	def OnChkbox(self, event):
 		if(event.GetEventObject().GetValue() == True):
 			if self.panelvisual.widget.GetEnabled() == 0:
@@ -717,6 +909,329 @@ class DataRangeDialog(wx.Dialog):
 	def RefreshVisualDialog(self):
 		self.panelvisual.RefreshScene()
 		self.panelvisual.RefreshSceneFull()
+class SBDialog(wx.Dialog):
+	def __init__(self, parent):
+		wx.Dialog.__init__(self, parent, title="Scale Bar", size=(500,530), style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+		self.SetSizeHints(500,530,-1,-1)
+		self.Bind(wx.EVT_CLOSE, self.OnExit)
+		self.panelvisual = self.GetParent()
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+		self.sbox1 = wx.StaticBox(self, label="Label colour", style=wx.BORDER_DEFAULT)
+		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
+		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox11 = wx.BoxSizer(wx.HORIZONTAL)
+		labelcolours = self.panelvisual.scalebar_amp_real.GetLabelTextProperty().GetColor()
+		self.labelr = SpinnerObject(self,"Red:",1.0,0.0,0.1,labelcolours[0],40,50)
+		self.labelg = SpinnerObject(self,"Green:",1.0,0.0,0.1,labelcolours[1],40,50)
+		self.labelb = SpinnerObject(self,"Blue:",1.0,0.0,0.1,labelcolours[2],40,50)
+		self.labelr.spin.SetEventFunc(self.OnLabelRGB)
+		self.labelg.spin.SetEventFunc(self.OnLabelRGB)
+		self.labelb.spin.SetEventFunc(self.OnLabelRGB)
+		self.labelr.value.Bind(wx.EVT_KEY_UP, self.OnLabelRGBKey)
+		self.labelg.value.Bind(wx.EVT_KEY_UP, self.OnLabelRGBKey)
+		self.labelb.value.Bind(wx.EVT_KEY_UP, self.OnLabelRGBKey)
+		self.hbox1.Add(self.labelr, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox1.Add(self.labelg, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox1.Add(self.labelb, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.labelfontsize = SpinnerObject(self,"Font size:",MAX_INT_16,1,1,self.panelvisual.scalebar_amp_real.GetLabelTextProperty().GetFontSize(),60,50)
+		self.labelfontsize.spin.SetEventFunc(self.OnLabelFontSize)
+		self.labelfontsizeauto = CheckBoxNew(self, -1, 'Auto')
+		if self.panelvisual.scalebar_amp_real.GetUnconstrainedFontSize() == False:
+			self.labelfontsizeauto.SetValue(True)
+			self.labelfontsize.Disable()
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLabelFontSize, self.labelfontsizeauto)
+		self.hbox11.Add(self.labelfontsize, 0 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox11.Add(self.labelfontsizeauto, 0 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.label_shadow = CheckBoxNew(self, -1, 'Enable Label Shadows')
+		if self.panelvisual.scalebar_amp_real.GetLabelTextProperty().GetShadow() != 0:
+			self.label_shadow.SetValue(True)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLabelShadow, self.label_shadow)
+		self.sboxs1.Add(self.hbox1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sboxs1.Add(self.hbox11,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=8)
+		self.sboxs1.Add(self.label_shadow, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=8)
+		self.vbox.Add(self.sboxs1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add((-1, 5))
+		self.hboxfmt = wx.BoxSizer(wx.HORIZONTAL)
+		self.labeltitle = wx.StaticText(self, label="Label Format: ")
+		self.labelformat = wx.TextCtrl(self, -1, style=wx.TE_PROCESS_ENTER)
+		self.labelformat.SetValue(self.panelvisual.scalebar_amp_real.GetLabelFormat())
+		self.labelformat.Bind(wx.EVT_TEXT_ENTER, self.OnLabelFormat)
+		self.hboxfmt.Add(self.labeltitle,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.hboxfmt.Add(self.labelformat,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.vbox.Add(self.hboxfmt,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.vbox.Add((-1, 5))
+		self.sbox2 = wx.StaticBox(self, label="Dimensions", style=wx.BORDER_DEFAULT)
+		self.sboxs2 = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
+		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.dimx = SpinnerObject(self,"Width:",1.0,0.0,0.01,self.panelvisual.scalebar_amp_real.GetWidth(),60,100)
+		self.dimy = SpinnerObject(self,"Height:",1.0,0.0,0.01,self.panelvisual.scalebar_amp_real.GetHeight(),60,100)
+		self.dimx.spin.SetEventFunc(self.OnDim)
+		self.dimy.spin.SetEventFunc(self.OnDim)
+		self.dimx.value.Bind(wx.EVT_KEY_UP, self.OnDimKey)
+		self.dimy.value.Bind(wx.EVT_KEY_UP, self.OnDimKey)
+		self.hbox2.Add(self.dimx, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox2.Add(self.dimy, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.sboxs2.Add(self.hbox2,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.vbox.Add(self.sboxs2,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.sbox3 = wx.StaticBox(self, label="Position", style=wx.BORDER_DEFAULT)
+		self.sboxs3 = wx.StaticBoxSizer(self.sbox3,wx.VERTICAL)
+		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+		posxy = self.panelvisual.scalebar_amp_real.GetPosition()
+		self.posx = SpinnerObject(self,"x:",1.0,0.0,0.01,posxy[0],60,100)
+		self.posy = SpinnerObject(self,"y:",1.0,0.0,0.01,posxy[1],60,100)
+		self.posx.spin.SetEventFunc(self.OnPos)
+		self.posy.spin.SetEventFunc(self.OnPos)
+		self.posx.value.Bind(wx.EVT_KEY_UP, self.OnPosKey)
+		self.posy.value.Bind(wx.EVT_KEY_UP, self.OnPosKey)
+		self.hbox3.Add(self.posx, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox3.Add(self.posy, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.sboxs3.Add(self.hbox3,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.vbox.Add(self.sboxs3,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.vbox.Add((-1, 5))
+		self.nlabels = SpinnerObject(self,"Number of labels:",MAX_INT_16,0,1,self.panelvisual.scalebar_amp_real.GetNumberOfLabels(),150,50)
+		self.nlabels.spin.SetEventFunc(self.OnNLabels)
+		self.nlabels.value.Bind(wx.EVT_KEY_UP, self.OnNLabelsKey)
+		self.vbox.Add(self.nlabels,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.vbox.Add((-1, 5))
+		self.tickframe = CheckBoxNew(self, -1, 'Enable Frame')
+		if self.panelvisual.scalebar_amp_real.GetDrawFrame() != 0:
+			self.tickframe.SetValue(True)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxTickframe, self.tickframe)
+		self.vbox.Add(self.tickframe,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.vbox.Add((-1, 5))
+		self.rborient = wx.RadioBox(self, label="Orientation", choices=['Vertical','Horizontal'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
+		self.Bind(wx.EVT_RADIOBOX, self.OnRadioOrient, self.rborient)
+		if self.panelvisual.scalebar_amp_real.GetOrientation() != 0:
+			self.rborient.SetSelection(0)
+		self.vbox.Add(self.rborient,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.vbox.Add((-1, 5))
+		self.rbtextpos = wx.RadioBox(self, label="Text position", choices=['Succeed', 'Precede'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
+		self.Bind(wx.EVT_RADIOBOX, self.OnRadioTextPos, self.rbtextpos)
+		if self.panelvisual.scalebar_amp_real.GetTextPosition() != 0:
+			self.rbtextpos.SetSelection(0)
+		self.vbox.Add(self.rbtextpos,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.vbox.Add((-1, 30))
+		self.SetSizer(self.vbox)
+		self.Fit()
+		self.Show()
+	def OnExit(self,event):
+		del self.panelvisual.SBdialog
+		self.Destroy()
+	def OnLabelRGBKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
+		else:
+			self.OnLabelRGB(event)
+	def OnLabelRGB(self, event):
+		r = float(self.labelr.value.GetValue())
+		g = float(self.labelg.value.GetValue())
+		b = float(self.labelb.value.GetValue())
+		self.panelvisual.scalebar_amp_real.GetLabelTextProperty().SetColor(r,g,b)
+		self.panelvisual.scalebar_phase_real.GetLabelTextProperty().SetColor(r,g,b)
+		self.panelvisual.scalebar_amp_recip.GetLabelTextProperty().SetColor(r,g,b)
+		self.panelvisual.scalebar_phase_recip.GetLabelTextProperty().SetColor(r,g,b)
+		self.panelvisual.RefreshScene()
+	def OnLabelFontSize(self, event):
+		size = int(float(self.labelfontsize.value.GetValue()))
+		self.panelvisual.scalebar_amp_real.GetLabelTextProperty().SetFontSize(size)
+		self.panelvisual.scalebar_phase_real.GetLabelTextProperty().SetFontSize(size)
+		self.panelvisual.scalebar_amp_recip.GetLabelTextProperty().SetFontSize(size)
+		self.panelvisual.scalebar_phase_recip.GetLabelTextProperty().SetFontSize(size)
+		self.panelvisual.RefreshScene()
+	def OnChkboxLabelShadow(self, event):
+		if self.label_shadow.GetValue() == True:
+			self.panelvisual.scalebar_amp_real.GetLabelTextProperty().ShadowOn()
+			self.panelvisual.scalebar_phase_real.GetLabelTextProperty().ShadowOn()
+			self.panelvisual.scalebar_amp_recip.GetLabelTextProperty().ShadowOn()
+			self.panelvisual.scalebar_phase_recip.GetLabelTextProperty().ShadowOn()
+		else:
+			self.panelvisual.scalebar_amp_real.GetLabelTextProperty().ShadowOff()
+			self.panelvisual.scalebar_phase_real.GetLabelTextProperty().ShadowOff()
+			self.panelvisual.scalebar_amp_recip.GetLabelTextProperty().ShadowOff()
+			self.panelvisual.scalebar_phase_recip.GetLabelTextProperty().ShadowOff()
+		self.panelvisual.RefreshScene()
+	def OnLabelFormat(self, event):
+		value = self.labelformat.GetValue()
+		try:
+			self.panelvisual.scalebar_amp_real.SetLabelFormat(value)
+			self.panelvisual.scalebar_phase_real.SetLabelFormat(value)
+			self.panelvisual.scalebar_amp_recip.SetLabelFormat(value)
+			self.panelvisual.scalebar_phase_recip.SetLabelFormat(value)
+		except:
+			pass
+		self.panelvisual.RefreshScene()
+	def OnChkboxLabelFontSize(self, event):
+		if self.labelfontsizeauto.GetValue() == True:
+			self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOff()
+			self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOff()
+			self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOff()
+			self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOff()
+			self.labelfontsize.Disable()
+		else:
+			self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOn()
+			self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOn()
+			self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOn()
+			self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOn()
+			self.labelfontsize.Enable()
+		self.panelvisual.RefreshScene()
+	def OnDimKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
+		else:
+			self.OnDim(event)
+	def OnDim(self, event):
+		x = float(self.dimx.value.GetValue())
+		y = float(self.dimy.value.GetValue())
+		self.panelvisual.scalebar_amp_real.SetWidth(x)
+		self.panelvisual.scalebar_phase_real.SetWidth(x)
+		self.panelvisual.scalebar_amp_recip.SetWidth(x)
+		self.panelvisual.scalebar_phase_recip.SetWidth(x)
+		self.panelvisual.scalebar_amp_real.SetHeight(y)
+		self.panelvisual.scalebar_phase_real.SetHeight(y)
+		self.panelvisual.scalebar_amp_recip.SetHeight(y)
+		self.panelvisual.scalebar_phase_recip.SetHeight(y)
+		self.panelvisual.RefreshScene()
+	def OnPosKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
+		else:
+			self.OnPos(event)
+	def OnPos(self, event):
+		x = float(self.posx.value.GetValue())
+		y = float(self.posy.value.GetValue())
+		self.panelvisual.scalebar_amp_real.SetPosition(x,y)
+		self.panelvisual.scalebar_phase_real.SetPosition(x,y)
+		self.panelvisual.scalebar_amp_recip.SetPosition(x,y)
+		self.panelvisual.scalebar_phase_recip.SetPosition(x,y)
+		self.panelvisual.RefreshScene()
+	def OnNLabelsKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
+		else:
+			self.OnNLabels(event)
+	def OnNLabels(self, event):
+		nlabels = int(float(self.nlabels.value.GetValue()))
+		self.panelvisual.scalebar_amp_real.SetNumberOfLabels(nlabels)
+		self.panelvisual.scalebar_phase_real.SetNumberOfLabels(nlabels)
+		self.panelvisual.scalebar_amp_recip.SetNumberOfLabels(nlabels)
+		self.panelvisual.scalebar_phase_recip.SetNumberOfLabels(nlabels)
+		self.panelvisual.RefreshScene()
+	def OnChkboxTickframe(self, event):
+		if self.tickframe.GetValue() == True:
+			self.panelvisual.scalebar_amp_real.DrawFrameOn()
+			self.panelvisual.scalebar_phase_real.DrawFrameOn()
+			self.panelvisual.scalebar_amp_recip.DrawFrameOn()
+			self.panelvisual.scalebar_phase_recip.DrawFrameOn()
+		else:
+			self.panelvisual.scalebar_amp_real.DrawFrameOff()
+			self.panelvisual.scalebar_phase_real.DrawFrameOff()
+			self.panelvisual.scalebar_amp_recip.DrawFrameOff()
+			self.panelvisual.scalebar_phase_recip.DrawFrameOff()
+		self.panelvisual.RefreshScene()
+	def OnRadioOrient(self, event):
+		rselect = self.rborient.GetStringSelection()
+		if rselect == 'Vertical':
+			self.panelvisual.scalebar_amp_real.SetOrientationToVertical()
+			self.panelvisual.scalebar_phase_real.SetOrientationToVertical()
+			self.panelvisual.scalebar_amp_recip.SetOrientationToVertical()
+			self.panelvisual.scalebar_phase_recip.SetOrientationToVertical()
+		else:
+			self.panelvisual.scalebar_amp_real.SetOrientationToHorizontal()
+			self.panelvisual.scalebar_phase_real.SetOrientationToHorizontal()
+			self.panelvisual.scalebar_amp_recip.SetOrientationToHorizontal()
+			self.panelvisual.scalebar_phase_recip.SetOrientationToHorizontal()
+		self.panelvisual.RefreshScene()
+	def OnRadioTextPos(self, event):
+		rselect = self.rbtextpos.GetStringSelection()
+		if rselect == 'Precede':
+			self.panelvisual.scalebar_amp_real.SetTextPositionToPrecedeScalarBar()
+			self.panelvisual.scalebar_phase_real.SetTextPositionToPrecedeScalarBar()
+			self.panelvisual.scalebar_amp_recip.SetTextPositionToPrecedeScalarBar()
+			self.panelvisual.scalebar_phase_recip.SetTextPositionToPrecedeScalarBar()
+		else:
+			self.panelvisual.scalebar_amp_real.SetTextPositionToSucceedScalarBar()
+			self.panelvisual.scalebar_phase_real.SetTextPositionToSucceedScalarBar()
+			self.panelvisual.scalebar_amp_recip.SetTextPositionToSucceedScalarBar()
+			self.panelvisual.scalebar_phase_recip.SetTextPositionToSucceedScalarBar()
+		self.panelvisual.RefreshScene()
+class LightDialog(wx.Dialog):
+	def __init__(self, parent):
+		wx.Dialog.__init__(self, parent, title="Light Properties", size=(350,350), style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+		self.SetSizeHints(350,350,-1,-1)
+		self.Bind(wx.EVT_CLOSE, self.OnExit)
+		self.panelvisual = self.GetParent()
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+		self.ambient = SpinnerObject(self,"Ambient lighting coefficient: ",1.0,0.0,0.01,self.panelvisual.actor_amp_real.GetProperty().GetAmbient(),200,100)
+		self.ambient.spin.SetEventFunc(self.OnAmbient)
+		self.ambient.value.Bind(wx.EVT_KEY_UP, self.OnAmbientKey)
+		self.vbox.Add(self.ambient,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+		self.diffuse = SpinnerObject(self,"Diffuse lighting coefficient: ",1.0,0.0,0.01,self.panelvisual.actor_amp_real.GetProperty().GetDiffuse(),200,100)
+		self.diffuse.spin.SetEventFunc(self.OnDiffuse)
+		self.diffuse.value.Bind(wx.EVT_KEY_UP, self.OnDiffuseKey)
+		self.vbox.Add(self.diffuse,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+		self.specular = SpinnerObject(self,"Specular lighting coefficient: ",1.0,0.0,0.01,self.panelvisual.actor_amp_real.GetProperty().GetSpecular(),200,100)
+		self.specular.spin.SetEventFunc(self.OnSpecular)
+		self.specular.value.Bind(wx.EVT_KEY_UP, self.OnSpecularKey)
+		self.vbox.Add(self.specular,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+		self.specularpower = SpinnerObject(self,"Specular Power: ",MAX_INT,0.0,1,self.panelvisual.actor_amp_real.GetProperty().GetSpecularPower(),200,100)
+		self.specularpower.spin.SetEventFunc(self.OnSpecularpower)
+		self.specularpower.value.Bind(wx.EVT_KEY_UP, self.OnSpecularpowerKey)
+		self.vbox.Add(self.specularpower,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+		self.vbox.Add((-1, 20))
+		self.SetSizer(self.vbox)
+		self.Fit()
+		self.Show()
+	def OnExit(self,event):
+		del self.panelvisual.Lightdialog
+		self.Destroy()
+	def OnAmbientKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
+		else:
+			self.OnAmbient(event)
+	def OnAmbient(self, event):
+		value = float(self.ambient.value.GetValue())
+		self.panelvisual.actor_amp_real.GetProperty().SetAmbient(value)
+		self.panelvisual.actor_phase_real.GetProperty().SetAmbient(value)
+		self.panelvisual.actor_amp_recip.GetProperty().SetAmbient(value)
+		self.panelvisual.actor_phase_recip.GetProperty().SetAmbient(value)
+		self.panelvisual.RefreshScene()
+	def OnDiffuseKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
+		else:
+			self.OnDiffuse(event)
+	def OnDiffuse(self, event):
+		value = float(self.diffuse.value.GetValue())
+		self.panelvisual.actor_amp_real.GetProperty().SetDiffuse(value)
+		self.panelvisual.actor_phase_real.GetProperty().SetDiffuse(value)
+		self.panelvisual.actor_amp_recip.GetProperty().SetDiffuse(value)
+		self.panelvisual.actor_phase_recip.GetProperty().SetDiffuse(value)
+		self.panelvisual.RefreshScene()
+	def OnSpecularKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
+		else:
+			self.OnSpecular(event)
+	def OnSpecular(self, event):
+		value = float(self.specular.value.GetValue())
+		self.panelvisual.actor_amp_real.GetProperty().SetSpecular(value)
+		self.panelvisual.actor_phase_real.GetProperty().SetSpecular(value)
+		self.panelvisual.actor_amp_recip.GetProperty().SetSpecular(value)
+		self.panelvisual.actor_phase_recip.GetProperty().SetSpecular(value)
+		self.panelvisual.RefreshScene()
+	def OnSpecularpowerKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
+		else:
+			self.OnSpecularpower(event)
+	def OnSpecularpower(self, event):
+		value = float(self.specularpower.value.GetValue())
+		self.panelvisual.actor_amp_real.GetProperty().SetSpecularPower(value)
+		self.panelvisual.actor_phase_real.GetProperty().SetSpecularPower(value)
+		self.panelvisual.actor_amp_recip.GetProperty().SetSpecularPower(value)
+		self.panelvisual.actor_phase_recip.GetProperty().SetSpecularPower(value)
+		self.panelvisual.RefreshScene()
 class LUTDialog(wx.Dialog):
 	def __init__(self, parent):
 		wx.Dialog.__init__(self, parent, title="Lookup Table", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
@@ -887,6 +1402,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.data_max = 0.0
 		self.data_max_recip = 0.0
 		self.data_max_support = 1.0
+		self.FXAA = False
 		self.coords = None
 		self.inputdata = None
 		self.image_probe = None
@@ -971,10 +1487,14 @@ class PanelVisual(wx.Panel,wx.App):
 		self.style3D = vtk.vtkInteractorStyleSwitch()
 		self.style3D.SetCurrentStyleToTrackballCamera()
 		self.renderers = None
-		self.renderer_amp_real = vtk.vtkRenderer()
-		self.renderer_phase_real = vtk.vtkRenderer()
-		self.renderer_amp_recip = vtk.vtkRenderer()
-		self.renderer_phase_recip = vtk.vtkRenderer()
+		self.renderer_amp_real_docked = vtk.vtkRenderer()
+		self.renderer_phase_real_docked = vtk.vtkRenderer()
+		self.renderer_amp_recip_docked = vtk.vtkRenderer()
+		self.renderer_phase_recip_docked = vtk.vtkRenderer()
+		self.renderer_amp_real = self.renderer_amp_real_docked
+		self.renderer_phase_real = self.renderer_phase_real_docked
+		self.renderer_amp_recip = self.renderer_amp_recip_docked
+		self.renderer_phase_recip = self.renderer_phase_recip_docked
 		self.renderer_amp_real.SetBackground(0.0, 0.0, 0.0)
 		self.renderer_phase_real.SetBackground(0.0, 0.0, 0.0)
 		self.renderer_amp_recip.SetBackground(0.0, 0.0, 0.0)
@@ -1009,6 +1529,18 @@ class PanelVisual(wx.Panel,wx.App):
 		self.axis2D = vtk.vtkCubeAxesActor2D()
 		self.axis2D_phase = vtk.vtkCubeAxesActor2D()
 		self.axes = vtk.vtkAxesActor()
+		self.axestext = vtk.vtkTextProperty()
+		self.axestext.SetColor(1.0, 1.0, 1.0)
+		self.axestext.SetFontSize(12)
+		self.axestext.ShadowOn()
+		self.axes.GetXAxisCaptionActor2D().SetCaptionTextProperty(self.axestext)
+		self.axes.GetYAxisCaptionActor2D().SetCaptionTextProperty(self.axestext)
+		self.axes.GetZAxisCaptionActor2D().SetCaptionTextProperty(self.axestext)
+		self.axestransform = vtk.vtkTransform()
+		self.axestransformRX = 0.0
+		self.axestransformRY = 0.0
+		self.axestransformRZ = 0.0
+		self.axes.SetUserTransform(self.axestransform)
 		self.widget = vtk.vtkOrientationMarkerWidget()
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.hboxrender = wx.BoxSizer(wx.HORIZONTAL)
@@ -1160,6 +1692,21 @@ class PanelVisual(wx.Panel,wx.App):
 		self.RefreshSceneCMD()
 		if gotovisual:
 			self.ancestor.SetSelection(1)
+	def FXAAScene(self, enable=True):
+		if enable:
+			if hasattr(self.renderer_amp_real, 'UseFXAAOn'):
+				self.renderer_amp_real.UseFXAAOn()
+				self.renderer_phase_real.UseFXAAOn()
+				self.renderer_amp_recip.UseFXAAOn()
+				self.renderer_phase_recip.UseFXAAOn()
+				self.FXAA = True
+		else:
+			if hasattr(self.renderer_amp_real, 'UseFXAAOff'):
+				self.renderer_amp_real.UseFXAAOff()
+				self.renderer_phase_real.UseFXAAOff()
+				self.renderer_amp_recip.UseFXAAOff()
+				self.renderer_phase_recip.UseFXAAOff()
+				self.FXAA = False
 	def ReleaseVisualButtons(self, gotovisual=False):
 		self.button_scalerange.Enable(True)
 		self.button_measure.Enable(True)
@@ -1173,12 +1720,16 @@ class PanelVisual(wx.Panel,wx.App):
 		self.button_animate.Enable(True)
 		self.ancestor.GetParent().viewmenuundock.Enable(1)
 		self.ancestor.GetParent().viewmenudock.Enable(1)
+		self.ancestor.GetParent().scenemenu_animate.Enable(1)
+		self.ancestor.GetParent().scenemenu_measure.Enable(1)
 		self.RefreshSceneFull(gotovisual)
 	def SetPhaseVisualButtons(self):
 		self.button_animate.Enable(True)
 		self.button_measure.Enable(False)
 		self.button_scalerange.Enable(False)
 		self.button_vremove.Enable(False)
+		self.ancestor.GetParent().scenemenu_animate.Enable(0)
+		self.ancestor.GetParent().scenemenu_measure.Enable(0)
 		self.ancestor.GetParent().viewmenuundock.Enable(1)
 		self.ancestor.GetParent().viewmenudock.Enable(1)
 	def PickCoords(self, object, event):
@@ -1227,6 +1778,40 @@ class PanelVisual(wx.Panel,wx.App):
 		else:
 			writer.SetInputData(w2if.GetOutput())
 		writer.Write()
+	def SaveSceneAs(self,event):
+		filetypes = "PNG files (*.png)|*.png|JPEG files (*.jpg)|*.jpg|TIFF files (*.tif)|*.tif"
+		filetypeext = [".png",".jpg",".tif"]
+		cwd = self.ancestor.GetParent().CurrentWD()
+		if IsNotWX4():
+			dlg = wx.FileDialog(self, "Choose a file", cwd, "", filetypes, wx.SAVE | wx.OVERWRITE_PROMPT)
+		else:
+			dlg = wx.FileDialog(self, "Choose a file", cwd, "", filetypes, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+		if dlg.ShowModal() == wx.ID_OK:
+			filename=dlg.GetFilename()
+			dirname=dlg.GetDirectory()
+			file_ext = os.path.splitext(filename)[1]
+			if file_ext not in filetypeext:
+				file_ext = ".png"
+				filename = filename + file_ext
+			w2if = vtk.vtkWindowToImageFilter()
+			w2if.SetInput(self.renWin.GetRenderWindow())
+			w2if.Update()
+			if file_ext == ".png":
+				writer = vtk.vtkPNGWriter()
+			elif file_ext == ".jpg":
+				writer = vtk.vtkJPEGWriter()
+			elif file_ext == ".tif":
+				writer = vtk.vtkTIFFWriter()
+			else:
+				writer = vtk.vtkPNGWriter()
+			filenamepath = os.path.join(dirname, filename)
+			writer.SetFileName(filenamepath)
+			if self.VTKIsNot6:
+				writer.SetInput(w2if.GetOutput())
+			else:
+				writer.SetInputData(w2if.GetOutput())
+			writer.Write()
+		dlg.Destroy()
 	def AnimateScene(self,event):
 		dialog = AnimateDialog(self)
 		dialog.ShowModal()
@@ -1247,16 +1832,18 @@ class PanelVisual(wx.Panel,wx.App):
 		dlg.GetColourData().SetChooseFull(True)
 		if dlg.ShowModal() == wx.ID_OK:
 			self.r,self.g,self.b = dlg.GetColourData().GetColour().Get(includeAlpha=False)
-			r = float(self.r)/255.0
-			g = float(self.g)/255.0
-			b = float(self.b)/255.0
-			renderers = self.renWin.GetRenderWindow().GetRenderers()
-			renderers.InitTraversal()
-			no_renderers = renderers.GetNumberOfItems()
-			for i in range(no_renderers):
-				renderers.GetItemAsObject(i).SetBackground(r, g, b)
+			self.SetBackground()
 			self.RefreshScene()
 		dlg.Destroy()
+	def SetBackground(self):
+		r = float(self.r)/255.0
+		g = float(self.g)/255.0
+		b = float(self.b)/255.0
+		renderers = self.renWin.GetRenderWindow().GetRenderers()
+		renderers.InitTraversal()
+		no_renderers = renderers.GetNumberOfItems()
+		for i in range(no_renderers):
+			renderers.GetItemAsObject(i).SetBackground(r, g, b)
 	def OnContourSelect(self, event, forceshow=False):
 		if self.button_contours_shown and not forceshow:
 			self.button_contour.SetBitmapLabel(getsphereBitmap())
@@ -1347,6 +1934,18 @@ class PanelVisual(wx.Panel,wx.App):
 			self.LUTdialog = LUTDialog(self)
 		else:
 			self.LUTdialog.Show()
+	def OnScalebarSelect(self, event):
+		try:
+			self.SBdialog
+		except AttributeError:
+			self.SBdialog = SBDialog(self)
+			self.SBdialog.Show()
+	def OnLightSelect(self, event):
+		try:
+			self.Lightdialog
+		except AttributeError:
+			self.Lightdialog = LightDialog(self)
+			self.Lightdialog.Show()
 	def DataRange(self, event):
 		dialog = DataRangeDialog(self)
 		dialog.ShowModal()

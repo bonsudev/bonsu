@@ -167,6 +167,12 @@ def SaveInstance(self):
 		if subpanelname == 'Auto Centre':
 			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
+		if subpanelname == 'Centred Resize':
+			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].dims[0].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].dims[1].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].dims[2].value.GetValue() )
 		if subpanelname == 'Wrap Data':
 			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
@@ -669,6 +675,16 @@ def RestoreInstance(self):
 			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
 			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
+			DoListCheck(panelphase, object, -1)
+		if subpanelname == 'Centred Resize':
+			panelphase.pipelineitems.append(SubPanel_CentredResize(panelphase.panel2))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
+			panelphase.pipelineitems[-1].output_filename.objectpath.SetValue(object[1])
+			panelphase.pipelineitems[-1].dims[0].value.SetValue(object[2])
+			panelphase.pipelineitems[-1].dims[1].value.SetValue(object[3])
+			panelphase.pipelineitems[-1].dims[2].value.SetValue(object[4])
 			DoListCheck(panelphase, object, -1)
 		if subpanelname == 'Wrap Data':
 			panelphase.pipelineitems.append(SubPanel_Wrap(panelphase.panel2))

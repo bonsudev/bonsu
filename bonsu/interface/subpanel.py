@@ -768,17 +768,20 @@ class KeyDialog(wx.Dialog):
 				object = object.get(key)
 			self.object = object
 			self.info.Clear()
-			self.info.AppendText("Data type: "+str(object.dtype.name)+os.linesep)
-			self.info.AppendText("Element size: "+str(object.dtype.itemsize)+os.linesep)
-			self.info.AppendText("Data shape: "+str(object.shape))
+			self.info.AppendText("Data type: "+str(object.dtype.name)+" ,    Byte order: "+str(object.dtype.byteorder)+os.linesep)
+			self.info.AppendText("Element size: "+str(object.dtype.itemsize)+" ,    Data shape: "+str(object.shape))
 			if self.rb.GetStringSelection() == 'Array':
 				self.dataview.Clear()
 				if str(object.dtype.name).startswith('string'):
 					self.dataview.AppendText(str(numpy.char.mod('%s',object)))
 				elif str(object.dtype.name).startswith('uint') or str(object.dtype.name).startswith('int'):
 					self.dataview.AppendText(str(numpy.char.mod('%d',object)))
-				else:
+				elif str(object.dtype.name).startswith('float'):
 					self.dataview.AppendText(str(numpy.char.mod('%e',object)))
+				elif str(object.dtype.name).startswith('byte'):
+					self.dataview.AppendText(str(numpy.char.mod('%s',numpy.array(object))))
+				else:
+					self.dataview.AppendText("Cannot display this data type.")
 			elif self.rb.GetStringSelection() == 'Image':
 				if (not str(object.dtype.name).startswith('string')):
 						if len(object.shape) == 2:
@@ -1004,6 +1007,33 @@ class SubPanel_Crop_Pad(wx.Panel):
 		hbox3.Add(self.pedims[1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		hbox3.Add(self.pedims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		vbox.Add(hbox3, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+class SubPanel_CentredResize(wx.Panel):
+	treeitem = {'name':  'Centred Resize' , 'type': 'operpre'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_CentredResize(selff, pipelineitem)
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = StaticTextNew(self, label="Centred Resize Array")
+		title.SetToolTipNew("Input array to resize"+os.linesep+"according to dimensions below.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.output_filename = TextPanelObject(self, "Output File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		title2 = wx.StaticText(self, label="New array dimensions: ")
+		vbox.Add(title2 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.dims=[{} for i in range(3)]
+		self.dims[0] = SpinnerObject(self,"x",MAX_INT_16,1,1,100,20,60)
+		self.dims[1] = SpinnerObject(self,"y",MAX_INT_16,1,1,100,20,60)
+		self.dims[2] = SpinnerObject(self,"z",MAX_INT_16,1,1,100,20,60)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.dims[0], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox.Add(self.dims[1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox.Add(self.dims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
 class SubPanel_Mask(wx.Panel):
