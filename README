@@ -14,6 +14,13 @@ doi:10.1107/S0021889812026751
 HISTORY
 ============
 
+Version 3.0.0
+
+	+ Algorithm scripting interface.
+	+ Python script function.
+	+ Memory management for large arrays.
+	* Minor interface improvements and bug fixes.
+
 Version 2.6.0
 
 	+ Scene menu entry for visualisation tools.
@@ -124,7 +131,7 @@ Version 1.0.0
 INSTALL
 ============
 - Bonsu requires:
-Python >= 2.6  < 3.0
+Python >= 2.7
 wxPython >= 2.8.10
 FFTW with threading >= 3.0
 NumPy (FFTW aware) >= 1.4.1
@@ -141,7 +148,7 @@ $ bonsu
 
 COPYING / LICENCE
 ============
-Copyright 2011 - 2018 - Marcus C. Newton <Bonsu.Devel@gmail.com>
+Copyright 2011 - 2019 - Marcus C. Newton <Bonsu.Devel@gmail.com>
 Registration number 284653218
 
 Please send any bugs, problems, and proposals to: Bonsu.Devel@gmail.com

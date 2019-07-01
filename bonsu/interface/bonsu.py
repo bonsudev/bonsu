@@ -19,20 +19,20 @@
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
 __author__ = "Marcus C. Newton"
-__copyright__ = "Copyright 2011-2017 Marcus C. Newton"
+__copyright__ = "Copyright 2011-2019 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "2.6.0"
+__version__ = "3.0.0"
 __maintainer__ = "Marcus C. Newton"
 __email__ = "Bonsu.Devel@gmail.com"
 __status__ = "Production"
-__builddate__ = '2018-02-16 16:12:07'
+__builddate__ = ''
 import os
 import sys
 import wx
 import numpy
 import vtk
-from PIL import Image
+from PIL import __version__ as PILVERSION
 from .panelphase import PanelPhase
 from .panelvisual import PanelVisual
 from .panelgraph import PanelGraph
@@ -73,11 +73,20 @@ class MainWindow(wx.Frame):
 		if IsNotWX4():
 			viewmenu.AppendMenu(wx.ID_ANY,"&Visualisation", vismenu)
 		else:
-			viewmenu.Append(wx.ID_ANY,"&Visualisation", vismenu)
+			viewmenu.AppendSubMenu(vismenu, "&Visualisation")
 		self.visualdialog_docked = True
 		editmenu = wx.Menu()
 		self.menuCWD = editmenu.Append(wx.ID_ANY, "Current Working &Directory","Current Working Directory")
 		self.Bind(wx.EVT_MENU, self.OnCWD, self.menuCWD)
+		memlimitmenu = wx.Menu()
+		self.memlimiton = memlimitmenu.Append(wx.ID_ANY,"On","Limit array size to half of physical memory")
+		self.memlimitoff = memlimitmenu.Append(wx.ID_ANY,"Off","Limit array size to half of physical memory")
+		if IsNotWX4():
+			editmenu.AppendMenu(wx.ID_ANY,"Array Size Limit", memlimitmenu)
+		else:
+			editmenu.AppendSubMenu(memlimitmenu,"Array Size Limit")
+		self.Bind(wx.EVT_MENU, self.OnMemLimitOn, self.memlimiton)
+		self.Bind(wx.EVT_MENU, self.OnMemLimitOff, self.memlimitoff)
 		helpmenu= wx.Menu()
 		menuAbout= helpmenu.Append(wx.ID_ABOUT, "&About"," Information about Bonsu")
 		menuDoc= helpmenu.Append(wx.ID_HELP, "&Contents","Documentation")
@@ -88,7 +97,7 @@ class MainWindow(wx.Frame):
 		if IsNotWX4():
 			scenemenu.AppendMenu(wx.ID_ANY,"FX &Antialiasing", fxaamenu)
 		else:
-			scenemenu.Append(wx.ID_ANY,"FX &Antialiasing", fxaamenu)
+			scenemenu.AppendSubMenu(fxaamenu,"FX &Antialiasing")
 		self.scenemenu_save = scenemenu.Append(wx.ID_ANY, "&Save","Save Scene")
 		self.Bind(wx.EVT_MENU, self.OnSceneSave, self.scenemenu_save)
 		self.scenemenu_saveas = scenemenu.Append(wx.ID_ANY, "&Save As","Save Scene")
@@ -101,8 +110,13 @@ class MainWindow(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnSceneMeasure, self.scenemenu_measure)
 		self.scenemenu_background = scenemenu.Append(wx.ID_ANY, "&Background","Background")
 		self.Bind(wx.EVT_MENU, self.OnSceneBackground, self.scenemenu_background)
+		self.scenemenu_contour = scenemenu.Append(wx.ID_ANY, "&Contour","Contour")
+		self.Bind(wx.EVT_MENU, self.OnSceneContour, self.scenemenu_contour)
 		self.scenemenu_lut = scenemenu.Append(wx.ID_ANY, "Lookup &table","Lookup table")
 		self.Bind(wx.EVT_MENU, self.OnSceneLUT, self.scenemenu_lut)
+		self.scenemenu_lut_range = scenemenu.Append(wx.ID_ANY, "Lookup table &range","Lookup table range")
+		self.scenemenu_lut_range.Enable(0)
+		self.Bind(wx.EVT_MENU, self.OnSceneLUTRange, self.scenemenu_lut_range)
 		self.scenemenu_scalebar = scenemenu.Append(wx.ID_ANY, "Scale &bar","Scale bar")
 		self.Bind(wx.EVT_MENU, self.OnSceneScalebar, self.scenemenu_scalebar)
 		self.scenemenu_light = scenemenu.Append(wx.ID_ANY, "&Lighting","Lighting")
@@ -155,7 +169,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		info.SetName('Bonsu')
 		info.SetVersion(__version__)
 		info.SetDescription(description)
-		info.SetCopyright('Copyright (C) 2011-2018 Marcus C. Newton')
+		info.SetCopyright('Copyright (C) 2011-2019 Marcus C. Newton')
 		info.SetWebSite('github.com/bonsudev/bonsu')
 		info.SetLicence(licence)
 		info.AddDeveloper('Marcus C. Newton')
@@ -164,7 +178,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		self.version_str_list.append("wxPython "+wx.version())
 		self.version_str_list.append("NumPy "+numpy.version.version)
 		self.version_str_list.append("VTK "+vtk.vtkVersion().GetVTKVersion())
-		self.version_str_list.append("PIL "+Image.VERSION)
+		self.version_str_list.append("PIL "+PILVERSION)
 		try:
 			import h5py
 			self.version_str_list.append("h5Py "+h5py.version.version)
@@ -278,6 +292,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		self.nb.GetPage(1).FXAAScene(True)
 	def OnFXAAOff(self, event):
 		self.nb.GetPage(1).FXAAScene(False)
+	def OnMemLimitOn(self, event):
+		self.nb.GetPage(0).citer_flow[10] = 0
+	def OnMemLimitOff(self, event):
+		self.nb.GetPage(0).citer_flow[10] = 1
 	def OnSceneSave(self, event):
 		self.nb.GetPage(1).SaveScene(None)
 	def OnSceneSaveAs(self, event):
@@ -288,8 +306,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		self.nb.GetPage(1).MeasureScene(None)
 	def OnSceneBackground(self, event):
 		self.nb.GetPage(1).OnColourSelect(None)
+	def OnSceneContour(self, event):
+		self.nb.GetPage(1).OnContourSelect(None)
 	def OnSceneLUT(self, event):
 		self.nb.GetPage(1).OnLUTSelect(None)
+	def OnSceneLUTRange(self, event):
+		self.nb.GetPage(1).DataRange(None)
 	def OnSceneScalebar(self, event):
 		self.nb.GetPage(1).OnScalebarSelect(None)
 	def OnSceneLight(self, event):
@@ -306,9 +328,10 @@ class main():
 		self.nb.AddPage(PanelStdOut(self.nb), "Log")
 		self.frame.nb = self.nb
 		self.frame.sizer.Add(self.nb, 1, wx.ALL|wx.EXPAND, 5)
-		self.frame.SetBackgroundColour(wx.NullColour)
+		self.frame.SetBackgroundColour(wx.SystemSettings.GetColour(0))
 		self.frame.SetSizer(self.frame.sizer)
 		self.frame.Fit()
+		self.frame.Layout()
 		self.frame.Show()
 		self.frame.OnFileArg()
 		app.MainLoop()

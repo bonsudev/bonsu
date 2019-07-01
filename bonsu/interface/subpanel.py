@@ -25,6 +25,32 @@ from PIL import Image
 from ..sequences.functions import *
 from ..sequences.algorithms import *
 from .common import *
+class SubPanel_PyScript(wx.Panel):
+	treeitem = {'name':  'Python Script' , 'type': 'operpre'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_PyScript(selff, pipelineitem)
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = StaticTextNew(self, label="Python Script:")
+		title.SetToolTipNew("Python Script.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.txt = wx.TextCtrl(self, style=wx.TE_BESTWRAP | wx.TE_MULTILINE)
+		self.txt.Enable(True)
+		self.txt.AppendText("# memory slot arrays are accessible in 'memory' dictionary."+os.linesep)
+		self.txt.AppendText("# phase reconstruction array is accessible as 'sequence'."+os.linesep)
+		self.txt.AppendText("# support array is accessible as 'support'."+os.linesep)
+		self.txt.AppendText("# mask array is accessible as 'mask'."+os.linesep)
+		self.txt.AppendText("# point-spread function array is accessible as 'psf'."+os.linesep)
+		self.txt.AppendText("# co-ordinates array is accessible as 'coordinates'."+os.linesep)
+		self.txt.AppendText("# Visualisation camera array is accessible as 'cameras'."+os.linesep)
+		self.txt.AppendText("# Visualisation renderer array is accessible as 'renderers'."+os.linesep)
+		self.txt.AppendText("# Visualisation render window is accessible as 'renderwindow'."+os.linesep)
+		self.txt.AppendText("# Visualisation scene can be refreshed with 'RefreshScene'."+os.linesep)
+		self.txt.AppendText("# Pass variables AND functions to functions explicity using argument declaration'."+os.linesep)
+		vbox.Add(self.txt, 1, wx.EXPAND | wx.ALL, 2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
 class SubPanel_Comments(wx.Panel):
 	treeitem = {'name':  'Comments' , 'type': 'operpreview'}
 	def sequence(self, selff, pipelineitem):
@@ -387,7 +413,7 @@ class SubPanel_Transpose_Array(wx.Panel):
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
 class SubPanel_HDF_to_Numpy(wx.Panel):
-	treeitem = {'name':  'HDF5 to Numpy', 'type': 'operpre'}
+	treeitem = {'name':  'HDF5 to Numpy', 'type': 'importtools'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_HDF_to_Numpy(selff, pipelineitem)
 	def __init__(self, parent):
@@ -859,7 +885,7 @@ class KeyDialog(wx.Dialog):
 		self.EndModal(wx.ID_YES)
 		self.Destroy()
 class SubPanel_SPE_to_Numpy(wx.Panel):
-	treeitem = {'name':  'SPE to Numpy' , 'type': 'operpre'}
+	treeitem = {'name':  'SPE to Numpy' , 'type': 'importtools'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_SPE_to_Numpy(selff, pipelineitem)
 	def __init__(self, parent):
@@ -874,7 +900,7 @@ class SubPanel_SPE_to_Numpy(wx.Panel):
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
 class SubPanel_Image_to_Numpy(wx.Panel):
-	treeitem = {'name':  'Image to Numpy' , 'type': 'operpre'}
+	treeitem = {'name':  'Image to Numpy' , 'type': 'importtools'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_Image_to_Numpy(selff, pipelineitem)
 	def __init__(self, parent):
@@ -882,14 +908,14 @@ class SubPanel_Image_to_Numpy(wx.Panel):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Convert Image file to Numpy array")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.input_filename = TextPanelObject(self, "Input Image File: ", "",150,"PNG files (*.png)|*.png|JPEG files (*.jpg)|*.jpg|PPM files (*.ppm)|*.ppm|TIF files (*.tif)|*.tif|All files (*.*)|*.*")
+		self.input_filename = TextPanelObject(self, "Input Image File: ", "",150,"PNG files (*.png)|*.png|JPEG files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PPM files (*.ppm)|*.ppm|TIFF files (*.tif;*.tiff)|*.tif;*.tiff|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.output_filename = TextPanelObject(self, "Output File: ", "",150,'*.npy')
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
 class SubPanel_Array_to_Memory(wx.Panel):
-	treeitem = {'name':  'Array to Memory' , 'type': 'operpre'}
+	treeitem = {'name':  'Array to Memory' , 'type': 'importtools'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_Array_to_Memory(selff, pipelineitem)
 	def __init__(self, parent):
@@ -905,7 +931,7 @@ class SubPanel_Array_to_Memory(wx.Panel):
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
 class SubPanel_Memory_to_Array(wx.Panel):
-	treeitem = {'name':  'Memory to Array' , 'type': 'operpre'}
+	treeitem = {'name':  'Memory to Array' , 'type': 'exporttools'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_Memory_to_Array(selff, pipelineitem)
 	def __init__(self, parent):
@@ -921,7 +947,7 @@ class SubPanel_Memory_to_Array(wx.Panel):
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
 class SubPanel_Load_PSF(wx.Panel):
-	treeitem = {'name':  'Load PSF' , 'type': 'algsstart'}
+	treeitem = {'name':  'Load PSF' , 'type': 'importtools'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_Load_PSF(selff, pipelineitem)
 	def __init__(self, parent):
@@ -1331,7 +1357,7 @@ class SubPanel_Cuboid_Support(wx.Panel):
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
 class SubPanel_ArraytoVTK(wx.Panel):
-	treeitem = {'name':  'Array to VTK' , 'type': 'operpre'}
+	treeitem = {'name':  'Array to VTK' , 'type': 'exporttools'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_ArraytoVTK(selff, pipelineitem)
 	def __init__(self,parent):
@@ -1350,7 +1376,7 @@ class SubPanel_ArraytoVTK(wx.Panel):
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
 class SubPanel_ObjecttoVTK(wx.Panel):
-	treeitem = {'name':  'Object to VTK' , 'type': 'operpre'}
+	treeitem = {'name':  'Object to VTK' , 'type': 'exporttools'}
 	def sequence(self, selff, pipelineitem):
 		Sequence_ObjecttoVTK(selff, pipelineitem)
 	def __init__(self,parent):
@@ -1430,8 +1456,9 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 	def sequence(self, selff, pipelineitem):
 		pass
 	def __init__(self,parent,ancestor):
-		from math import pi
+		pi = 3.141593
 		self.ancestor = ancestor
+		self.panelvisual = self.ancestor.GetPage(1)
 		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="View Numpy array")
@@ -1439,36 +1466,36 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		self.input_filename = TextPanelObject(self, "Input file: ", "",100,'*.npy')
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
-		self.rbampphase = wx.RadioBox(self, label="Type", choices=['Amplitude','Phase', 'Amplitude and Phase', 'Amplitude with Phase', 'Amplitude (cut plane)'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
+		self.rbampphase = wx.RadioBox(self, label="Type", choices=['Amplitude','Phase', 'Amplitude and Phase', 'Amplitude with Phase', 'Amplitude (cut plane)','Amplitude Clipped Phase'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
 		vbox.Add(self.rbampphase,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.Bind(wx.EVT_RADIOBOX, self.OnRadioSelect, self.rbampphase)
 		vbox.Add((-1, 5))
 		self.sbox1 = wx.StaticBox(self, label="Amplitude", style=wx.BORDER_DEFAULT)
 		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-		self.contour = SpinnerObject(self,"Isosurface:",MAX_INT,MIN_INT,1,100,100,100)
+		self.contour = SpinnerObject(self,"Isosurface:",MAX_INT,MIN_INT,1,100,150,100)
 		self.hbox1.Add(self.contour,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.hbox1.Add((5, -1))
-		self.opacity = SpinnerObject(self,"Opacity:",1.0,0.0,0.1,0.5,100,100)
+		self.opacity = SpinnerObject(self,"Opacity:",1.0,0.0,0.1,0.5,150,100)
 		self.hbox1.Add(self.opacity,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.sboxs1.Add(self.hbox1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.feature_angle = SpinnerObject(self,"Feature Angle:",180,0,1,90,100,100)
+		self.feature_angle = SpinnerObject(self,"Feature Angle:",180,0,1,90,150,100)
 		self.sboxs1.Add(self.feature_angle,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.sboxs1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.sbox2 = wx.StaticBox(self, label="Phase", style=wx.BORDER_DEFAULT)
 		self.sboxs2 = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-		self.phasemax = SpinnerObject(self,"Max:",pi,0.0,0.01,pi,50,150)
+		self.phasemax = SpinnerObject(self,"Max:",pi,0.0,0.01,pi,80,80)
 		self.hbox2.Add(self.phasemax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.hbox2.Add((5, -1))
-		self.phasemin = SpinnerObject(self,"Min:",0.0,-pi,0.01,-pi,50,150)
+		self.phasemin = SpinnerObject(self,"Min:",0.0,-pi,0.01,-pi,80,80)
 		self.hbox2.Add(self.phasemin, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.sboxs2.Add(self.hbox2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.sboxs2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 10))
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-		origintext = StaticTextNew(self, label="Origin:",size=(70, 30))
+		origintext = StaticTextNew(self, label="Origin:",size=(120, 30))
 		origintext.SetToolTipNew("Origin of cut plane")
 		self.ox = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,1,10,15,80)
 		self.oy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,1,10,15,80)
@@ -1479,7 +1506,7 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		self.hbox3.Add(self.oz ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		vbox.Add(self.hbox3 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
-		normaltext = StaticTextNew(self, label="Normal:",size=(70, 30))
+		normaltext = StaticTextNew(self, label="Normal:",size=(120, 30))
 		normaltext.SetToolTipNew("Normal to cut plane")
 		self.nx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
 		self.ny = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,0,15,80)
@@ -1490,8 +1517,20 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		self.hbox4.Add(self.nz ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		vbox.Add(self.hbox4 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		vbox.Add((-1, 5))
+		self.nx.spin.SetEventFunc(self.OnPlaneSpin)
+		self.nx.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.ny.spin.SetEventFunc(self.OnPlaneSpin)
+		self.ny.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.nz.spin.SetEventFunc(self.OnPlaneSpin)
+		self.nz.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.ox.spin.SetEventFunc(self.OnPlaneSpin)
+		self.ox.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.oy.spin.SetEventFunc(self.OnPlaneSpin)
+		self.oy.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.oz.spin.SetEventFunc(self.OnPlaneSpin)
+		self.oz.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
 		self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
-		spacetext = StaticTextNew(self, label="Spacing:",size=(70, 30))
+		spacetext = StaticTextNew(self, label="Spacing:",size=(120, 30))
 		spacetext.SetToolTipNew("Spacing between NumPy array points")
 		self.sx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
 		self.sy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
@@ -1501,6 +1540,11 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		self.hbox5.Add(self.sy ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		self.hbox5.Add(self.sz ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		vbox.Add(self.hbox5 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		vbox.Add((-1, 5))
+		self.hbox7 = wx.BoxSizer(wx.HORIZONTAL)
+		self.meshsubiter = SpinnerObject(self,"Clipped mesh iterations: ",MAX_INT_16,1,1,5,120,120)
+		self.hbox7.Add(self.meshsubiter , 0, flag=wx.EXPAND|wx.LEFT, border=10)
+		vbox.Add(self.hbox7 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		vbox.Add((-1, 5))
 		self.hbox6 = wx.BoxSizer(wx.HORIZONTAL)
 		self.chkbox_axes = wx.CheckBox(self, -1, 'View axes', size=(200, 20))
@@ -1522,6 +1566,22 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 	def SeqParser(self,event):
 		Sequence_View_Array(self, self.ancestor)
 		self.ancestor.GetPage(4).data_poll_timer.Start(1000)
+	def OnPlaneSpin(self,event):
+		nx = float(self.nx.value.GetValue())
+		ny = float(self.ny.value.GetValue())
+		nz = float(self.nz.value.GetValue())
+		ox = float(self.ox.value.GetValue())
+		oy = float(self.oy.value.GetValue())
+		oz = float(self.oz.value.GetValue())
+		self.panelvisual.plane.SetOrigin(ox,oy,oz)
+		self.panelvisual.plane.SetNormal(nx,ny,nz)
+		self.panelvisual.plane.Modified()
+		self.panelvisual.RefreshScene()
+	def OnPlaneKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN:
+			self.OnPlaneSpin(None)
+		else:
+			event.Skip()
 	def OnRadioSelect(self, event):
 		rselect = self.rbampphase.GetStringSelection()
 		if rselect == 'Amplitude':
@@ -1530,6 +1590,7 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 			self.hbox3.ShowItems(False)
 			self.hbox4.ShowItems(False)
 			self.hbox5.ShowItems(False)
+			self.hbox7.ShowItems(False)
 			self.Layout()
 		elif rselect == 'Amplitude with Phase':
 			self.sboxs1.ShowItems(True)
@@ -1537,6 +1598,7 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 			self.hbox3.ShowItems(False)
 			self.hbox4.ShowItems(False)
 			self.hbox5.ShowItems(False)
+			self.hbox7.ShowItems(False)
 			self.Layout()
 		elif rselect == 'Phase':
 			self.sboxs1.ShowItems(False)
@@ -1544,6 +1606,7 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 			self.hbox3.ShowItems(True)
 			self.hbox4.ShowItems(True)
 			self.hbox5.ShowItems(True)
+			self.hbox7.ShowItems(False)
 			self.Layout()
 		elif rselect == 'Amplitude (cut plane)':
 			self.sboxs1.ShowItems(False)
@@ -1551,6 +1614,7 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 			self.hbox3.ShowItems(True)
 			self.hbox4.ShowItems(True)
 			self.hbox5.ShowItems(True)
+			self.hbox7.ShowItems(False)
 			self.Layout()
 		elif rselect == 'Amplitude and Phase':
 			self.sboxs1.ShowItems(True)
@@ -1558,6 +1622,15 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 			self.hbox3.ShowItems(True)
 			self.hbox4.ShowItems(True)
 			self.hbox5.ShowItems(True)
+			self.hbox7.ShowItems(False)
+			self.Layout()
+		elif rselect == 'Amplitude Clipped Phase':
+			self.sboxs1.ShowItems(True)
+			self.sboxs2.ShowItems(True)
+			self.hbox3.ShowItems(True)
+			self.hbox4.ShowItems(True)
+			self.hbox5.ShowItems(True)
+			self.hbox7.ShowItems(True)
 			self.Layout()
 class SubPanel_Random(wx.Panel):
 	treeitem = {'name':  'Random Start' , 'type': 'algsstart'}
@@ -2517,6 +2590,21 @@ class SubPanel_Save_Residual(wx.Panel):
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+class SubPanel_Load_Coordinates(wx.Panel):
+	treeitem = {'name':  'Load Co-ordinates' , 'type': 'importtools'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_Load_Coordinates(selff, pipelineitem)
+	def __init__(self, parent):
+		self.start_iter = None
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = StaticTextNew(self, label="Load Coordinates to Numpy array.")
+		title.SetToolTipNew("Load Coordinates to Numpy array.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
 class SubPanel_Save_Coordinates(wx.Panel):
 	treeitem = {'name':  'Save Co-ordinates' , 'type': 'operpost'}
 	def sequence(self, selff, pipelineitem):
@@ -2537,8 +2625,9 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 	def sequence(self, selff, pipelineitem):
 		pass
 	def __init__(self,parent,ancestor):
-		from math import pi
+		pi = 3.141593
 		self.ancestor = ancestor
+		self.panelvisual = self.ancestor.GetPage(1)
 		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="View Numpy array with coordinate correction")
@@ -2548,36 +2637,36 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 		self.coords_filename = TextPanelObject(self, "Co-ord's file: ", "",100,'*.npy')
 		vbox.Add(self.coords_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
-		self.rbampphase = wx.RadioBox(self, label="Type", choices=['Amplitude','Phase', 'Amplitude and Phase', 'Amplitude with Phase', 'Amplitude (cut plane)'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
+		self.rbampphase = wx.RadioBox(self, label="Type", choices=['Amplitude','Phase', 'Amplitude and Phase', 'Amplitude with Phase', 'Amplitude (cut plane)','Amplitude Clipped Phase'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
 		vbox.Add(self.rbampphase,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.Bind(wx.EVT_RADIOBOX, self.OnRadioSelect, self.rbampphase)
 		vbox.Add((-1, 10))
 		self.sbox1 = wx.StaticBox(self, label="Amplitude", style=wx.BORDER_DEFAULT)
 		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-		self.contour = SpinnerObject(self,"Isosurface: ",MAX_INT,MIN_INT,1,100,100,100)
+		self.contour = SpinnerObject(self,"Isosurface: ",MAX_INT,MIN_INT,1,100,150,100)
 		self.hbox1.Add(self.contour,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.hbox1.Add((5, -1))
-		self.opacity = SpinnerObject(self,"Opacity: ",1.0,0.0,0.1,0.5,100,100)
+		self.opacity = SpinnerObject(self,"Opacity: ",1.0,0.0,0.1,0.5,150,100)
 		self.hbox1.Add(self.opacity,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.sboxs1.Add(self.hbox1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.feature_angle = SpinnerObject(self,"Feature Angle:",180,0,1,90,100,100)
-		self.sboxs1.Add(self.feature_angle,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.feature_angle = SpinnerObject(self,"Feature Angle:",180,0,1,90,150,100)
+		self.sboxs1.Add(self.feature_angle,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		vbox.Add(self.sboxs1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.sbox2 = wx.StaticBox(self, label="Phase", style=wx.BORDER_DEFAULT)
 		self.sboxs2 = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-		self.phasemax = SpinnerObject(self,"Max: ",pi,0.0,0.01,pi,50,150)
-		self.hbox2.Add(self.phasemax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.phasemax = SpinnerObject(self,"Max: ",pi,0.0,0.01,pi,80,80)
+		self.hbox2.Add(self.phasemax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		self.hbox2.Add((5, -1))
-		self.phasemin = SpinnerObject(self,"Min: ",0.0,-pi,0.01,-pi,50,150)
-		self.hbox2.Add(self.phasemin, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.phasemin = SpinnerObject(self,"Min: ",0.0,-pi,0.01,-pi,80,80)
+		self.hbox2.Add(self.phasemin, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		self.sboxs2.Add(self.hbox2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.sboxs2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-		origintext = StaticTextNew(self, label="Origin:",size=(70, 30))
+		origintext = StaticTextNew(self, label="Origin:",size=(120, 30))
 		origintext.SetToolTipNew("Origin of cut plane")
 		self.ox = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,1,10,15,80)
 		self.oy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,1,10,15,80)
@@ -2588,7 +2677,7 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 		self.hbox3.Add(self.oz ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		vbox.Add(self.hbox3 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
-		normaltext = StaticTextNew(self, label="Normal:",size=(70, 30))
+		normaltext = StaticTextNew(self, label="Normal:",size=(120, 30))
 		normaltext.SetToolTipNew("Normal to cut plane")
 		self.nx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
 		self.ny = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,0,15,80)
@@ -2598,6 +2687,23 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 		self.hbox4.Add(self.ny ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		self.hbox4.Add(self.nz ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		vbox.Add(self.hbox4 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.nx.spin.SetEventFunc(self.OnPlaneSpin)
+		self.nx.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.ny.spin.SetEventFunc(self.OnPlaneSpin)
+		self.ny.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.nz.spin.SetEventFunc(self.OnPlaneSpin)
+		self.nz.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.ox.spin.SetEventFunc(self.OnPlaneSpin)
+		self.ox.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.oy.spin.SetEventFunc(self.OnPlaneSpin)
+		self.oy.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		self.oz.spin.SetEventFunc(self.OnPlaneSpin)
+		self.oz.value.Bind(wx.EVT_KEY_DOWN, self.OnPlaneKey)
+		vbox.Add((-1, 5))
+		self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
+		self.meshsubiter = SpinnerObject(self,"Clipped mesh iterations: ",MAX_INT_16,1,1,5,120,120)
+		self.hbox5.Add(self.meshsubiter , 0, flag=wx.EXPAND|wx.LEFT, border=10)
+		vbox.Add(self.hbox5 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		vbox.Add((-1, 5))
 		self.hbox6 = wx.BoxSizer(wx.HORIZONTAL)
 		self.chkbox_axes = wx.CheckBox(self, -1, 'View axes', size=(200, 20))
@@ -2619,6 +2725,22 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 	def SeqParser(self,event):
 		Sequence_View_Object(self, self.ancestor)
 		self.ancestor.GetPage(4).data_poll_timer.Start(1000)
+	def OnPlaneSpin(self,event):
+		nx = float(self.nx.value.GetValue())
+		ny = float(self.ny.value.GetValue())
+		nz = float(self.nz.value.GetValue())
+		ox = float(self.ox.value.GetValue())
+		oy = float(self.oy.value.GetValue())
+		oz = float(self.oz.value.GetValue())
+		self.panelvisual.plane.SetOrigin(ox,oy,oz)
+		self.panelvisual.plane.SetNormal(nx,ny,nz)
+		self.panelvisual.plane.Modified()
+		self.panelvisual.RefreshScene()
+	def OnPlaneKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN:
+			self.OnPlaneSpin(None)
+		else:
+			event.Skip()
 	def OnRadioSelect(self, event):
 		rselect = self.rbampphase.GetStringSelection()
 		if rselect == 'Amplitude':
@@ -2626,37 +2748,49 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 			self.sboxs2.ShowItems(False)
 			self.hbox3.ShowItems(False)
 			self.hbox4.ShowItems(False)
+			self.hbox5.ShowItems(False)
 			self.Layout()
 		elif rselect == 'Amplitude with Phase':
 			self.sboxs1.ShowItems(True)
 			self.sboxs2.ShowItems(True)
 			self.hbox3.ShowItems(False)
 			self.hbox4.ShowItems(False)
+			self.hbox5.ShowItems(False)
 			self.Layout()
 		elif rselect == 'Phase':
 			self.sboxs1.ShowItems(False)
 			self.sboxs2.ShowItems(True)
 			self.hbox3.ShowItems(True)
 			self.hbox4.ShowItems(True)
+			self.hbox5.ShowItems(False)
 			self.Layout()
 		elif rselect == 'Amplitude (cut plane)':
 			self.sboxs1.ShowItems(False)
 			self.sboxs2.ShowItems(False)
 			self.hbox3.ShowItems(True)
 			self.hbox4.ShowItems(True)
+			self.hbox5.ShowItems(False)
 			self.Layout()
 		elif rselect == 'Amplitude and Phase':
 			self.sboxs1.ShowItems(True)
 			self.sboxs2.ShowItems(True)
 			self.hbox3.ShowItems(True)
 			self.hbox4.ShowItems(True)
+			self.hbox5.ShowItems(False)
+			self.Layout()
+		elif rselect == 'Amplitude Clipped Phase':
+			self.sboxs1.ShowItems(True)
+			self.sboxs2.ShowItems(True)
+			self.hbox3.ShowItems(True)
+			self.hbox4.ShowItems(True)
+			self.hbox5.ShowItems(True)
 			self.Layout()
 class SubPanel_View_VTK(wx.ScrolledWindow):
 	treeitem = {'name':  'View VTK Array' , 'type': 'operpreview'}
 	def sequence(self, selff, pipelineitem):
 		pass
 	def __init__(self,parent,ancestor):
-		from math import pi
+		pi = 3.141593
 		self.ancestor = ancestor
 		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
 		vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2674,9 +2808,9 @@ class SubPanel_View_VTK(wx.ScrolledWindow):
 		self.sbox1 = wx.StaticBox(self, label="Amplitude", style=wx.SUNKEN_BORDER)
 		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-		self.contour = SpinnerObject(self,"Isosurface:",MAX_INT,MIN_INT,1,100,100,100)
+		self.contour = SpinnerObject(self,"Isosurface:",MAX_INT,MIN_INT,1,100,150,100)
 		self.hbox1.Add(self.contour,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.feature_angle = SpinnerObject(self,"Feature Angle:",180,0,1,90,100,100)
+		self.feature_angle = SpinnerObject(self,"Feature Angle:",180,0,1,90,150,100)
 		self.hbox1.Add(self.feature_angle,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.hbox1.Add((5, -1))
 		self.sboxs1.Add(self.hbox1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2685,16 +2819,16 @@ class SubPanel_View_VTK(wx.ScrolledWindow):
 		self.sbox2 = wx.StaticBox(self, label="Phase", style=wx.SUNKEN_BORDER)
 		self.sboxs2 = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-		self.phasemax = SpinnerObject(self,"Max:",pi,0.0,0.01,pi,50,150)
+		self.phasemax = SpinnerObject(self,"Max:",pi,0.0,0.01,pi,80,80)
 		self.hbox2.Add(self.phasemax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.hbox2.Add((5, -1))
-		self.phasemin = SpinnerObject(self,"Min:",0.0,-pi,0.01,-pi,50,150)
+		self.phasemin = SpinnerObject(self,"Min:",0.0,-pi,0.01,-pi,80,80)
 		self.hbox2.Add(self.phasemin, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.sboxs2.Add(self.hbox2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add(self.sboxs2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-		origintext = StaticTextNew(self, label="Origin:",size=(70, 30))
+		origintext = StaticTextNew(self, label="Origin:",size=(120, 30))
 		origintext.SetToolTipNew("Origin of cut plane")
 		self.ox = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,1,0,15,80)
 		self.oy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,1,0,15,80)
@@ -2705,7 +2839,7 @@ class SubPanel_View_VTK(wx.ScrolledWindow):
 		self.hbox3.Add(self.oz ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		vbox.Add(self.hbox3 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
 		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
-		normaltext = StaticTextNew(self, label="Normal:",size=(70, 30))
+		normaltext = StaticTextNew(self, label="Normal:",size=(120, 30))
 		normaltext.SetToolTipNew("Normal to cut plane")
 		self.nx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
 		self.ny = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,0,15,80)

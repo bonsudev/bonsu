@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Library Reference - Phasing Operations &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="shortcut icon" href="_static/bonsu.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Scripting with Bonsu" href="libscript.html" />
+    <link rel="prev" title="Library Reference – Phasing Algorithms" href="libref-algorithms.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="libscript.html" title="Scripting with Bonsu"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="library-reference-phasing-operations">
+<span id="libref-operations"></span><h1>Library Reference - Phasing Operations<a class="headerlink" href="#library-reference-phasing-operations" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="save-sequence">
+<h2>Save Sequence<a class="headerlink" href="#save-sequence" title="Permalink to this headline">¶</a></h2>
+<p id="index-0">Save <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">data</span></code> to a NumPy file.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Output file</strong></dt><dd><p>User provided path string for the output NumPy file.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="save-support">
+<h2>Save Support<a class="headerlink" href="#save-support" title="Permalink to this headline">¶</a></h2>
+<p id="index-1">Save <code class="docutils literal notranslate"><span class="pre">Support</span></code> data to a NumPy file.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Output file</strong></dt><dd><p>User provided path string for the output NumPy file.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="save-residual">
+<span id="libref-operations-res"></span><h2>Save Residual<a class="headerlink" href="#save-residual" title="Permalink to this headline">¶</a></h2>
+<p id="index-2">Save <code class="docutils literal notranslate"><span class="pre">Residual</span></code> data to a NumPy file.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Output file</strong></dt><dd><p>User provided path string for the output CSV file.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="save-psf">
+<h2>Save PSF<a class="headerlink" href="#save-psf" title="Permalink to this headline">¶</a></h2>
+<p id="index-3">Saves the internally stored <code class="docutils literal notranslate"><span class="pre">Point</span> <span class="pre">Spread</span> <span class="pre">Function</span> <span class="pre">data</span></code> to a NumPy file.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Output file</strong></dt><dd><p>User provided path string for the ouput NumPy file.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="co-ordinate-transformation">
+<span id="libref-operations-coord"></span><h2>Co-ordinate Transformation<a class="headerlink" href="#co-ordinate-transformation" title="Permalink to this headline">¶</a></h2>
+<p id="index-4">Perform a co-ordinate transformation on either <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">data</span></code> or an input array.  The transformation is derived using the principles as demonstrated by <a class="reference external" href="https://www.ideals.illinois.edu/handle/2142/34830">Pfeifer, M.A.</a> .
+The generated co-ordinate array is stored internally and is accessible for  <a class="reference internal" href="libref-visualtools.html#libref-visualtools-viewobject"><span class="std std-ref">viewing</span></a> with the <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">memory array</span></a> keyword <code class="docutils literal notranslate"><span class="pre">memorycoords</span></code>.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Transform from</strong></dt><dd><p>Source from which to perform the transformation against.</p>
+</dd>
+<dt><strong>Transform type</strong></dt><dd><p>Transform in real or reciprocal space.</p>
+</dd>
+<dt><strong>Input data</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
+</dd>
+<dt><strong>Output amp file</strong></dt><dd><p>User provided path string for the output amplitude VTK file.</p>
+</dd>
+<dt><strong>Output phase file</strong></dt><dd><p>User provided path string for the output phase VTK file.</p>
+</dd>
+<dt><strong>Rocking curve type</strong></dt><dd><p>Theta (<img class="math" src="_images/math/3be04d4207434584251f6921820c24ac9fa8c6f1.png" alt="\theta"/>) or Phi (<img class="math" src="_images/math/c2f31c22645274c375eff7920cfdfdc18d60341f.png" alt="\phi"/>) rocking curve measurement.</p>
+</dd>
+<dt><strong>Array binning</strong></dt><dd><p>Amount by which the array was <code class="docutils literal notranslate"><span class="pre">binned</span></code>.  See the section on <a class="reference internal" href="libref-functions.html#libref-functions-bin"><span class="std std-ref">binning</span></a> for further details.</p>
+</dd>
+<dt><strong>2theta</strong></dt><dd><p><img class="math" src="_images/math/d07fbd081278877fb29d889ea52ca7c7f1e8dd18.png" alt="2 \theta"/> angle.</p>
+</dd>
+<dt><strong>d theta</strong></dt><dd><p>Increment angle for <img class="math" src="_images/math/3be04d4207434584251f6921820c24ac9fa8c6f1.png" alt="\theta"/> rocking curve measurement.</p>
+</dd>
+<dt><strong>phi</strong></dt><dd><p><img class="math" src="_images/math/c2f31c22645274c375eff7920cfdfdc18d60341f.png" alt="\phi"/> angle.</p>
+</dd>
+<dt><strong>d phi</strong></dt><dd><p>Increment angle for <img class="math" src="_images/math/c2f31c22645274c375eff7920cfdfdc18d60341f.png" alt="\phi"/> rocking curve measurement.</p>
+</dd>
+<dt><strong>Pixel {x,y} (microns)</strong></dt><dd><p>Detector pixel dimensions, in microns.</p>
+</dd>
+<dt><strong>wavelength (nm)</strong></dt><dd><p>Wavelength of light used in experiment. Units of nanometres.</p>
+</dd>
+<dt><strong>Arm length (m)</strong></dt><dd><p>Distance from the sample to the centre of diffraction pattern at the detector. Units of metres.</p>
+</dd>
+<dt><strong>CCD x-axis flip</strong></dt><dd><p>Reverse the direction of detector x-axis readout. Required for some PI CCD detectors.</p>
+</dd>
+</dl>
+<p><strong>Experimental geometry</strong>:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<a class="reference external image-reference" href="#"><img alt="Image" class="align-center" src="_images/geom.png" style="width: 300.0px; height: 120.5px;" /></a>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>Curved arrows show the direction of rotation of object (as opposed to the axis). The beam is assumed to travel along the positive <img class="math" src="_images/math/a59f68a4202623bb859a7093f0316bf466e6f75d.png" alt="x"/> direction.</p>
+</div>
+<div class="section" id="save-co-ordinates">
+<h2>Save Co-ordinates<a class="headerlink" href="#save-co-ordinates" title="Permalink to this headline">¶</a></h2>
+<p id="index-5">Save <code class="docutils literal notranslate"><span class="pre">Co-ordinates</span></code> data to a NumPy file.</p>
+<dl class="simple">
+<dt><strong>Output file</strong></dt><dd><p>User provided path string for the output NumPy file.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A co-ordinate transformation must occur prior to this operation.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="bonsu.html">
+              <img class="logo" src="_static/bonsu.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="bonsu.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Library Reference - Phasing Operations</a><ul>
+<li><a class="reference internal" href="#save-sequence">Save Sequence</a></li>
+<li><a class="reference internal" href="#save-support">Save Support</a></li>
+<li><a class="reference internal" href="#save-residual">Save Residual</a></li>
+<li><a class="reference internal" href="#save-psf">Save PSF</a></li>
+<li><a class="reference internal" href="#co-ordinate-transformation">Co-ordinate Transformation</a></li>
+<li><a class="reference internal" href="#save-co-ordinates">Save Co-ordinates</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="libref-algorithms.html"
+                        title="previous chapter">Library Reference – Phasing Algorithms</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="libscript.html"
+                        title="next chapter">Scripting with Bonsu</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="libscript.html" title="Scripting with Bonsu"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011 - 2019, Marcus C. Newton.
+    </div>
+  </body>
+</html>

@@ -35,6 +35,67 @@ from ..operations.loadarray import NewArray
 from ..operations.loadarray import LoadArray
 from ..operations.loadarray import SaveArray
 from ..operations.loadarray import LoadCoordsArray
+def Sequence_PyScript(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Executing Python Script...")
+		panelvisual = self.ancestor.GetPage(1)
+		global_dict = {}
+		local_dict = {}
+		global_dict['self'] = self
+		memory = {}
+		for mem in self.memory:
+			memory[mem] = self.memory[mem]
+		local_dict['memory'] = memory
+		local_dict['sequence'] = self.seqdata
+		local_dict['support'] = self.support
+		local_dict['mask'] = self.mask
+		local_dict['psf'] = self.psf
+		local_dict['coordinates'] = self.coordarray
+		local_dict['object_probe'] = panelvisual.image_probe
+		local_dict['LineScan'] = lambda : panelvisual.LineScan
+		local_dict['RefreshScene'] = lambda : panelvisual.RefreshScene
+		rends = []
+		cams = []
+		renderers = panelvisual.renWin.GetRenderWindow().GetRenderers()
+		renderers.InitTraversal()
+		no_renderers = renderers.GetNumberOfItems()
+		for i in range(no_renderers):
+			rends.append(renderers.GetItemAsObject(i))
+			cams.append(renderers.GetItemAsObject(i).GetActiveCamera())
+		local_dict['renderers'] = rends
+		local_dict['renderwindow'] = panelvisual.renWin.GetRenderWindow()
+		local_dict['cameras'] = cams
+		local_dict['LUT'] = [panelvisual.lut_amp_real, panelvisual.lut_phase_real, panelvisual.lut_amp_recip, panelvisual.lut_phase_recip]
+		script = pipelineitem.txt.GetValue()
+		def printnew(obj):
+			self.ancestor.GetPage(0).queue_info.put(obj)
+		if IsPy3():
+			global_dict.update(globals())
+			local_dict.update(locals())
+			global_dict['print'] = printnew
+		else:
+			from .pyscript import run_script
+			runscript = run_script
+		def run_proc():
+			try:
+				if IsPy3():
+					exec(script, global_dict, local_dict)
+				else:
+					runscript(script, global_dict, local_dict)
+			except Exception as e:
+				self.ancestor.GetPage(0).queue_info.put("Traceback (most recent call last):")
+				tb = sys.exc_info()[2]
+				while tb is not None:
+					tbold = tb
+					tb = tb.tb_next
+				tb = tbold
+				self.ancestor.GetPage(0).queue_info.put("  line "+str(tb.tb_lineno))
+				self.ancestor.GetPage(0).queue_info.put("  "+str(e))
+		wx.CallAfter(run_proc)
 def Sequence_BlankLineFill(\
 	self,
 	pipelineitem
@@ -289,7 +350,7 @@ def Sequence_HDF_to_Numpy(\
 				roi = keypath.partition('[')[-1].rpartition(']')[0]
 				roiids_str = [x.split(":") for x in roi.split(',')]
 				if IsPy3():
-					roiids = [lsit(map(int, i)) for i in roiids_str]
+					roiids = [list(map(int, i)) for i in roiids_str]
 				else:
 					roiids = [map(int, i) for i in roiids_str]
 			else:
@@ -427,7 +488,7 @@ class TIFFStackRead():
 		except EOFError:
 			return None
 		self.cur = self.im.tell()
-		return numpy.reshape(self.im.getdata().convert('L'),self.im_sz)
+		return numpy.reshape(self.im.getdata().convert('F'),self.im_sz)
 	def __iter__(self):
 		self.im.seek(0)
 		self.old = self.cur
@@ -441,7 +502,7 @@ class TIFFStackRead():
 			self.im.seek(self.old)
 			self.cur = self.im.tell()
 			raise StopIteration
-		return numpy.reshape(self.im.getdata().convert('L'),self.im_sz)
+		return numpy.reshape(self.im.getdata().convert('F'),self.im_sz)
 def Sequence_Image_to_Numpy(\
 	self,
 	pipelineitem
@@ -1308,9 +1369,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.scalebar_amp_real.Modified()
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
@@ -1342,7 +1400,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
 		panelvisual.mapper_amp_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.mapper_amp_real.Update()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
@@ -1425,9 +1482,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		panelvisual.scalebar_phase_real.SetWidth(0.07)
-		panelvisual.scalebar_phase_real.SetHeight(0.90)
-		panelvisual.scalebar_phase_real.SetPosition(0.01,0.1)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
 		if panelvisual.VTKIsNot6:
@@ -1442,7 +1496,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.mapper_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.mapper_phase_real.SetScalarRange([phasemin,phasemax])
 		panelvisual.mapper_phase_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_phase_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_phase_real.Modified()
 		panelvisual.mapper_phase_real.Update()
 		panelvisual.actor_phase_real.GetProperty().SetOpacity(1.0)
@@ -1549,9 +1602,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		panelvisual.scalebar_phase_real.SetWidth(0.07)
-		panelvisual.scalebar_phase_real.SetHeight(0.90)
-		panelvisual.scalebar_phase_real.SetPosition(0.01,0.1)
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
 		else:
@@ -1582,7 +1632,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
 		panelvisual.mapper_amp_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.mapper_amp_real.Update()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(opacity)
@@ -1601,7 +1650,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.mapper_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.mapper_phase_real.SetScalarRange([phasemin,phasemax])
 		panelvisual.mapper_phase_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_phase_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_phase_real.Modified()
 		panelvisual.mapper_phase_real.Update()
 		panelvisual.actor_phase_real.SetMapper(panelvisual.mapper_phase_real)
@@ -1681,24 +1729,21 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.image_amp_real.ComputeBounds()
 		panelvisual.image_amp_real.Modified()
 		panelvisual.image_probe = panelvisual.image_phase_real
-		panelvisual.lut_amp_real.SetNumberOfTableValues(256)
-		panelvisual.lut_amp_real.SetScaleToLinear()
-		panelvisual.lut_amp_real.SetTableRange([phasemin,phasemax])
+		panelvisual.lut_phase_real.SetNumberOfTableValues(256)
+		panelvisual.lut_phase_real.SetScaleToLinear()
+		panelvisual.lut_phase_real.SetTableRange([phasemin,phasemax])
 		lutsource = self.ancestor.GetPage(0).cms[self.ancestor.GetPage(0).cmls[1][0]][1]
 		if self.ancestor.GetPage(0).cmls[1][1] == 0:
 			for k in range(256):
-				panelvisual.lut_amp_real.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+				panelvisual.lut_phase_real.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
 		else:
 			for k in range(256):
-				panelvisual.lut_amp_real.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
-		panelvisual.lut_amp_real.SetRamp(0)
-		panelvisual.lut_amp_real.Build()
-		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
-		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
+				panelvisual.lut_phase_real.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		panelvisual.lut_phase_real.SetRamp(0)
+		panelvisual.lut_phase_real.Build()
+		panelvisual.scalebar_phase_real.SetTitle("")
+		panelvisual.scalebar_phase_real.SetOrientationToVertical()
+		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
 		else:
@@ -1725,16 +1770,15 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
 		panelvisual.triangles_amp_real.SetInputConnection(panelvisual.normals_amp_real.GetOutputPort())
 		panelvisual.strips_amp_real.SetInputConnection(panelvisual.triangles_amp_real.GetOutputPort())
-		panelvisual.mapper_amp_real.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
-		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.mapper_amp_real.SetScalarRange([phasemin,phasemax])
-		panelvisual.mapper_amp_real.SetScalarModeToUsePointFieldData()
-		panelvisual.mapper_amp_real.SelectColorArray("mapscalar")
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
-		panelvisual.mapper_amp_real.Modified()
-		panelvisual.mapper_amp_real.Update()
-		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
-		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_amp_real)
+		panelvisual.mapper_phase_real.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
+		panelvisual.mapper_phase_real.SetLookupTable(panelvisual.lut_phase_real)
+		panelvisual.mapper_phase_real.SetScalarRange([phasemin,phasemax])
+		panelvisual.mapper_phase_real.SetScalarModeToUsePointFieldData()
+		panelvisual.mapper_phase_real.SelectColorArray("mapscalar")
+		panelvisual.mapper_phase_real.Modified()
+		panelvisual.mapper_phase_real.Update()
+		panelvisual.actor_phase_real.GetProperty().SetOpacity(1.0)
+		panelvisual.actor_phase_real.SetMapper(panelvisual.mapper_phase_real)
 		panelvisual.SetPicker()
 		panelvisual.renderer_amp_real.RemoveAllViewProps()
 		panelvisual.renderer_phase_real.RemoveAllViewProps()
@@ -1745,8 +1789,8 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_amp_recip)
 		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_phase_recip)
 		panelvisual.renWin.GetRenderWindow().Modified()
-		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_amp_real)
-		panelvisual.renderer_amp_real.AddActor2D(panelvisual.scalebar_amp_real)
+		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_phase_real)
+		panelvisual.renderer_amp_real.AddActor2D(panelvisual.scalebar_phase_real)
 		panelvisual.renderer_amp_real.AddActor2D(panelvisual.textActor)
 		panelvisual.renderer_amp_real.SetBackground(r, g, b)
 		panelvisual.renWin.GetRenderWindow().AddRenderer(panelvisual.renderer_phase_real)
@@ -1815,9 +1859,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
 		if panelvisual.VTKIsNot6:
@@ -1831,7 +1872,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.mapper_amp_real.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
 		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_amp_real)
@@ -1873,6 +1913,214 @@ def Sequence_View_Array(self, ancestor):
 			panelvisual.axis.SetZLabel("Z")
 			panelvisual.axis.Modified()
 			panelvisual.renderer_amp_real.AddViewProp( panelvisual.axis )
+	def ViewDataAmpClippedPhase(self, ancestor, data, r, g, b):
+		self.ancestor.GetPage(0).queue_info.put("Preparing array visualisation")
+		self.ancestor.GetPage(0).queue_info.put("Array Size: " + str(data.shape))
+		max = numpy.array( numpy.unravel_index(data.argmax(), data.shape) )
+		self.ancestor.GetPage(0).queue_info.put("Array Maximum Coordinates: " + str(max))
+		self.ancestor.GetPage(0).queue_info.put("Array Maximum: %1.6e" %(numpy.abs(data[max[0]][max[1]][max[2]])))
+		panelvisual = ancestor.GetPage(1)
+		contour = float(self.contour.value.GetValue())
+		maxval = numpy.abs(data).max()
+		if contour > maxval: contour = CNTR_CLIP*maxval;
+		opacity = float(self.opacity.value.GetValue())
+		feature_angle = float(self.feature_angle.value.GetValue())
+		phasemax = float(self.phasemax.value.GetValue())
+		phasemin = float(self.phasemin.value.GetValue())
+		ox = float(self.ox.value.GetValue())
+		oy = float(self.oy.value.GetValue())
+		oz = float(self.oz.value.GetValue())
+		nx = float(self.nx.value.GetValue())
+		ny = float(self.ny.value.GetValue())
+		nz = float(self.nz.value.GetValue())
+		sx = float(self.sx.value.GetValue())
+		sy = float(self.sy.value.GetValue())
+		sz = float(self.sz.value.GetValue())
+		meshsubiter = int(float(self.meshsubiter.value.GetValue()))
+		panelvisual.flat_data = (numpy.abs(data)).transpose(2,1,0).flatten();
+		panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(panelvisual.flat_data)
+		panelvisual.image_amp_real.GetPointData().SetScalars(panelvisual.vtk_data_array)
+		panelvisual.image_amp_real.SetDimensions(data.shape)
+		panelvisual.image_amp_real.SetSpacing(sx,sy,sz)
+		panelvisual.image_amp_real.ComputeBounds()
+		panelvisual.image_amp_real.Modified()
+		panelvisual.lut_phase_real.SetNumberOfTableValues(256)
+		panelvisual.lut_phase_real.SetScaleToLinear()
+		panelvisual.lut_phase_real.SetTableRange([phasemin,phasemax])
+		lutsource = self.ancestor.GetPage(0).cms[self.ancestor.GetPage(0).cmls[1][0]][1]
+		if self.ancestor.GetPage(0).cmls[1][1] == 0:
+			for k in range(256):
+				panelvisual.lut_phase_real.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		else:
+			for k in range(256):
+				panelvisual.lut_phase_real.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		panelvisual.lut_phase_real.SetRamp(0)
+		panelvisual.lut_phase_real.Build()
+		panelvisual.lut_amp_real.SetNumberOfTableValues(256)
+		panelvisual.lut_amp_real.SetScaleToLinear()
+		panelvisual.lut_amp_real.SetTableRange(panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
+		lutsource = self.ancestor.GetPage(0).cms[self.ancestor.GetPage(0).cmls[0][0]][1]
+		if self.ancestor.GetPage(0).cmls[0][1] == 0:
+			for k in range(256):
+				panelvisual.lut_amp_real.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		else:
+			for k in range(256):
+				panelvisual.lut_amp_real.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		panelvisual.lut_amp_real.SetRamp(0)
+		panelvisual.lut_amp_real.Build()
+		flat_data_phase = (numpy.angle(data)).transpose(2,1,0).flatten();
+		vtk_data_array_phase = numpy_support.numpy_to_vtk(flat_data_phase)
+		panelvisual.image_phase_real.GetPointData().SetScalars(vtk_data_array_phase)
+		panelvisual.image_phase_real.SetDimensions(data.shape)
+		panelvisual.image_phase_real.SetSpacing(sx,sy,sz)
+		panelvisual.image_phase_real.ComputeBounds()
+		panelvisual.image_phase_real.Modified()
+		panelvisual.image_probe = panelvisual.image_phase_real
+		panelvisual.scalebar_phase_real.SetTitle("")
+		panelvisual.scalebar_phase_real.SetOrientationToVertical()
+		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
+		panelvisual.plane.SetOrigin(ox,oy,oz)
+		panelvisual.plane.SetNormal(nx,ny,nz)
+		if panelvisual.VTKIsNot6:
+			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
+		else:
+			panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_amp_real.ComputeNormalsOn()
+		panelvisual.filter_amp_real.ComputeScalarsOn()
+		panelvisual.filter_amp_real.SetNumberOfContours(1)
+		panelvisual.filter_amp_real.SetValue( 0, contour)
+		panelvisual.filter_amp_real.Modified()
+		panelvisual.filter_amp_real.Update()
+		panelvisual.smooth_filter_real.SetInputConnection(panelvisual.filter_amp_real.GetOutputPort())
+		panelvisual.smooth_filter_real.SetNumberOfIterations(15)
+		panelvisual.smooth_filter_real.SetRelaxationFactor(0.1)
+		panelvisual.smooth_filter_real.FeatureEdgeSmoothingOff()
+		panelvisual.smooth_filter_real.BoundarySmoothingOn()
+		panelvisual.smooth_filter_real.Update()
+		panelvisual.normals_amp_real.SetInputConnection(panelvisual.smooth_filter_real.GetOutputPort())
+		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
+		panelvisual.normals_amp_real.ConsistencyOff()
+		panelvisual.normals_amp_real.SplittingOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.ComputePointNormalsOn()
+		panelvisual.normals_amp_real.ComputeCellNormalsOff()
+		panelvisual.normals_amp_real.NonManifoldTraversalOff()
+		panelvisual.triangles_amp_real.SetInputConnection(panelvisual.normals_amp_real.GetOutputPort())
+		panelvisual.strips_amp_real.SetInputConnection(panelvisual.triangles_amp_real.GetOutputPort())
+		panelvisual.clipper.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
+		panelvisual.clipper.SetClipFunction(panelvisual.plane)
+		panelvisual.clipper.GenerateClippedOutputOn()
+		panelvisual.clipper.SetValue(0)
+		panelvisual.clipper.Update()
+		panelvisual.mapper_amp_real.SetInputConnection(panelvisual.clipper.GetOutputPort())
+		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
+		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
+		panelvisual.mapper_amp_real.SetScalarModeToUsePointData()
+		panelvisual.mapper_amp_real.Modified()
+		panelvisual.mapper_amp_real.Update()
+		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
+		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_amp_real)
+		panelvisual.mapper_amp_real2.SetInputConnection(panelvisual.clipper.GetClippedOutputPort())
+		panelvisual.mapper_amp_real2.SetLookupTable(panelvisual.lut_amp_real)
+		panelvisual.mapper_amp_real2.SetScalarRange(panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
+		panelvisual.mapper_amp_real2.SetScalarModeToUsePointData()
+		panelvisual.mapper_amp_real2.Modified()
+		panelvisual.mapper_amp_real2.Update()
+		panelvisual.actor_amp_real2.GetProperty().SetOpacity(opacity)
+		panelvisual.actor_amp_real2.SetMapper(panelvisual.mapper_amp_real2)
+		if panelvisual.VTKIsNot6:
+			panelvisual.filter_plane.SetInput(panelvisual.image_amp_real)
+		else:
+			panelvisual.filter_plane.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_plane.ComputeNormalsOn()
+		panelvisual.filter_plane.ComputeScalarsOn()
+		panelvisual.filter_plane.SetNumberOfContours(1)
+		panelvisual.filter_plane.SetValue( 0, contour)
+		panelvisual.filter_plane.Modified()
+		panelvisual.filter_plane.Update()
+		panelvisual.smooth_plane.SetInputConnection(panelvisual.filter_plane.GetOutputPort())
+		panelvisual.smooth_plane.SetNumberOfIterations(15)
+		panelvisual.smooth_plane.SetRelaxationFactor(0.1)
+		panelvisual.smooth_plane.FeatureEdgeSmoothingOff()
+		panelvisual.smooth_plane.BoundarySmoothingOn()
+		panelvisual.smooth_plane.Update()
+		panelvisual.cutter.SetInputConnection(panelvisual.smooth_plane.GetOutputPort())
+		panelvisual.cutter.SetCutFunction(panelvisual.plane)
+		panelvisual.cutter.GenerateTrianglesOn()
+		panelvisual.cutter.GenerateCutScalarsOn()
+		panelvisual.cutter.Update()
+		panelvisual.filter_tri.SetInputConnection(panelvisual.cutter.GetOutputPort())
+		panelvisual.meshsub.SetInputConnection(panelvisual.filter_tri.GetOutputPort())
+		panelvisual.meshsub.SetMaximumNumberOfPasses(meshsubiter)
+		panelvisual.meshsub.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
+		panelvisual.meshsub.Update()
+		panelvisual.probefilter.SetInputConnection(panelvisual.meshsub.GetOutputPort())
+		if panelvisual.VTKIsNot6:
+			panelvisual.probefilter.SetSource(panelvisual.image_phase_real)
+		else:
+			panelvisual.probefilter.SetSourceData(panelvisual.image_phase_real)
+		panelvisual.probefilter.Update()
+		panelvisual.triangles_plane.SetInputConnection(panelvisual.probefilter.GetOutputPort())
+		panelvisual.normals_phase_real.SetInputConnection(panelvisual.triangles_plane.GetOutputPort())
+		panelvisual.normals_phase_real.SetFeatureAngle(feature_angle)
+		panelvisual.normals_phase_real.ConsistencyOff()
+		panelvisual.normals_phase_real.SplittingOff()
+		panelvisual.normals_phase_real.AutoOrientNormalsOff()
+		panelvisual.normals_phase_real.ComputePointNormalsOn()
+		panelvisual.normals_phase_real.ComputeCellNormalsOn()
+		panelvisual.normals_phase_real.NonManifoldTraversalOff()
+		panelvisual.triangles_phase_real.SetInputConnection(panelvisual.normals_phase_real.GetOutputPort())
+		panelvisual.strips_phase_real.SetInputConnection(panelvisual.triangles_phase_real.GetOutputPort())
+		panelvisual.mapper_phase_real.SetInputConnection(panelvisual.strips_phase_real.GetOutputPort())
+		panelvisual.mapper_phase_real.SetLookupTable(panelvisual.lut_phase_real)
+		panelvisual.mapper_phase_real.SetScalarRange([phasemin,phasemax])
+		panelvisual.mapper_phase_real.SetScalarModeToUsePointData()
+		panelvisual.mapper_phase_real.Update()
+		panelvisual.mapper_phase_real.Modified()
+		panelvisual.actor_phase_real.GetProperty().SetOpacity(1.0)
+		panelvisual.actor_phase_real.SetMapper(panelvisual.mapper_phase_real)
+		panelvisual.SetPicker()
+		panelvisual.renderer_amp_real.RemoveAllViewProps()
+		panelvisual.renderer_phase_real.RemoveAllViewProps()
+		panelvisual.renderer_amp_recip.RemoveAllViewProps()
+		panelvisual.renderer_phase_recip.RemoveAllViewProps()
+		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_amp_real)
+		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_phase_real)
+		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_amp_recip)
+		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_phase_recip)
+		panelvisual.renWin.GetRenderWindow().Modified()
+		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_amp_real)
+		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_amp_real2)
+		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_phase_real)
+		panelvisual.renderer_amp_real.AddActor2D(panelvisual.scalebar_phase_real)
+		panelvisual.renderer_amp_real.AddActor2D(panelvisual.textActor)
+		panelvisual.renderer_amp_real.SetBackground(r, g, b)
+		panelvisual.renWin.GetRenderWindow().AddRenderer(panelvisual.renderer_phase_real)
+		panelvisual.renWin.GetRenderWindow().AddRenderer(panelvisual.renderer_amp_real)
+		panelvisual.renWin.GetRenderWindow().SetMultiSamples(0)
+		panelvisual.renWin.SetInteractorStyle(panelvisual.style3D)
+		panelvisual.renderer_amp_real.ResetCamera()
+		panelvisual.renWin.SetPicker(panelvisual.picker_amp_real)
+		panelvisual.renderer_amp_real.SetViewport(0,0,1,1)
+		panelvisual.renderer_phase_real.SetViewport(1,1,1,1)
+		panelvisual.Layout()
+		panelvisual.Show()
+		if(self.chkbox_axes.GetValue() == True):
+			panelvisual.axis.SetBounds(panelvisual.image_amp_real.GetBounds())
+			if panelvisual.VTKIsNot6:
+				panelvisual.axis.SetInput(panelvisual.image_amp_real)
+			else:
+				panelvisual.axis.SetInputData(panelvisual.image_amp_real)
+			panelvisual.axis.SetCamera(panelvisual.renderer_phase_real.GetActiveCamera())
+			panelvisual.axis.SetLabelFormat("%6.1f")
+			panelvisual.axis.SetFlyModeToOuterEdges()
+			panelvisual.axis.ScalingOff()
+			panelvisual.axis.SetFontFactor(float(self.axes_fontfactor.value.GetValue()))
+			panelvisual.axis.SetXLabel("X")
+			panelvisual.axis.SetYLabel("Y")
+			panelvisual.axis.SetZLabel("Z")
+			panelvisual.axis.Modified()
+			panelvisual.renderer_phase_real.AddViewProp( panelvisual.axis )
 	def ViewDataAmp2D(self, ancestor, data, r, g, b):
 		self.ancestor.GetPage(0).queue_info.put("Preparing 2D array visualisation")
 		self.ancestor.GetPage(0).queue_info.put("Array Size: " + str(data.shape))
@@ -1907,9 +2155,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_amp_real.SetInput(panelvisual.image2D_amp_real)
@@ -1995,9 +2240,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		panelvisual.scalebar_phase_real.SetWidth(0.07)
-		panelvisual.scalebar_phase_real.SetHeight(0.90)
-		panelvisual.scalebar_phase_real.SetPosition(0.01,0.1)
 		panelvisual.color_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_phase_real.SetInput(panelvisual.image2D_phase_real)
@@ -2084,9 +2326,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_amp_real.SetInput(panelvisual.image2D_amp_real)
@@ -2122,9 +2361,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		panelvisual.scalebar_phase_real.SetWidth(0.07)
-		panelvisual.scalebar_phase_real.SetHeight(0.90)
-		panelvisual.scalebar_phase_real.SetPosition(0.01,0.1)
 		panelvisual.color_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_phase_real.SetInput(panelvisual.image2D_phase_real)
@@ -2197,8 +2433,6 @@ def Sequence_View_Array(self, ancestor):
 			panelvisual.renderer_phase_real.AddViewProp( panelvisual.axis2D_phase )
 	data_file  = self.input_filename.objectpath.GetValue()
 	panelvisual = self.ancestor.GetPage(1)
-	panelvisual.contour_real.value.SetValue(self.contour.value.GetValue())
-	panelvisual.OnContourSelect(None, forceshow=True)
 	r = float(panelvisual.r)/255.0
 	g = float(panelvisual.g)/255.0
 	b = float(panelvisual.b)/255.0
@@ -2237,6 +2471,14 @@ def Sequence_View_Array(self, ancestor):
 				pass
 			else:
 				ViewAmpPlane(self, ancestor , panelvisual.data, r, g, b)
+		if (self.rbampphase.GetStringSelection() == 'Amplitude Clipped Phase'):
+			if panelvisual.data.shape[2] == 1:
+				pass
+			else:
+				if panelvisual.VTKIsNot7:
+					self.ancestor.GetPage(0).queue_info.put("VTK 7 or greater is required for 'Amplitude Clipped Phase'.")
+				else:
+					ViewDataAmpClippedPhase(self, ancestor , panelvisual.data, r, g, b)
 		panelvisual.datarangelist = []
 		panelvisual.ReleaseVisualButtons(gotovisual=True)
 		panelvisual.RefreshSceneFull()
@@ -2344,7 +2586,6 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.mapper_support.SetInputConnection(panelvisual.strips_support.GetOutputPort())
 		panelvisual.mapper_support.SetScalarRange(panelvisual.image_phase_real.GetPointData().GetScalars().GetRange())
 		panelvisual.mapper_support.SetScalarModeToUsePointData()
-		panelvisual.mapper_support.ImmediateModeRenderingOn()
 		panelvisual.mapper_support.Modified()
 		panelvisual.mapper_support.Update()
 		panelvisual.actor_support.GetProperty().SetOpacity(opacity)
@@ -2353,7 +2594,6 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
 		panelvisual.mapper_amp_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.mapper_amp_real.Update()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
@@ -2401,9 +2641,6 @@ def Sequence_View_Support(self, ancestor):
 	data_file  = self.support.objectpath.GetValue()
 	input_file  = self.input_filename.objectpath.GetValue()
 	panelvisual = self.ancestor.GetPage(1)
-	panelvisual.contour_real.value.SetValue(self.contour.value.GetValue())
-	panelvisual.contour_support.value.SetValue(self.contour_support.value.GetValue())
-	panelvisual.OnContourSelect(None, forceshow=True)
 	r = float(panelvisual.r)/255.0
 	g = float(panelvisual.g)/255.0
 	b = float(panelvisual.b)/255.0
@@ -2592,6 +2829,29 @@ def Sequence_Transform(\
 		thd.daemon = True
 		thd.start()
 		return
+def Sequence_Load_Coordinates(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Preparing coordinates in memory...")
+		filename_in = pipelineitem.input_filename.objectpath.GetValue()
+		try:
+			array = LoadCoordsArray(self, filename_in)
+		except:
+			msg = "Could not load array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+		try:
+			self.coordarray = array
+			self.ancestor.GetPage(0).queue_info.put("done.")
+		except:
+			msg = "Could not save array to memory."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
 def Sequence_Save_Coordinates(\
 	self,
 	pipelineitem
@@ -2643,9 +2903,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.scalebar_amp_real.Modified()
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_real.SetInput(panelvisual.object_amp)
@@ -2677,7 +2934,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.object_amp.GetPointData().GetScalars().GetRange())
 		panelvisual.mapper_amp_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.mapper_amp_real.Update()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
@@ -2760,9 +3016,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		panelvisual.scalebar_phase_real.SetWidth(0.07)
-		panelvisual.scalebar_phase_real.SetHeight(0.90)
-		panelvisual.scalebar_phase_real.SetPosition(0.01,0.1)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
 		if panelvisual.VTKIsNot6:
@@ -2777,7 +3030,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.mapper_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.mapper_phase_real.SetScalarRange([phasemin,phasemax])
 		panelvisual.mapper_phase_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_phase_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_phase_real.Modified()
 		panelvisual.mapper_phase_real.Update()
 		panelvisual.actor_phase_real.GetProperty().SetOpacity(1.0)
@@ -2884,9 +3136,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		panelvisual.scalebar_phase_real.SetWidth(0.07)
-		panelvisual.scalebar_phase_real.SetHeight(0.90)
-		panelvisual.scalebar_phase_real.SetPosition(0.01,0.1)
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_real.SetInput(panelvisual.object_amp)
 		else:
@@ -2917,7 +3166,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.object_amp.GetPointData().GetScalars().GetRange())
 		panelvisual.mapper_amp_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.mapper_amp_real.Update()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(opacity)
@@ -2936,7 +3184,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.mapper_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.mapper_phase_real.SetScalarRange([phasemin,phasemax])
 		panelvisual.mapper_phase_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_phase_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_phase_real.Modified()
 		panelvisual.mapper_phase_real.Update()
 		panelvisual.actor_phase_real.SetMapper(panelvisual.mapper_phase_real)
@@ -3011,24 +3258,21 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.object_phase.SetDimensions(shp)
 		panelvisual.object_phase.Modified()
 		panelvisual.image_probe = panelvisual.object_phase
-		panelvisual.lut_amp_real.SetNumberOfTableValues(256)
-		panelvisual.lut_amp_real.SetScaleToLinear()
-		panelvisual.lut_amp_real.SetTableRange([phasemin,phasemax])
+		panelvisual.lut_phase_real.SetNumberOfTableValues(256)
+		panelvisual.lut_phase_real.SetScaleToLinear()
+		panelvisual.lut_phase_real.SetTableRange([phasemin,phasemax])
 		lutsource = self.ancestor.GetPage(0).cms[self.ancestor.GetPage(0).cmls[1][0]][1]
 		if self.ancestor.GetPage(0).cmls[1][1] == 0:
 			for k in range(256):
-				panelvisual.lut_amp_real.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+				panelvisual.lut_phase_real.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
 		else:
 			for k in range(256):
-				panelvisual.lut_amp_real.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
-		panelvisual.lut_amp_real.SetRamp(0)
-		panelvisual.lut_amp_real.Build()
-		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
-		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
+				panelvisual.lut_phase_real.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		panelvisual.lut_phase_real.SetRamp(0)
+		panelvisual.lut_phase_real.Build()
+		panelvisual.scalebar_phase_real.SetTitle("")
+		panelvisual.scalebar_phase_real.SetOrientationToVertical()
+		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_real.SetInput(panelvisual.object_amp)
 		else:
@@ -3055,16 +3299,15 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
 		panelvisual.triangles_amp_real.SetInputConnection(panelvisual.normals_amp_real.GetOutputPort())
 		panelvisual.strips_amp_real.SetInputConnection(panelvisual.triangles_amp_real.GetOutputPort())
-		panelvisual.mapper_amp_real.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
-		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.mapper_amp_real.SetScalarRange([phasemin,phasemax])
-		panelvisual.mapper_amp_real.SetScalarModeToUsePointFieldData()
-		panelvisual.mapper_amp_real.SelectColorArray("mapscalar")
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
-		panelvisual.mapper_amp_real.Modified()
-		panelvisual.mapper_amp_real.Update()
+		panelvisual.mapper_phase_real.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
+		panelvisual.mapper_phase_real.SetLookupTable(panelvisual.lut_phase_real)
+		panelvisual.mapper_phase_real.SetScalarRange([phasemin,phasemax])
+		panelvisual.mapper_phase_real.SetScalarModeToUsePointFieldData()
+		panelvisual.mapper_phase_real.SelectColorArray("mapscalar")
+		panelvisual.mapper_phase_real.Modified()
+		panelvisual.mapper_phase_real.Update()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
-		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_amp_real)
+		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_phase_real)
 		panelvisual.SetPicker()
 		panelvisual.renderer_amp_real.RemoveAllViewProps()
 		panelvisual.renderer_phase_real.RemoveAllViewProps()
@@ -3076,7 +3319,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_phase_recip)
 		panelvisual.renWin.GetRenderWindow().Modified()
 		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_amp_real)
-		panelvisual.renderer_amp_real.AddActor2D(panelvisual.scalebar_amp_real)
+		panelvisual.renderer_amp_real.AddActor2D(panelvisual.scalebar_phase_real)
 		panelvisual.renderer_amp_real.AddActor2D(panelvisual.textActor)
 		panelvisual.renderer_amp_real.SetBackground(r, g, b)
 		panelvisual.renWin.GetRenderWindow().AddRenderer(panelvisual.renderer_phase_real)
@@ -3139,9 +3382,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
 		if panelvisual.VTKIsNot6:
@@ -3155,7 +3395,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.mapper_amp_real.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.object_amp.GetPointData().GetScalars().GetRange())
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
 		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_amp_real)
@@ -3197,11 +3436,222 @@ def Sequence_View_Object(self, ancestor):
 			panelvisual.axis.SetZLabel("Z")
 			panelvisual.axis.Modified()
 			panelvisual.renderer_amp_real.AddViewProp( panelvisual.axis )
+	def ViewDataAmpClippedPhase(self, ancestor, data, r, g, b):
+		self.ancestor.GetPage(0).queue_info.put("Preparing object visualisation")
+		self.ancestor.GetPage(0).queue_info.put("Array Size: " + str(data.shape))
+		panelvisual = ancestor.GetPage(1)
+		ox = float(self.ox.value.GetValue())
+		oy = float(self.oy.value.GetValue())
+		oz = float(self.oz.value.GetValue())
+		nx = float(self.nx.value.GetValue())
+		ny = float(self.ny.value.GetValue())
+		nz = float(self.nz.value.GetValue())
+		meshsubiter = int(float(self.meshsubiter.value.GetValue()))
+		opacity = float(self.opacity.value.GetValue())
+		contour = float(self.contour.value.GetValue())
+		maxval = numpy.abs(data).max()
+		if contour > maxval: contour = CNTR_CLIP*maxval;
+		feature_angle = float(self.feature_angle.value.GetValue())
+		phasemax = float(self.phasemax.value.GetValue())
+		phasemin = float(self.phasemin.value.GetValue())
+		panelvisual.flat_data_phase= (numpy.angle(data)).transpose(2,1,0).flatten();
+		panelvisual.vtk_data_array_phase = numpy_support.numpy_to_vtk(panelvisual.flat_data_phase)
+		panelvisual.vtk_data_array_phase.SetName("mapscalar")
+		shp = numpy.array(data.shape, dtype=numpy.int)
+		panelvisual.flat_data= (numpy.abs(data)).transpose(2,1,0).flatten();
+		panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(panelvisual.flat_data)
+		panelvisual.vtk_coordarray = numpy_support.numpy_to_vtk(panelvisual.coords)
+		panelvisual.object_amp_points.SetDataTypeToDouble()
+		panelvisual.object_amp_points.SetNumberOfPoints(data.size)
+		panelvisual.object_amp_points.SetData(panelvisual.vtk_coordarray)
+		panelvisual.object_amp.SetPoints(panelvisual.object_amp_points)
+		panelvisual.object_amp.GetPointData().SetScalars(panelvisual.vtk_data_array)
+		panelvisual.object_amp.GetPointData().AddArray(panelvisual.vtk_data_array_phase)
+		panelvisual.object_amp.SetDimensions(shp)
+		panelvisual.object_amp.Modified()
+		panelvisual.object_phase.SetPoints(panelvisual.object_amp_points)
+		panelvisual.object_phase.GetPointData().SetScalars(panelvisual.vtk_data_array_phase)
+		panelvisual.object_phase.SetDimensions(shp)
+		panelvisual.object_phase.Modified()
+		panelvisual.image_probe = panelvisual.object_phase
+		panelvisual.lut_phase_real.SetNumberOfTableValues(256)
+		panelvisual.lut_phase_real.SetScaleToLinear()
+		panelvisual.lut_phase_real.SetTableRange([phasemin,phasemax])
+		lutsource = self.ancestor.GetPage(0).cms[self.ancestor.GetPage(0).cmls[1][0]][1]
+		if self.ancestor.GetPage(0).cmls[1][1] == 0:
+			for k in range(256):
+				panelvisual.lut_phase_real.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		else:
+			for k in range(256):
+				panelvisual.lut_phase_real.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		panelvisual.lut_phase_real.SetRamp(0)
+		panelvisual.lut_phase_real.Build()
+		panelvisual.lut_amp_real.SetNumberOfTableValues(256)
+		panelvisual.lut_amp_real.SetScaleToLinear()
+		panelvisual.lut_amp_real.SetTableRange(panelvisual.object_amp.GetPointData().GetScalars().GetRange())
+		lutsource = self.ancestor.GetPage(0).cms[self.ancestor.GetPage(0).cmls[0][0]][1]
+		if self.ancestor.GetPage(0).cmls[0][1] == 0:
+			for k in range(256):
+				panelvisual.lut_amp_real.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		else:
+			for k in range(256):
+				panelvisual.lut_amp_real.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+		panelvisual.lut_amp_real.SetRamp(0)
+		panelvisual.lut_amp_real.Build()
+		panelvisual.scalebar_amp_real.SetTitle("")
+		panelvisual.scalebar_amp_real.SetOrientationToVertical()
+		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_phase_real)
+		panelvisual.plane.SetOrigin(ox,oy,oz)
+		panelvisual.plane.SetNormal(nx,ny,nz)
+		if panelvisual.VTKIsNot6:
+			panelvisual.filter_amp_real.SetInput(panelvisual.object_amp)
+		else:
+			panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
+		panelvisual.filter_amp_real.ComputeNormalsOn()
+		panelvisual.filter_amp_real.ComputeScalarsOn()
+		panelvisual.filter_amp_real.SetNumberOfContours(1)
+		panelvisual.filter_amp_real.SetValue( 0, contour)
+		panelvisual.filter_amp_real.Modified()
+		panelvisual.filter_amp_real.Update()
+		panelvisual.smooth_filter_real.SetInputConnection(panelvisual.filter_amp_real.GetOutputPort())
+		panelvisual.smooth_filter_real.SetNumberOfIterations(15)
+		panelvisual.smooth_filter_real.SetRelaxationFactor(0.1)
+		panelvisual.smooth_filter_real.FeatureEdgeSmoothingOff()
+		panelvisual.smooth_filter_real.BoundarySmoothingOn()
+		panelvisual.smooth_filter_real.Update()
+		panelvisual.normals_amp_real.SetInputConnection(panelvisual.smooth_filter_real.GetOutputPort())
+		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
+		panelvisual.normals_amp_real.ConsistencyOff()
+		panelvisual.normals_amp_real.SplittingOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.ComputePointNormalsOn()
+		panelvisual.normals_amp_real.ComputeCellNormalsOff()
+		panelvisual.normals_amp_real.NonManifoldTraversalOff()
+		panelvisual.triangles_amp_real.SetInputConnection(panelvisual.normals_amp_real.GetOutputPort())
+		panelvisual.strips_amp_real.SetInputConnection(panelvisual.triangles_amp_real.GetOutputPort())
+		panelvisual.clipper.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
+		panelvisual.clipper.SetClipFunction(panelvisual.plane)
+		panelvisual.clipper.GenerateClippedOutputOn()
+		panelvisual.clipper.SetValue(0)
+		panelvisual.clipper.Update()
+		panelvisual.mapper_amp_real.SetInputConnection(panelvisual.clipper.GetOutputPort())
+		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
+		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.object_amp.GetPointData().GetScalars().GetRange())
+		panelvisual.mapper_amp_real.SetScalarModeToUsePointData()
+		panelvisual.mapper_amp_real.Modified()
+		panelvisual.mapper_amp_real.Update()
+		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
+		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_amp_real)
+		panelvisual.mapper_amp_real2.SetInputConnection(panelvisual.clipper.GetClippedOutputPort())
+		panelvisual.mapper_amp_real2.SetLookupTable(panelvisual.lut_amp_real)
+		panelvisual.mapper_amp_real2.SetScalarRange(panelvisual.object_amp.GetPointData().GetScalars().GetRange())
+		panelvisual.mapper_amp_real2.SetScalarModeToUsePointData()
+		panelvisual.mapper_amp_real2.Modified()
+		panelvisual.mapper_amp_real2.Update()
+		panelvisual.actor_amp_real2.GetProperty().SetOpacity(opacity)
+		panelvisual.actor_amp_real2.SetMapper(panelvisual.mapper_amp_real2)
+		if panelvisual.VTKIsNot6:
+			panelvisual.filter_plane.SetInput(panelvisual.object_amp)
+		else:
+			panelvisual.filter_plane.SetInputData(panelvisual.object_amp)
+		panelvisual.filter_plane.ComputeNormalsOn()
+		panelvisual.filter_plane.ComputeScalarsOn()
+		panelvisual.filter_plane.SetNumberOfContours(1)
+		panelvisual.filter_plane.SetValue( 0, contour)
+		panelvisual.filter_plane.Modified()
+		panelvisual.filter_plane.Update()
+		panelvisual.smooth_plane.SetInputConnection(panelvisual.filter_plane.GetOutputPort())
+		panelvisual.smooth_plane.SetNumberOfIterations(15)
+		panelvisual.smooth_plane.SetRelaxationFactor(0.1)
+		panelvisual.smooth_plane.FeatureEdgeSmoothingOff()
+		panelvisual.smooth_plane.BoundarySmoothingOn()
+		panelvisual.smooth_plane.Update()
+		panelvisual.cutter.SetInputConnection(panelvisual.smooth_plane.GetOutputPort())
+		panelvisual.cutter.SetCutFunction(panelvisual.plane)
+		panelvisual.cutter.GenerateTrianglesOn()
+		panelvisual.cutter.Update()
+		panelvisual.cutter.GenerateCutScalarsOn()
+		panelvisual.filter_tri.SetInputConnection(panelvisual.cutter.GetOutputPort())
+		objectnpoints = shp[0]*shp[1]*shp[2]
+		objectbounds = panelvisual.object_amp.GetBounds()
+		density = (objectbounds[1]-objectbounds[0])*(objectbounds[3]-objectbounds[2])*(objectbounds[5]-objectbounds[4])/objectnpoints
+		linedensity = math.pow(density, 1.0/3.0)
+		mesh_maxedge = 20.0*linedensity
+		panelvisual.meshsub.SetInputConnection(panelvisual.filter_tri.GetOutputPort())
+		#panelvisual.meshsub.SetMaximumEdgeLength(mesh_maxedge)
+		panelvisual.meshsub.SetMaximumNumberOfPasses(meshsubiter)
+		panelvisual.meshsub.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
+		panelvisual.meshsub.Update()
+		panelvisual.probefilter.SetInputConnection(panelvisual.meshsub.GetOutputPort())
+		if panelvisual.VTKIsNot6:
+			panelvisual.probefilter.SetSource(panelvisual.object_phase)
+		else:
+			panelvisual.probefilter.SetSourceData(panelvisual.object_phase)
+		panelvisual.probefilter.Update()
+		panelvisual.triangles_plane.SetInputConnection(panelvisual.probefilter.GetOutputPort())
+		panelvisual.normals_phase_real.SetInputConnection(panelvisual.triangles_plane.GetOutputPort())
+		panelvisual.normals_phase_real.SetFeatureAngle(feature_angle)
+		panelvisual.normals_phase_real.ConsistencyOff()
+		panelvisual.normals_phase_real.SplittingOff()
+		panelvisual.normals_phase_real.AutoOrientNormalsOff()
+		panelvisual.normals_phase_real.ComputePointNormalsOn()
+		panelvisual.normals_phase_real.ComputeCellNormalsOn()
+		panelvisual.normals_phase_real.NonManifoldTraversalOff()
+		panelvisual.triangles_phase_real.SetInputConnection(panelvisual.normals_phase_real.GetOutputPort())
+		panelvisual.strips_phase_real.SetInputConnection(panelvisual.triangles_phase_real.GetOutputPort())
+		panelvisual.mapper_phase_real.SetInputConnection(panelvisual.strips_phase_real.GetOutputPort())
+		panelvisual.mapper_phase_real.SetLookupTable(panelvisual.lut_phase_real)
+		panelvisual.mapper_phase_real.SetScalarRange([phasemin,phasemax])
+		panelvisual.mapper_phase_real.SetScalarModeToUsePointData()
+		panelvisual.mapper_phase_real.Update()
+		panelvisual.mapper_phase_real.Modified()
+		panelvisual.actor_phase_real.GetProperty().SetOpacity(1.0)
+		panelvisual.actor_phase_real.SetMapper(panelvisual.mapper_phase_real)
+		panelvisual.SetPicker()
+		panelvisual.renderer_amp_real.RemoveAllViewProps()
+		panelvisual.renderer_phase_real.RemoveAllViewProps()
+		panelvisual.renderer_amp_recip.RemoveAllViewProps()
+		panelvisual.renderer_phase_recip.RemoveAllViewProps()
+		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_amp_real)
+		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_phase_real)
+		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_amp_recip)
+		panelvisual.renWin.GetRenderWindow().RemoveRenderer(panelvisual.renderer_phase_recip)
+		panelvisual.renWin.GetRenderWindow().Modified()
+		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_amp_real)
+		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_amp_real2)
+		panelvisual.renderer_amp_real.AddActor(panelvisual.actor_phase_real)
+		panelvisual.renderer_amp_real.AddActor2D(panelvisual.scalebar_amp_real)
+		panelvisual.renderer_amp_real.AddActor2D(panelvisual.textActor)
+		panelvisual.renderer_amp_real.SetBackground(r, g, b)
+		panelvisual.renWin.GetRenderWindow().AddRenderer(panelvisual.renderer_phase_real)
+		panelvisual.renWin.GetRenderWindow().AddRenderer(panelvisual.renderer_amp_real)
+		panelvisual.renWin.GetRenderWindow().SetMultiSamples(0)
+		panelvisual.renWin.SetInteractorStyle(panelvisual.style3D)
+		panelvisual.renderer_amp_real.ResetCamera()
+		panelvisual.renWin.SetPicker(panelvisual.picker_amp_real)
+		panelvisual.renderer_amp_real.SetViewport(0,0,1,1)
+		panelvisual.renderer_phase_real.SetViewport(1,1,1,1)
+		panelvisual.Layout()
+		panelvisual.Show()
+		if(self.chkbox_axes.GetValue() == True):
+			panelvisual.axis.SetBounds(panelvisual.object_amp.GetBounds())
+			if panelvisual.VTKIsNot6:
+				panelvisual.axis.SetInput(panelvisual.object_amp)
+			else:
+				panelvisual.axis.SetInputData(panelvisual.object_amp)
+			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
+			panelvisual.axis.SetLabelFormat("%6.1f")
+			panelvisual.axis.SetFlyModeToOuterEdges()
+			panelvisual.axis.ScalingOff()
+			panelvisual.axis.SetFontFactor(float(self.axes_fontfactor.value.GetValue()))
+			panelvisual.axis.SetXLabel("X")
+			panelvisual.axis.SetYLabel("Y")
+			panelvisual.axis.SetZLabel("Z")
+			panelvisual.axis.Modified()
+			panelvisual.renderer_amp_real.AddViewProp( panelvisual.axis )
 	data_file  = self.input_filename.objectpath.GetValue()
 	coords_file  = self.coords_filename.objectpath.GetValue()
 	panelvisual = self.ancestor.GetPage(1)
-	panelvisual.contour_real.value.SetValue(self.contour.value.GetValue())
-	panelvisual.OnContourSelect(None, forceshow=True)
 	r = float(panelvisual.r)/255.0
 	g = float(panelvisual.g)/255.0
 	b = float(panelvisual.b)/255.0
@@ -3226,6 +3676,11 @@ def Sequence_View_Object(self, ancestor):
 			ViewDataAmpWPhase(self, ancestor , panelvisual.data, r, g, b)
 		if (self.rbampphase.GetStringSelection() == 'Amplitude (cut plane)'):
 			ViewAmpPlane(self, ancestor , panelvisual.data, r, g, b)
+		if (self.rbampphase.GetStringSelection() == 'Amplitude Clipped Phase'):
+			if panelvisual.VTKIsNot7:
+				self.ancestor.GetPage(0).queue_info.put("VTK 7 or greater is required for 'Amplitude Clipped Phase'.")
+			else:
+				ViewDataAmpClippedPhase(self, ancestor , panelvisual.data, r, g, b)
 		panelvisual.datarangelist = []
 		panelvisual.ReleaseVisualButtons(gotovisual=True)
 		panelvisual.button_vremove.Enable(False)
@@ -3255,9 +3710,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.scalebar_amp_real.Modified()
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real_vtk)
@@ -3289,7 +3741,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real_vtk.GetPointData().GetScalars().GetRange())
 		panelvisual.mapper_amp_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.mapper_amp_real.Update()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
@@ -3361,9 +3812,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		panelvisual.scalebar_phase_real.SetWidth(0.07)
-		panelvisual.scalebar_phase_real.SetHeight(0.90)
-		panelvisual.scalebar_phase_real.SetPosition(0.01,0.1)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
 		if panelvisual.VTKIsNot6:
@@ -3378,7 +3826,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.mapper_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.mapper_phase_real.SetScalarRange([phasemin,phasemax])
 		panelvisual.mapper_phase_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_phase_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_phase_real.Modified()
 		panelvisual.mapper_phase_real.Update()
 		panelvisual.actor_phase_real.GetProperty().SetOpacity(1.0)
@@ -3449,9 +3896,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
 		if panelvisual.VTKIsNot6:
@@ -3465,7 +3909,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.mapper_amp_real.SetInputConnection(panelvisual.strips_amp_real.GetOutputPort())
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real_vtk.GetPointData().GetScalars().GetRange())
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
 		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_amp_real)
@@ -3529,9 +3972,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_amp_real.SetInput(panelvisual.image2D_amp_real_vtk)
@@ -3608,9 +4048,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_amp_real.SetInput(panelvisual.image2D_amp_real_vtk)
@@ -3666,8 +4103,6 @@ def Sequence_View_VTK(self, ancestor):
 			panelvisual.renderer_amp_real.AddViewProp( panelvisual.axis2D )
 	data_file  = self.input_filename.objectpath.GetValue()
 	panelvisual = self.ancestor.GetPage(1)
-	panelvisual.contour_real.value.SetValue(self.contour.value.GetValue())
-	panelvisual.OnContourSelect(None, forceshow=True)
 	r = float(panelvisual.r)/255.0
 	g = float(panelvisual.g)/255.0
 	b = float(panelvisual.b)/255.0

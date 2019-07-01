@@ -29,6 +29,7 @@ from .action import *
 from .common import getmaincollapseBitmap
 from .common import getmainexpandBitmap
 from .common import getmainhoverBitmap
+from .common import getpipelineok24Bitmap
 from .common import OptIconSize
 from .common import CheckListCtrl
 from .common import IsNotWX4
@@ -40,9 +41,10 @@ else:
 class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 	def __init__(self,parent):
 		self.ancestor = parent
-		self.citer_flow = numpy.zeros((10), dtype=numpy.int32)
+		self.citer_flow = numpy.zeros((20), dtype=numpy.int32)
 		self.pipeline_started = False
 		self.pipelineitems=[]
+		self.pipeline_exec_idx=0
 		self.thread = None
 		self.thread_register = Queue()
 		self.queue_info = Queue()
@@ -51,6 +53,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.seqdata_max_recip = 0.0
 		self.seqdata_max_support = 1.0
 		self.support = None
+		self.mask = None
 		self.residual = None
 		self.psf = None
 		self.residualRL = numpy.zeros((2), dtype=numpy.double)
@@ -80,12 +83,21 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.maintree.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnExpColTreeItem)
 		self.treeroot = self.maintree.AddRoot('root')
 		self.maintree.SetItemHasChildren(self.treeroot)
+		self.visual =  self.maintree.AppendItem(self.treeroot,'Visual Tools')
+		self.importtools =  self.maintree.AppendItem(self.treeroot,'Import Tools')
+		self.exporttools =  self.maintree.AppendItem(self.treeroot,'Export Tools')
 		self.operpre =  self.maintree.AppendItem(self.treeroot,'Functions')
 		self.algs =  self.maintree.AppendItem(self.treeroot,'Phasing Algorithms')
 		self.operpost =  self.maintree.AppendItem(self.treeroot,'Phasing Operations')
+		self.maintree.SetItemHasChildren(self.visual, True)
+		self.maintree.SetItemHasChildren(self.importtools, True)
+		self.maintree.SetItemHasChildren(self.exporttools, True)
 		self.maintree.SetItemHasChildren(self.operpre, True)
 		self.maintree.SetItemHasChildren(self.algs, True)
 		self.maintree.SetItemHasChildren(self.operpost, True)
+		self.maintree.SetItemImage(self.visual, 0,  wx.TreeItemIcon_Normal)
+		self.maintree.SetItemImage(self.importtools, 0,  wx.TreeItemIcon_Normal)
+		self.maintree.SetItemImage(self.exporttools, 0,  wx.TreeItemIcon_Normal)
 		self.maintree.SetItemImage(self.operpre, 0,  wx.TreeItemIcon_Normal)
 		self.maintree.SetItemImage(self.algs, 0,  wx.TreeItemIcon_Normal)
 		self.maintree.SetItemImage(self.operpost, 0,  wx.TreeItemIcon_Normal)
@@ -93,7 +105,13 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.subpanel_members = inspect.getmembers(subpanel, inspect.isclass)
 		for item in self.subpanel_members:
 			if hasattr(item[1], 'treeitem'):
-				if item[1].treeitem['type'] == 'operpre' or item[1].treeitem['type'] == 'operpreview':
+				if item[1].treeitem['type'] == 'operpreview':
+					self.treechilditems.append(self.maintree.AppendItem(self.visual,item[1].treeitem['name']))
+				elif item[1].treeitem['type'] == 'importtools':
+					self.treechilditems.append(self.maintree.AppendItem(self.importtools,item[1].treeitem['name']))
+				elif item[1].treeitem['type'] == 'exporttools':
+					self.treechilditems.append(self.maintree.AppendItem(self.exporttools,item[1].treeitem['name']))
+				elif item[1].treeitem['type'] == 'operpre':
 					self.treechilditems.append(self.maintree.AppendItem(self.operpre,item[1].treeitem['name']))
 				elif item[1].treeitem['type'] == 'algs' or item[1].treeitem['type'] == 'algsstart':
 					self.treechilditems.append(self.maintree.AppendItem(self.algs,item[1].treeitem['name']))
@@ -108,14 +126,15 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 				branch = self.maintree.GetNextSibling(branch)
 			limb= self.maintree.GetNextSibling(limb)
 		self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnActivateTreeItem)
-		self.maintree.Expand(self.operpre)
+		self.maintree.Expand(self.visual)
 		fontdc = wx.ScreenDC()
 		fontdc.SetFont(self.font)
 		fontw,fonth = fontdc.GetTextExtent(" ")
 		mainlistchksize = fonth
 		self.mainlist=CheckListCtrl(self.panel1, id=-1, bmpsize=(mainlistchksize,mainlistchksize), size=(180,1))
 		self.mainlist.SetFont(self.font)
-		self.ListColumnTick = self.mainlist.InsertColumn(0,'Enabled', width=(2*mainlistchksize))
+		okbmw,okbmh = getpipelineok24Bitmap().GetSize()
+		self.ListColumnTick = self.mainlist.InsertColumn(0,'Enabled', width=(8+okbmw))
 		self.ListColumn = self.mainlist.InsertColumn(1,'Pipeline of Operations')
 		self.mainlist.Arrange()
 		self.mainlist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelectListItem)
@@ -268,12 +287,12 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		item = event.GetItem()
 		itemtext = self.maintree.GetItemText(item)
 		itemcount = self.mainlist.GetItemCount()
-		if itemtext in ['Functions','Phasing Algorithms', 'Phasing Operations']:
+		if itemtext in ['Visual Tools','Import Tools','Export Tools','Functions','Phasing Algorithms', 'Phasing Operations']:
 			if self.maintree.IsExpanded(item):
 				self.maintree.Collapse(item)
 			else:
 				self.maintree.Expand(item)
-		if (item not in (self.operpre,self.algs,self.operpost)):
+		if (item not in (self.visual,self.importtools,self.exporttools,self.operpre,self.algs,self.operpost)):
 			if IsNotWX4():
 				mainlistidx = self.mainlist.InsertStringItem(itemcount,"")
 			else:

@@ -58,8 +58,6 @@ def PrepareVisualisation(self,pipelineitem):
 	panelvisual.renderer_amp_recip.SetBackground(r, g, b)
 	contour_real = CNTR_CLIP*numpy.max(numpy.abs(self.seqdata))
 	contour_recip = contour_real
-	panelvisual.contour_real.value.SetValue(str(int(contour_real)))
-	panelvisual.contour_recip.value.SetValue(str(int(contour_recip)))
 	if (self.visual_amp_real is not None) or (self.visual_amp_recip is not None) or (self.visual_support is not None):
 		panelvisual.renderer_amp_real.RemoveAllViewProps()
 		panelvisual.renderer_phase_real .RemoveAllViewProps()
@@ -92,11 +90,7 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.10)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.scalebar_amp_real.Modified()
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
@@ -127,7 +121,6 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
 		panelvisual.mapper_amp_real.SetScalarModeToUsePointData()
-		panelvisual.mapper_amp_real.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_real.Modified()
 		panelvisual.mapper_amp_real.Update()
 		panelvisual.actor_amp_real.GetProperty().SetOpacity(1.0)
@@ -146,7 +139,7 @@ def PrepareVisualisation(self,pipelineitem):
 		points_amp_real.AddArray(panelvisual.vtk_data_array_phase_real)
 		panelvisual.image_amp_real.Modified()
 		panelvisual.lut_phase_real.SetNumberOfTableValues(256)
-		panelvisual.lut_phase_real.SetTableRange(panelvisual.image_amp_real.GetPointData().GetArray("mapscalar").GetRange())
+		panelvisual.lut_phase_real.SetTableRange([-numpy.pi,numpy.pi])
 		lutsource = self.ancestor.GetPage(0).cms[self.ancestor.GetPage(0).cmls[1][0]][1]
 		if self.ancestor.GetPage(0).cmls[1][1] == 0:
 			for k in range(256):
@@ -160,7 +153,7 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.scalebar_amp_real.Modified()
 		panelvisual.filter_amp_real.Modified()
 		panelvisual.filter_amp_real.Update()
-		panelvisual.mapper_amp_real.SetScalarRange(panelvisual.image_amp_real.GetPointData().GetArray("mapscalar").GetRange())
+		panelvisual.mapper_amp_real.SetScalarRange([-numpy.pi,numpy.pi])
 		panelvisual.mapper_amp_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.mapper_amp_real.SelectColorArray("mapscalar")
 		panelvisual.mapper_amp_real.SetScalarModeToUsePointFieldData()
@@ -186,11 +179,7 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.lut_amp_recip.SetRamp(0)
 		panelvisual.lut_amp_recip.Build()
 		panelvisual.scalebar_amp_recip.SetTitle("")
-		panelvisual.scalebar_amp_recip.SetOrientationToVertical()
 		panelvisual.scalebar_amp_recip.SetLookupTable(panelvisual.lut_amp_recip)
-		panelvisual.scalebar_amp_recip.SetWidth(0.10)
-		panelvisual.scalebar_amp_recip.SetHeight(0.90)
-		panelvisual.scalebar_amp_recip.SetPosition(0.01,0.1)
 		if panelvisual.VTKIsNot6:
 			panelvisual.filter_amp_recip.SetInput(panelvisual.image_amp_recip)
 		else:
@@ -220,7 +209,6 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.mapper_amp_recip.SetLookupTable(panelvisual.lut_amp_recip)
 		panelvisual.mapper_amp_recip.SetScalarRange(panelvisual.image_amp_recip.GetPointData().GetScalars().GetRange())
 		panelvisual.mapper_amp_recip.SetScalarModeToUsePointData()
-		panelvisual.mapper_amp_recip.ImmediateModeRenderingOn()
 		panelvisual.mapper_amp_recip.Modified()
 		panelvisual.mapper_amp_recip.Update()
 		panelvisual.actor_amp_recip.SetMapper(panelvisual.mapper_amp_recip)
@@ -239,7 +227,7 @@ def PrepareVisualisation(self,pipelineitem):
 		points_amp_recip.AddArray(panelvisual.vtk_data_array_phase_recip)
 		panelvisual.image_amp_recip.Modified()
 		panelvisual.lut_phase_recip.SetNumberOfTableValues(256)
-		panelvisual.lut_phase_recip.SetTableRange(panelvisual.image_amp_recip.GetPointData().GetArray("mapscalar").GetRange())
+		panelvisual.lut_phase_recip.SetTableRange([-numpy.pi,numpy.pi])
 		lutsource = self.ancestor.GetPage(0).cms[self.ancestor.GetPage(0).cmls[3][0]][1]
 		if self.ancestor.GetPage(0).cmls[3][1] == 0:
 			for k in range(256):
@@ -253,7 +241,7 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.scalebar_amp_recip.Modified()
 		panelvisual.filter_amp_recip.Modified()
 		panelvisual.filter_amp_recip.Update()
-		panelvisual.mapper_amp_recip.SetScalarRange(panelvisual.image_amp_recip.GetPointData().GetArray("mapscalar").GetRange())
+		panelvisual.mapper_amp_recip.SetScalarRange([-numpy.pi,numpy.pi])
 		panelvisual.mapper_amp_recip.SetLookupTable(panelvisual.lut_phase_recip)
 		panelvisual.mapper_amp_recip.SelectColorArray("mapscalar")
 		panelvisual.mapper_amp_recip.SetScalarModeToUsePointFieldData()
@@ -293,7 +281,6 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.strips_support.SetInputConnection(panelvisual.triangles_support.GetOutputPort())
 		panelvisual.mapper_support.SetInputConnection(panelvisual.strips_support.GetOutputPort())
 		panelvisual.mapper_support.SetScalarRange(panelvisual.image_support.GetPointData().GetScalars().GetRange())
-		panelvisual.mapper_support.ImmediateModeRenderingOn()
 		panelvisual.actor_support.SetMapper(panelvisual.mapper_support)
 		panelvisual.actor_support.GetProperty().SetOpacity(0.05)
 		panelvisual.renderer_amp_real.AddActor( panelvisual.actor_support )
@@ -337,8 +324,6 @@ def PrepareVisualisation2D(self,pipelineitem):
 	panelvisual.renderer_phase_real.SetBackground(r, g, b)
 	panelvisual.renderer_amp_recip.SetBackground(r, g, b)
 	panelvisual.renderer_phase_recip.SetBackground(r, g, b)
-	contour_real = float(panelvisual.contour_real.value.GetValue())
-	contour_recip = float(panelvisual.contour_recip.value.GetValue())
 	if (self.visual_amp_real is not None) or (self.visual_amp_recip is not None) or (self.visual_support is not None):
 		panelvisual.renderer_amp_real.RemoveAllViewProps()
 		panelvisual.renderer_phase_real .RemoveAllViewProps()
@@ -370,11 +355,7 @@ def PrepareVisualisation2D(self,pipelineitem):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.10)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_amp_real.SetInput(panelvisual.image_amp_real)
@@ -410,11 +391,7 @@ def PrepareVisualisation2D(self,pipelineitem):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		panelvisual.scalebar_phase_real.SetWidth(0.10)
-		panelvisual.scalebar_phase_real.SetHeight(0.90)
-		panelvisual.scalebar_phase_real.SetPosition(0.01,0.1)
 		panelvisual.color_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_phase_real.SetInput(panelvisual.image_phase_real)
@@ -449,11 +426,7 @@ def PrepareVisualisation2D(self,pipelineitem):
 		panelvisual.lut_amp_recip.SetRamp(0)
 		panelvisual.lut_amp_recip.Build()
 		panelvisual.scalebar_amp_recip.SetTitle("")
-		panelvisual.scalebar_amp_recip.SetOrientationToVertical()
 		panelvisual.scalebar_amp_recip.SetLookupTable(panelvisual.lut_amp_recip)
-		panelvisual.scalebar_amp_recip.SetWidth(0.10)
-		panelvisual.scalebar_amp_recip.SetHeight(0.90)
-		panelvisual.scalebar_amp_recip.SetPosition(0.01,0.1)
 		panelvisual.color_amp_recip.SetLookupTable(panelvisual.lut_amp_recip)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_amp_recip.SetInput(panelvisual.image_amp_recip)
@@ -488,11 +461,7 @@ def PrepareVisualisation2D(self,pipelineitem):
 		panelvisual.lut_phase_recip.SetRamp(0)
 		panelvisual.lut_phase_recip.Build()
 		panelvisual.scalebar_phase_recip.SetTitle("")
-		panelvisual.scalebar_phase_recip.SetOrientationToVertical()
 		panelvisual.scalebar_phase_recip.SetLookupTable(panelvisual.lut_phase_recip)
-		panelvisual.scalebar_phase_recip.SetWidth(0.10)
-		panelvisual.scalebar_phase_recip.SetHeight(0.90)
-		panelvisual.scalebar_phase_recip.SetPosition(0.01,0.1)
 		panelvisual.color_phase_recip.SetLookupTable(panelvisual.lut_phase_recip)
 		if panelvisual.VTKIsNot6:
 			panelvisual.color_phase_recip.SetInput(panelvisual.image_phase_recip)

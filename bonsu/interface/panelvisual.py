@@ -415,6 +415,90 @@ class OrientXYZ(wx.Panel):
 		else:
 			self.panelvisual.widget.SetEnabled( 0 )
 			self.panelvisual.RefreshScene()
+class LineScan():
+	def __init__(self, line, probe):
+		self.data = []
+		self.p1 = [0.0,0.0,0.0]
+		self.p2 = [0.0,0.0,0.0]
+		self.nopoints = 2
+		if line is None:
+			self.line = vtk.vtkLineSource()
+		else:
+			self.line = line
+		self.line.SetResolution(self.nopoints)
+		self.line.Modified()
+		if probe is None:
+			self.probe = vtk.vtkProbeFilter()
+		else:
+			self.probe = probe
+		self.probe.SetInputConnection(self.line.GetOutputPort())
+		self.x = None
+		self.y = None
+	def NumpyToVTK(self, ar, phase=False):
+		if phase:
+			flat_data= (numpy.angle(ar)).transpose(2,1,0).flatten();
+		else:
+			flat_data= (numpy.abs(ar)).transpose(2,1,0).flatten();
+		vtk_data_array = numpy_support.numpy_to_vtk(flat_data)
+		image = vtk.vtkImageData()
+		points = image.GetPointData()
+		points.SetScalars(vtk_data_array)
+		image.SetDimensions(ar.shape)
+		image.SetSpacing(1,1,1)
+		image.ComputeBounds()
+		image.Modified()
+		return image
+	def NumpyCoordsToVTK(self, ar, coords, phase=False):
+		shp = numpy.array(ar.shape, dtype=numpy.int)
+		if phase:
+			flat_data= (numpy.angle(ar)).transpose(2,1,0).flatten();
+		else:
+			flat_data= (numpy.abs(ar)).transpose(2,1,0).flatten();
+		vtk_data_array = numpy_support.numpy_to_vtk(flat_data)
+		vtk_coordarray = numpy_support.numpy_to_vtk(coords)
+		object = vtk.vtkStructuredGrid()
+		objectpoints = vtk.vtkPoints()
+		objectpoints.SetDataTypeToDouble()
+		objectpoints.SetNumberOfPoints(ar.size)
+		objectpoints.SetData(vtk_coordarray)
+		object.SetPoints(objectpoints)
+		object.GetPointData().SetScalars(vtk_data_array)
+		object.SetDimensions(shp)
+		object.Modified()
+		return object
+	def SetData(self, dataobject):
+		from vtk import vtkVersion
+		VTKMajor = vtkVersion().GetVTKMajorVersion()
+		if VTKMajor < 6:
+			self.probe.SetSource(dataobject)
+		else:
+			self.probe.SetSourceData(dataobject)
+	def UpdateLine(self):
+		self.probe.Update()
+		polydata = self.probe.GetPolyDataOutput()
+		scalars = polydata.GetPointData().GetScalars()
+		self.data  = []
+		for i in range(self.nopoints):
+			self.data.append(scalars.GetComponent(i,0))
+		l1 = (self.p2[0]-self.p1[0])*(self.p2[0]-self.p1[0])
+		l2 = (self.p2[1]-self.p1[1])*(self.p2[1]-self.p1[1])
+		l3 = (self.p2[2]-self.p1[2])*(self.p2[2]-self.p1[2])
+		length = numpy.sqrt(l1+l2+l3)
+		self.x = (length / float(self.nopoints)) * numpy.arange(self.nopoints)
+		self.y = numpy.array(self.data)
+	def SetPoints(self, p1, p2):
+		self.p1 = p1
+		self.p2 = p2
+		self.line.SetPoint1(self.p1)
+		self.line.SetPoint2(self.p2)
+		self.line.Modified()
+	def SetResolution(self, n):
+		self.nopoints = n
+		self.line.SetResolution(self.nopoints)
+		self.line.Modified()
+	def SaveLine(self, filename):
+		xy = numpy.vstack((self.x,self.y)).T
+		numpy.savetxt(filename, xy, delimiter=',')
 class MeasureLine(wx.Panel):
 	def __init__(self,parent):
 		wx.Panel.__init__(self, parent)
@@ -439,12 +523,12 @@ class MeasureLine(wx.Panel):
 		self.p2x = NumberObject(self,"P2:x:",0.0,35)
 		self.p2y = NumberObject(self,"P2:y:",0.0,35)
 		self.p2z = NumberObject(self,"P2:z:",0.0,35)
-		self.p1x.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
-		self.p1y.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
-		self.p1z.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
-		self.p2x.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
-		self.p2y.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
-		self.p2z.value.Bind(wx.EVT_TEXT_ENTER, self.SetPointCoords)
+		self.p1x.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p1y.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p1z.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p2x.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p2y.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p2z.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
 		self.EnablePointCoordsDisplay(0)
 		self.hbox_p1.Add(self.p1x ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		self.hbox_p1.Add(self.p1y ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
@@ -531,18 +615,21 @@ class MeasureLine(wx.Panel):
 		self.p2y.value.SetValue(str(p2[1]))
 		self.p2z.value.SetValue(str(p2[2]))
 	def SetPointCoords(self, event):
-		try:
-			p1 = [float(self.p1x.value.GetValue()),float(self.p1y.value.GetValue()),float(self.p1z.value.GetValue())]
-			p2 = [float(self.p2x.value.GetValue()),float(self.p2y.value.GetValue()),float(self.p2z.value.GetValue())]
-		except:
-			return
-		self.panelvisual.measure_data[1][0] = p1
-		self.panelvisual.measure_data[1][1] = p2
-		self.linerep.SetPoint1WorldPosition(p1)
-		self.linerep.SetPoint2WorldPosition(p2)
-		self.linerep.Modified()
-		self.DrawGraph(None,None)
-		self.panelvisual.ancestor.GetParent().Refresh()
+		if event.GetKeyCode() == wx.WXK_RETURN:
+			try:
+				p1 = [float(self.p1x.value.GetValue()),float(self.p1y.value.GetValue()),float(self.p1z.value.GetValue())]
+				p2 = [float(self.p2x.value.GetValue()),float(self.p2y.value.GetValue()),float(self.p2z.value.GetValue())]
+			except:
+				return
+			self.panelvisual.measure_data[1][0] = p1
+			self.panelvisual.measure_data[1][1] = p2
+			self.linerep.SetPoint1WorldPosition(p1)
+			self.linerep.SetPoint2WorldPosition(p2)
+			self.linerep.Modified()
+			self.DrawGraph(None,None)
+			self.panelvisual.ancestor.GetParent().Refresh()
+		else:
+			event.Skip()
 	def OnClickSaveButton(self, event):
 		x = (self.linerep.GetDistance() / float(self.nopoints)) * numpy.arange(self.nopoints)
 		y = numpy.array(self.data)
@@ -755,160 +842,338 @@ class MeasureAngle(wx.Panel):
 		else:
 			self.anglewidget.SetEnabled(0)
 			self.panelvisual.ancestor.GetParent().Refresh()
-class DataRangeDialog(wx.Dialog):
+class ContourDialog(wx.Dialog):
 	def __init__(self, parent):
-		wx.Dialog.__init__(self, parent, title="Set lookup table data range", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-		self.SetSizeHints(410,308,-1,-1)
-		from math import floor, log10, pi
+		wx.Dialog.__init__(self, parent, title="Set Contour Value", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+		self.SetSizeHints(350,250,-1,-1)
+		self.Bind(wx.EVT_CLOSE, self.OnExit)
 		self.parent = parent
 		self.panelvisual = self.GetParent()
-		self.scalebars = []
-		self.actors = []
-		self.props = None
-		self.actor_list3D = ["vtkOpenGLActor", "vtkActor", "vtkMesaActor"]
-		self.actor_list2D = ["vtkOpenGLImageActor", "vtkImageActor"]
-		self.scalebar_ranges = []
-		self.style = self.parent.renWin.GetInteractorStyle()
-		self.renderers = self.parent.renWin.GetRenderWindow().GetRenderers()
-		self.renderers.InitTraversal()
-		no_renderers = self.renderers.GetNumberOfItems()
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add((-1, 5))
-		self.sbox = []
-		self.sboxs = []
-		self.shbox = []
-		self.chkbox_log = []
-		self.valuemax = []
-		self.valuemin = []
-		ii = 0
-		if self.style.GetClassName() == "vtkInteractorStyleSwitch":
-			for i in range(no_renderers):
-				self.props = self.renderers.GetItemAsObject(i).GetViewProps()
-				self.props.InitTraversal()
-				no_props = self.props.GetNumberOfItems()
-				for j in range(no_props):
-					prop = self.props.GetItemAsObject(j)
-					if any(x == prop.GetClassName() for x in self.actor_list3D):
-						self.actors.append(prop)
-					elif "vtkScalarBarActor" in prop.GetClassName():
-						self.scalebars.append(prop)
-						self.scalebar_ranges.append(list(prop.GetLookupTable().GetTableRange()))
-						if i%2 < 1:
-							self.MakeRange(ii, inc=1)
-							self.MakeLogOption(ii)
-						else:
-							self.MakeRange(ii, inc=0.01)
-						ii+=1
-		elif self.style.GetClassName() == "vtkInteractorStyleImage":
-			for i in range(no_renderers):
-				self.props = self.renderers.GetItemAsObject(i).GetViewProps()
-				self.props.InitTraversal()
-				no_props = self.props.GetNumberOfItems()
-				for j in range(no_props):
-					prop = self.props.GetItemAsObject(j)
-					if "vtkScalarBarActor" in prop.GetClassName():
-						self.scalebars.append(prop)
-						self.scalebar_ranges.append(list(prop.GetLookupTable().GetTableRange()))
-						if i%2 < 1:
-							self.MakeRange(ii, inc=1)
-							self.MakeLogOption(ii)
-						else:
-							self.MakeRange(ii, inc=0.01)
-						ii+=1
-		self.button_update = wx.Button(self, label="Update Scale", size=(200, 30))
-		self.vbox.Add(self.button_update, 1, wx.EXPAND)
-		self.Bind(wx.EVT_BUTTON, self.OnClick,self.button_update)
+		ivalue = int(self.panelvisual.filter_amp_real.GetValue(0))
+		self.contour_real = SpinnerObject(self,"RSI:",MAX_INT,0,1,ivalue,50,90)
+		self.contour_real.label.SetToolTipNew("Real space isosurface")
+		self.contour_real.GetItem(self.contour_real.value, recursive=False).SetFlag(wx.EXPAND)
+		self.contour_real.GetItem(self.contour_real.value, recursive=False).SetProportion(1)
+		self.contour_real.spin.SetEventFunc(self.OnContourReal)
+		self.contour_real.value.Bind(wx.EVT_KEY_UP, self.OnContourRealKey)
+		self.vbox.Add(self.contour_real,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.vbox.Add((-1, 5))
+		ivalue = int(self.panelvisual.filter_amp_recip.GetValue(0))
+		self.contour_recip = SpinnerObject(self,"FSI:",MAX_INT,0,1,ivalue,50,90)
+		self.contour_recip.label.SetToolTipNew("Fourier space isosurface")
+		self.contour_recip.GetItem(self.contour_recip.value, recursive=False).SetFlag(wx.EXPAND)
+		self.contour_recip.GetItem(self.contour_recip.value, recursive=False).SetProportion(1)
+		self.contour_recip.spin.SetEventFunc(self.OnContourRecip)
+		self.contour_recip.value.Bind(wx.EVT_KEY_UP, self.OnContourRecipKey)
+		self.vbox.Add(self.contour_recip,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.vbox.Add((-1, 5))
+		ivalue = float(self.panelvisual.filter_support.GetValue(0))
+		self.contour_support = SpinnerObject(self,"SI:",1.0,0.0,0.1,ivalue,50,90)
+		self.contour_support.label.SetToolTipNew("Support isosurface")
+		self.contour_support.GetItem(self.contour_support.value, recursive=False).SetFlag(wx.EXPAND)
+		self.contour_support.GetItem(self.contour_support.value, recursive=False).SetProportion(1)
+		self.contour_support.spin.SetEventFunc(self.OnContourSupport)
+		self.contour_support.value.Bind(wx.EVT_KEY_UP, self.OnContourSupportKey)
+		self.vbox.Add(self.contour_support,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( self.vbox )
 		self.Fit()
 		self.Layout()
 		self.Show()
-	def MakeRange(self, i, inc=1.0):
-		if len(self.parent.datarangelist) < (i+1):
-			min = self.scalebar_ranges[i][0]
-			max = self.scalebar_ranges[i][1]
-			self.parent.datarangelist.append( [min, max] )
-			current_min = min
-			current_max = max
+	def OnExit(self,event):
+		del self.panelvisual.contourdialog
+		self.Destroy()
+		if self.panelvisual.ancestor.GetPage(0).pipeline_started == False:
+			self.panelvisual.EnablePanelPhase(enable=True)
+	def OnContourRealKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
 		else:
-			min = self.parent.datarangelist[i][0]
-			max = self.parent.datarangelist[i][1]
-			current_min = self.scalebar_ranges[i][0]
-			current_max = self.scalebar_ranges[i][1]
-		label= "Range %d"%((i+1))
-		range = abs(max - min)
-		if range > MAX_INT:
-			newinc = range/MAX_INT
+			self.OnContourReal(event)
+	def OnContourReal(self, event):
+		if self.panelvisual.filter_amp_real.GetTotalNumberOfInputConnections() > 0:
+			try:
+				contour = float(self.contour_real.value.GetValue())
+			except:
+				return
+			if self.panelvisual.data is None:
+				max = self.panelvisual.ancestor.GetPage(0).seqdata_max
+			else:
+				max = self.panelvisual.data_max
+			if contour > max: contour = CNTR_CLIP*max;
+			if contour <= 0.0: contour = (1.0-CNTR_CLIP);
+			self.panelvisual.filter_amp_real.SetValue( 0, contour)
+			self.panelvisual.filter_amp_real.Modified()
+			self.panelvisual.filter_amp_real.Update()
+			if self.panelvisual.filter_plane.GetTotalNumberOfInputConnections() > 0:
+				self.panelvisual.filter_plane.SetValue( 0, contour)
+				self.panelvisual.filter_plane.Modified()
+				self.panelvisual.filter_plane.Update()
+			if event is not None:
+				event.Skip()
+				self.panelvisual.RefreshScene()
+	def OnContourRecipKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
 		else:
-			newinc = inc
-		self.sbox.append( wx.StaticBox(self, label=label, style=wx.SUNKEN_BORDER) )
-		self.sboxs.append( wx.StaticBoxSizer(self.sbox[-1],wx.VERTICAL) )
-		self.shbox.append( wx.BoxSizer(wx.HORIZONTAL) )
-		self.valuemax.append( SpinnerObject(self,"Max:",max,min,newinc,current_max,50,150) )
-		self.shbox[-1].Add(self.valuemax[-1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.shbox[-1].Add((5, -1))
-		self.valuemin.append( SpinnerObject(self,"Min:",max,min,newinc,current_min,50,150) )
-		self.shbox[-1].Add(self.valuemin[-1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.sboxs[-1].Add(self.shbox[-1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.vbox.Add(self.sboxs[-1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-	def MakeLogOption(self, i):
+			self.OnContourRecip(event)
+	def OnContourRecip(self, event):
+		if self.panelvisual.filter_amp_recip.GetTotalNumberOfInputConnections() > 0:
+			try:
+				contour = float(self.contour_recip.value.GetValue())
+			except:
+				return
+			if self.panelvisual.data is None:
+				max = self.panelvisual.ancestor.GetPage(0).seqdata_max_recip
+			else:
+				max = self.panelvisual.data_max_recip
+			if contour > max: contour = CNTR_CLIP*max;
+			if contour <= 0.0: contour = (1.0-CNTR_CLIP);
+			self.panelvisual.filter_amp_recip.SetValue( 0, contour)
+			self.panelvisual.filter_amp_recip.Modified()
+			self.panelvisual.filter_amp_recip.Update()
+			if event is not None:
+				event.Skip()
+				self.panelvisual.RefreshScene()
+	def OnContourSupportKey(self, event):
+		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+			event.Skip()
+		else:
+			self.OnContourSupport(event)
+	def OnContourSupport(self, event):
+		if self.panelvisual.filter_support.GetTotalNumberOfInputConnections() > 0:
+			try:
+				contour = float(self.contour_support.value.GetValue())
+			except:
+				return
+			if self.panelvisual.data is None:
+				max = self.panelvisual.ancestor.GetPage(0).seqdata_max_support
+			else:
+				max = self.panelvisual.data_max_support
+			if contour > max: contour = CNTR_CLIP*max;
+			if contour <= 0.0: contour = (1.0-CNTR_CLIP);
+			self.panelvisual.filter_support.SetValue( 0, contour)
+			self.panelvisual.filter_support.Modified()
+			self.panelvisual.filter_support.Update()
+			if event is not None:
+				event.Skip()
+				self.panelvisual.RefreshScene()
+class DataRangeDialog(wx.Dialog):
+	def __init__(self, parent):
+		wx.Dialog.__init__(self, parent, title="Set lookup table data range", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+		self.SetSizeHints(450,380,-1,-1)
+		from math import floor, log10, pi
+		self.parent = parent
+		self.panelvisual = self.GetParent()
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add((-1, 5))
-		self.chkbox_log.append( CheckBoxNew(self, -1, 'Log Scale (when: Min > 0)', size=(300, 30)) )
-		self.chkbox_log[-1].SetToolTipNew("Log Scale")
-		if self.scalebars[i].GetLookupTable().GetScale() > 0:
-			self.chkbox_log[-1].SetValue(True)
-		else:
-			self.chkbox_log[-1].SetValue(False)
-		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLogLUT, self.chkbox_log[-1])
-		self.vbox.Add(self.chkbox_log[-1], 1, wx.EXPAND)
-	def OnClick(self, event):
-		if self.style.GetClassName() == "vtkInteractorStyleSwitch":
-			for i in range(len(self.actors)):
-				min = float(self.valuemin[i].value.GetValue())
-				max = float(self.valuemax[i].value.GetValue())
-				if min >= max:
-					self.GetParent().ancestor.GetPage(0).queue_info.put("Data amplitude range: Maximum value must be greater than the minimum value.")
-					return
-				self.actors[i].GetMapper().SetScalarRange((min,max))
-				self.actors[i].GetMapper().Modified()
-				self.scalebars[i].GetLookupTable().SetTableRange((min,max))
-				self.scalebars[i].Modified()
-				self.GetParent().ancestor.GetParent().Refresh()
-				self.RefreshVisualDialog()
-				self.scalebar_ranges[i][0] = min
-				self.scalebar_ranges[i][1] = max
-		elif self.style.GetClassName() == "vtkInteractorStyleImage":
-			for i in range(len(self.scalebars)):
-				min = float(self.valuemin[i].value.GetValue())
-				max = float(self.valuemax[i].value.GetValue())
-				if min >= max:
-					self.GetParent().ancestor.GetPage(0).queue_info.put("Data amplitude range: Maximum value must be greater than the minimum value.")
-					return
-				self.scalebars[i].GetLookupTable().SetTableRange((min,max))
-				self.scalebars[i].Modified()
-				self.GetParent().ancestor.GetParent().Refresh()
-				self.RefreshVisualDialog()
-				self.scalebar_ranges[i][0] = min
-				self.scalebar_ranges[i][1] = max
-	def OnChkboxLogLUT(self, event):
-		ii = 0
-		for i in range(len(self.scalebars)):
-			if i%2 < 1:
-				min = self.scalebar_ranges[i][0]
-				if self.chkbox_log[ii].GetValue() == True and min > 0:
-					self.scalebars[i].GetLookupTable().SetScaleToLog10()
-					self.scalebars[i].GetLookupTable().Modified()
-					self.GetParent().ancestor.GetParent().Refresh()
-					self.RefreshVisualDialog()
-				else:
-					self.scalebars[i].GetLookupTable().SetScaleToLinear()
-					self.scalebars[i].GetLookupTable().Modified()
-					self.GetParent().ancestor.GetParent().Refresh()
-					self.RefreshVisualDialog()
-				ii+=1
-	def RefreshVisualDialog(self):
+		self.sbox1 = wx.StaticBox(self, label="Real Amplitude", style=wx.BORDER_DEFAULT)
+		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
+		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		range = self.panelvisual.lut_amp_real.GetTableRange()
+		self.real_amp_max = SpinnerObject(self,"Max: ",MAX_INT,MIN_INT,1,range[1],70,150)
+		self.real_amp_min = SpinnerObject(self,"Min: ",MAX_INT,MIN_INT,1,range[0],70,150)
+		self.real_amp_max.GetItem(self.real_amp_max.value, recursive=False).SetFlag(wx.EXPAND)
+		self.real_amp_max.GetItem(self.real_amp_max.value, recursive=False).SetProportion(1)
+		self.real_amp_min.GetItem(self.real_amp_min.value, recursive=False).SetFlag(wx.EXPAND)
+		self.real_amp_min.GetItem(self.real_amp_min.value, recursive=False).SetProportion(1)
+		self.hbox1.Add(self.real_amp_max,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.hbox1.Add(self.real_amp_min,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.real_amp_log = CheckBoxNew(self, -1, ' Log', size=(70, 30))
+		self.hbox1.Add((10, -1))
+		self.hbox1.Add(self.real_amp_log, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.sboxs1.Add(self.hbox1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add(self.sboxs1,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.CheckLog(self.panelvisual.lut_amp_real, self.real_amp_log)
+		self.vbox.Add((-1, 5))
+		self.sbox2 = wx.StaticBox(self, label="Real Phase", style=wx.BORDER_DEFAULT)
+		self.sboxs2 = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
+		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		range = self.panelvisual.lut_phase_real.GetTableRange()
+		self.real_phase_max = SpinnerObject(self,"Max: ",MAX_INT_16,MIN_INT_16,0.01,range[1],70,150)
+		self.real_phase_min = SpinnerObject(self,"Min: ",MAX_INT_16,MIN_INT_16,0.01,range[0],70,150)
+		self.real_phase_max.GetItem(self.real_phase_max.value, recursive=False).SetFlag(wx.EXPAND)
+		self.real_phase_max.GetItem(self.real_phase_max.value, recursive=False).SetProportion(1)
+		self.real_phase_min.GetItem(self.real_phase_min.value, recursive=False).SetFlag(wx.EXPAND)
+		self.real_phase_min.GetItem(self.real_phase_min.value, recursive=False).SetProportion(1)
+		self.hbox2.Add(self.real_phase_max,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.hbox2.Add(self.real_phase_min,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.real_phase_log = CheckBoxNew(self, -1, ' Log', size=(70, 30))
+		self.hbox2.Add((10, -1))
+		self.hbox2.Add(self.real_phase_log, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.sboxs2.Add(self.hbox2,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add(self.sboxs2,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.CheckLog(self.panelvisual.lut_phase_real, self.real_phase_log)
+		self.vbox.Add((-1, 5))
+		self.sbox3 = wx.StaticBox(self, label="Fourier Amplitude", style=wx.BORDER_DEFAULT)
+		self.sboxs3 = wx.StaticBoxSizer(self.sbox3,wx.VERTICAL)
+		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+		range = self.panelvisual.lut_amp_recip.GetTableRange()
+		self.recip_amp_max = SpinnerObject(self,"Max: ",MAX_INT,MIN_INT,1,range[1],70,150)
+		self.recip_amp_min = SpinnerObject(self,"Min: ",MAX_INT,MIN_INT,1,range[0],70,150)
+		self.recip_amp_max.GetItem(self.recip_amp_max.value, recursive=False).SetFlag(wx.EXPAND)
+		self.recip_amp_max.GetItem(self.recip_amp_max.value, recursive=False).SetProportion(1)
+		self.recip_amp_min.GetItem(self.recip_amp_min.value, recursive=False).SetFlag(wx.EXPAND)
+		self.recip_amp_min.GetItem(self.recip_amp_min.value, recursive=False).SetProportion(1)
+		self.hbox3.Add(self.recip_amp_max,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.hbox3.Add(self.recip_amp_min,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.recip_amp_log = CheckBoxNew(self, -1, ' Log', size=(70, 30))
+		self.hbox3.Add((10, -1))
+		self.hbox3.Add(self.recip_amp_log, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.sboxs3.Add(self.hbox3,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add(self.sboxs3,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.CheckLog(self.panelvisual.lut_amp_recip, self.recip_amp_log)
+		self.vbox.Add((-1, 5))
+		self.sbox4 = wx.StaticBox(self, label="Fourier Phase", style=wx.BORDER_DEFAULT)
+		self.sboxs4 = wx.StaticBoxSizer(self.sbox4,wx.VERTICAL)
+		self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+		range = self.panelvisual.lut_phase_recip.GetTableRange()
+		self.recip_phase_max = SpinnerObject(self,"Max: ",MAX_INT_16,MIN_INT_16,0.01,range[1],70,150)
+		self.recip_phase_min = SpinnerObject(self,"Min: ",MAX_INT_16,MIN_INT_16,0.01,range[0],70,150)
+		self.recip_phase_max.GetItem(self.recip_phase_max.value, recursive=False).SetFlag(wx.EXPAND)
+		self.recip_phase_max.GetItem(self.recip_phase_max.value, recursive=False).SetProportion(1)
+		self.recip_phase_min.GetItem(self.recip_phase_min.value, recursive=False).SetFlag(wx.EXPAND)
+		self.recip_phase_min.GetItem(self.recip_phase_min.value, recursive=False).SetProportion(1)
+		self.hbox4.Add(self.recip_phase_max,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.hbox4.Add(self.recip_phase_min,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.recip_phase_log = CheckBoxNew(self, -1, ' Log', size=(70, 30))
+		self.hbox4.Add((10, -1))
+		self.hbox4.Add(self.recip_phase_log, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=2)
+		self.sboxs4.Add(self.hbox4,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add(self.sboxs4,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.CheckLog(self.panelvisual.lut_phase_recip, self.recip_phase_log)
+		self.vbox.Add((-1, 5))
+		self.real_amp_max.spin.SetEventFunc(self.OnRealAmpSpin)
+		self.real_amp_max.value.Bind(wx.EVT_KEY_DOWN, self.OnRealAmpKey)
+		self.real_amp_min.spin.SetEventFunc(self.OnRealAmpSpin)
+		self.real_amp_min.value.Bind(wx.EVT_KEY_DOWN, self.OnRealAmpKey)
+		self.real_phase_max.spin.SetEventFunc(self.OnRealPhaseSpin)
+		self.real_phase_max.value.Bind(wx.EVT_KEY_DOWN, self.OnRealPhaseKey)
+		self.real_phase_min.spin.SetEventFunc(self.OnRealPhaseSpin)
+		self.real_phase_min.value.Bind(wx.EVT_KEY_DOWN, self.OnRealPhaseKey)
+		self.recip_amp_max.spin.SetEventFunc(self.OnRecipAmpSpin)
+		self.recip_amp_max.value.Bind(wx.EVT_KEY_DOWN, self.OnRecipAmpKey)
+		self.recip_amp_min.spin.SetEventFunc(self.OnRecipAmpSpin)
+		self.recip_amp_min.value.Bind(wx.EVT_KEY_DOWN, self.OnRecipAmpKey)
+		self.recip_phase_max.spin.SetEventFunc(self.OnRecipPhaseSpin)
+		self.recip_phase_max.value.Bind(wx.EVT_KEY_DOWN, self.OnRecipPhaseKey)
+		self.recip_phase_min.spin.SetEventFunc(self.OnRecipPhaseSpin)
+		self.recip_phase_min.value.Bind(wx.EVT_KEY_DOWN, self.OnRecipPhaseKey)
+		self.Bind(wx.EVT_CHECKBOX, self.OnLogRealAmp, self.real_amp_log)
+		self.Bind(wx.EVT_CHECKBOX, self.OnLogRealPhase, self.real_phase_log)
+		self.Bind(wx.EVT_CHECKBOX, self.OnLogRecipAmp, self.recip_amp_log)
+		self.Bind(wx.EVT_CHECKBOX, self.OnLogRecipPhase, self.recip_phase_log)
+		self.SetAutoLayout(True)
+		self.SetSizer( self.vbox )
+		self.Fit()
+		self.Layout()
+		self.Show()
+	def SetTableRange(self, lut, scalebar, mapper, objmax, objmin):
+		min = float(objmin.value.GetValue())
+		max = float(objmax.value.GetValue())
+		lut.SetTableRange((min,max))
+		lut.Modified()
+		scalebar.Modified()
+		mapper.SetScalarRange((min,max))
+		mapper.Modified()
 		self.panelvisual.RefreshScene()
-		self.panelvisual.RefreshSceneFull()
+	def OnRealAmpSpin(self,event):
+		self.SetTableRange(self.panelvisual.lut_amp_real, self.panelvisual.scalebar_amp_real,\
+										self.panelvisual.mapper_amp_real,\
+										self.real_amp_max, self.real_amp_min)
+		self.SetTableRange(self.panelvisual.lut_amp_real, self.panelvisual.scalebar_amp_real,\
+										self.panelvisual.mapper_amp_real2,\
+										self.real_amp_max, self.real_amp_min)
+	def OnRealPhaseSpin(self,event):
+		self.SetTableRange(self.panelvisual.lut_phase_real, self.panelvisual.scalebar_phase_real,\
+										self.panelvisual.mapper_phase_real,\
+										self.real_phase_max, self.real_phase_min)
+	def OnRecipAmpSpin(self,event):
+		self.SetTableRange(self.panelvisual.lut_amp_recip, self.panelvisual.scalebar_amp_recip,\
+										self.panelvisual.mapper_amp_recip,\
+										self.recip_amp_max, self.recip_amp_min)
+	def OnRecipPhaseSpin(self,event):
+		self.SetTableRange(self.panelvisual.lut_phase_recip, self.panelvisual.scalebar_phase_recip,\
+										self.panelvisual.mapper_phase_recip,\
+										self.recip_phase_max, self.recip_phase_min)
+	def OnRealAmpKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN:
+			self.OnRealAmpSpin(None)
+		else:
+			event.Skip()
+	def OnRealPhaseKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN:
+			self.OnRealPhaseSpin(None)
+		else:
+			event.Skip()
+	def OnRecipAmpKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN:
+			self.OnRecipAmpSpin(None)
+		else:
+			event.Skip()
+	def OnRecipPhaseKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN:
+			self.OnRecipPhaseSpin(None)
+		else:
+			event.Skip()
+	def SetLogTable(self, lut, scalebar, mapper, objmax, objmin, log=False):
+		min = float(objmin.value.GetValue())
+		max = float(objmax.value.GetValue())
+		if min > 0 and max > min and log:
+			lut.SetScaleToLog10()
+		else:
+			lut.SetScaleToLinear()
+		lut.Modified()
+		scalebar.Modified()
+		mapper.Modified()
+		self.panelvisual.RefreshScene()
+	def CheckLog(self, lut, chkbox):
+		if lut.GetScale() == vtk.VTK_SCALE_LOG10:
+			chkbox.SetValue(True)
+	def OnLogRealAmp(self,event):
+		if self.real_amp_log.GetValue() == True:
+			self.SetLogTable(self.panelvisual.lut_amp_real, self.panelvisual.scalebar_amp_real,\
+										self.panelvisual.mapper_amp_real,\
+										self.real_amp_max, self.real_amp_min, log=True)
+			self.SetLogTable(self.panelvisual.lut_amp_real, self.panelvisual.scalebar_amp_real,\
+										self.panelvisual.mapper_amp_real2,\
+										self.real_amp_max, self.real_amp_min, log=True)
+		else:
+			self.SetLogTable(self.panelvisual.lut_amp_real, self.panelvisual.scalebar_amp_real,\
+										self.panelvisual.mapper_amp_real,\
+										self.real_amp_max, self.real_amp_min)
+			self.SetLogTable(self.panelvisual.lut_amp_real, self.panelvisual.scalebar_amp_real,\
+										self.panelvisual.mapper_amp_real2,\
+										self.real_amp_max, self.real_amp_min)
+	def OnLogRealPhase(self,event):
+		if self.real_phase_log.GetValue() == True:
+			self.SetLogTable(self.panelvisual.lut_phase_real, self.panelvisual.scalebar_phase_real,\
+										self.panelvisual.mapper_phase_real,\
+										self.real_phase_max, self.real_phase_min, log=True)
+		else:
+			self.SetLogTable(self.panelvisual.lut_phase_real, self.panelvisual.scalebar_phase_real,\
+										self.panelvisual.mapper_phase_real,\
+										self.real_phase_max, self.real_phase_min)
+	def OnLogRecipAmp(self,event):
+		if self.recip_amp_log.GetValue() == True:
+			self.SetLogTable(self.panelvisual.lut_amp_recip, self.panelvisual.scalebar_amp_recip,\
+										self.panelvisual.mapper_amp_recip,\
+										self.recip_amp_max, self.recip_amp_min, log=True)
+		else:
+			self.SetLogTable(self.panelvisual.lut_amp_recip, self.panelvisual.scalebar_amp_recip,\
+										self.panelvisual.mapper_amp_recip,\
+										self.recip_amp_max, self.recip_amp_min)
+	def OnLogRecipPhase(self,event):
+		if self.recip_phase_log.GetValue() == True:
+			self.SetLogTable(self.panelvisual.lut_phase_recip, self.panelvisual.scalebar_phase_recip,\
+										self.panelvisual.mapper_phase_recip,\
+										self.recip_phase_max, self.recip_phase_min, log=True)
+		else:
+			self.SetLogTable(self.panelvisual.lut_phase_recip, self.panelvisual.scalebar_phase_recip,\
+										self.panelvisual.mapper_phase_recip,\
+										self.recip_phase_max, self.recip_phase_min)
 class SBDialog(wx.Dialog):
 	def __init__(self, parent):
 		wx.Dialog.__init__(self, parent, title="Scale Bar", size=(500,530), style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
@@ -921,9 +1186,9 @@ class SBDialog(wx.Dialog):
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox11 = wx.BoxSizer(wx.HORIZONTAL)
 		labelcolours = self.panelvisual.scalebar_amp_real.GetLabelTextProperty().GetColor()
-		self.labelr = SpinnerObject(self,"Red:",1.0,0.0,0.1,labelcolours[0],40,50)
-		self.labelg = SpinnerObject(self,"Green:",1.0,0.0,0.1,labelcolours[1],40,50)
-		self.labelb = SpinnerObject(self,"Blue:",1.0,0.0,0.1,labelcolours[2],40,50)
+		self.labelr = SpinnerObject(self,"Red:",1.0,0.0,0.1,labelcolours[0],40,60)
+		self.labelg = SpinnerObject(self,"Green:",1.0,0.0,0.1,labelcolours[1],40,60)
+		self.labelb = SpinnerObject(self,"Blue:",1.0,0.0,0.1,labelcolours[2],40,60)
 		self.labelr.spin.SetEventFunc(self.OnLabelRGB)
 		self.labelg.spin.SetEventFunc(self.OnLabelRGB)
 		self.labelb.spin.SetEventFunc(self.OnLabelRGB)
@@ -936,9 +1201,14 @@ class SBDialog(wx.Dialog):
 		self.labelfontsize = SpinnerObject(self,"Font size:",MAX_INT_16,1,1,self.panelvisual.scalebar_amp_real.GetLabelTextProperty().GetFontSize(),60,50)
 		self.labelfontsize.spin.SetEventFunc(self.OnLabelFontSize)
 		self.labelfontsizeauto = CheckBoxNew(self, -1, 'Auto')
-		if self.panelvisual.scalebar_amp_real.GetUnconstrainedFontSize() == False:
-			self.labelfontsizeauto.SetValue(True)
-			self.labelfontsize.Disable()
+		if IsNotVTK7():
+			if self.panelvisual.scalebar_amp_real.GetAnnotationTextScaling == 0:
+				self.labelfontsizeauto.SetValue(True)
+				self.labelfontsize.Disable()
+		else:
+			if self.panelvisual.scalebar_amp_real.GetUnconstrainedFontSize() == False:
+				self.labelfontsizeauto.SetValue(True)
+				self.labelfontsize.Disable()
 		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLabelFontSize, self.labelfontsizeauto)
 		self.hbox11.Add(self.labelfontsize, 0 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.hbox11.Add(self.labelfontsizeauto, 0 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
@@ -1062,16 +1332,22 @@ class SBDialog(wx.Dialog):
 		self.panelvisual.RefreshScene()
 	def OnChkboxLabelFontSize(self, event):
 		if self.labelfontsizeauto.GetValue() == True:
-			self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOff()
-			self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOff()
-			self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOff()
-			self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOff()
+			if IsNotVTK7():
+				pass
+			else:
+				self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOff()
+				self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOff()
+				self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOff()
+				self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOff()
 			self.labelfontsize.Disable()
 		else:
-			self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOn()
-			self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOn()
-			self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOn()
-			self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOn()
+			if IsNotVTK7():
+				pass
+			else:
+				self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOn()
+				self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOn()
+				self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOn()
+				self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOn()
 			self.labelfontsize.Enable()
 		self.panelvisual.RefreshScene()
 	def OnDimKey(self, event):
@@ -1173,7 +1449,7 @@ class LightDialog(wx.Dialog):
 		self.specular.spin.SetEventFunc(self.OnSpecular)
 		self.specular.value.Bind(wx.EVT_KEY_UP, self.OnSpecularKey)
 		self.vbox.Add(self.specular,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
-		self.specularpower = SpinnerObject(self,"Specular Power: ",MAX_INT,0.0,1,self.panelvisual.actor_amp_real.GetProperty().GetSpecularPower(),200,100)
+		self.specularpower = SpinnerObject(self,"Specular Power: ",128,0.0,1,self.panelvisual.actor_amp_real.GetProperty().GetSpecularPower(),200,100)
 		self.specularpower.spin.SetEventFunc(self.OnSpecularpower)
 		self.specularpower.value.Bind(wx.EVT_KEY_UP, self.OnSpecularpowerKey)
 		self.vbox.Add(self.specularpower,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
@@ -1235,15 +1511,17 @@ class LightDialog(wx.Dialog):
 class LUTDialog(wx.Dialog):
 	def __init__(self, parent):
 		wx.Dialog.__init__(self, parent, title="Lookup Table", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-		self.SetSizeHints(720,480,-1,-1)
+		self.SetSizeHints(800,480,-1,-1)
 		self.parent = parent
 		self.Bind(wx.EVT_CLOSE, self.OnExit)
 		self.panelphase = parent.GetParent().GetPage(0)
 		self.panelvisual = self.GetParent()
 		self.actor_list3D = ["vtkOpenGLActor", "vtkActor", "vtkMesaActor"]
 		self.actor_list2D = ["vtkOpenGLImageActor", "vtkImageActor"]
+		self.LUTlist = [self.panelvisual.lut_amp_real, self.panelvisual.lut_phase_real, self.panelvisual.lut_amp_recip, self.panelvisual.lut_phase_recip]
 		self.sizer = wx.BoxSizer(wx.VERTICAL)
 		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
 		self.vbox1 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox2 = wx.BoxSizer(wx.VERTICAL)
 		self.font = self.panelvisual.font
@@ -1270,9 +1548,12 @@ class LUTDialog(wx.Dialog):
 		self.hbox.Add(self.vbox1, 0, wx.EXPAND,2)
 		self.hbox.Add(self.vbox2, 1, wx.EXPAND,2)
 		self.sizer.Add(self.hbox, 1, wx.EXPAND,2)
-		self.button_update = wx.Button(self, label="Update Scale", size=(720, 30))
-		self.sizer.Add(self.button_update, 0, wx.EXPAND, 2)
+		self.button_update = wx.Button(self, label="Update Scale", size=(300, 30))
+		self.hbox2.Add((5, 5))
+		self.hbox2.Add(self.button_update, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=10)
+		self.hbox2.Add((5, 5))
 		self.Bind(wx.EVT_BUTTON, self.OnClickUpdate,self.button_update)
+		self.sizer.Add(self.hbox2, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.SetSizer(self.sizer)
 		self.Fit()
 		self.Layout()
@@ -1309,25 +1590,16 @@ class LUTDialog(wx.Dialog):
 	def OnClickUpdate(self, event):
 		for i in range(len(self.listtitles)):
 			self.SetRadioChoice( i )
-		self.renderers = self.parent.renWin.GetRenderWindow().GetRenderers()
-		self.renderers.InitTraversal()
-		no_renderers = self.renderers.GetNumberOfItems()
-		for i in range(no_renderers):
-			self.props = self.renderers.GetItemAsObject(i).GetViewProps()
-			self.props.InitTraversal()
-			no_props = self.props.GetNumberOfItems()
-			for j in range(no_props):
-				prop = self.props.GetItemAsObject(j)
-				if "vtkScalarBarActor" in prop.GetClassName():
-					lut = prop.GetLookupTable()
-					lutsource = self.panelphase.cms[self.panelphase.cmls[i][0]][1]
-					if self.panelphase.cmls[i][1] == 0:
-						for k in range(256):
-							lut.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
-					else:
-						for k in range(256):
-							lut.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
-					lut.Modified()
+		for i in range(len(self.LUTlist)):
+			lut = self.LUTlist[i]
+			lutsource = self.panelphase.cms[self.panelphase.cmls[i][0]][1]
+			if self.panelphase.cmls[i][1] == 0:
+				for k in range(256):
+					lut.SetTableValue(k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+			else:
+				for k in range(256):
+					lut.SetTableValue(255-k, lutsource[k][0], lutsource[k][1], lutsource[k][2], 1)
+			lut.Modified()
 		self.panelphase.ancestor.GetParent().Refresh()
 		self.panelvisual.RefreshScene()
 	def OnExit(self,event):
@@ -1366,12 +1638,12 @@ class ColourDialog(wx.ScrolledWindow):
 			image.SetData( newarray.tostring())
 			bmp = image.ConvertToBitmap()
 			self.imglist.append(wx.StaticBitmap(self, -1, bmp))
-			self.rb.append( wx.RadioButton(self, -1, label=name, size=(160, height) ) )
-			self.cmhbox[-1].Add(self.rb[-1], 0)
+			self.rb.append( wx.RadioButton(self, -1, label=name, size=(150, height) ) )
+			self.cmhbox[-1].Add(self.rb[-1], 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
 			self.cmhbox[-1].Add((5, -1))
-			self.cmhbox[-1].Add(self.imglist[-1], 1, wx.EXPAND)
-			self.chkb.append( wx.CheckBox(self, -1, 'Reverse', size=(160, height)) )
-			self.cmhbox[-1].Add(self.chkb[-1], 0, wx.EXPAND)
+			self.cmhbox[-1].Add(self.imglist[-1], 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
+			self.chkb.append( wx.CheckBox(self, -1, 'Reverse', size=(120, height)) )
+			self.cmhbox[-1].Add(self.chkb[-1], 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
 			self.cmvbox.Add(self.cmhbox[-1], 1, wx.EXPAND)
 		self.SetSizer(self.cmvbox)
 		self.Fit()
@@ -1388,6 +1660,7 @@ class PanelVisual(wx.Panel,wx.App):
 			self.ancestor.GetPage(0).OnClickStop(self.ancestor.GetPage(0))
 		self.panel = wx.Panel.__init__(self, parent)
 		self.VTKIsNot6 = IsNotVTK6()
+		self.VTKIsNot7 = IsNotVTK7()
 		self.nblock_dialogs = 0
 		self.font = self.ancestor.GetParent().font
 		self.flat_data = None
@@ -1418,6 +1691,9 @@ class PanelVisual(wx.Panel,wx.App):
 		self.image_amp_real_vtk = None
 		self.image_phase_real_vtk = None
 		self.measure_data = [None, [None, None], None, [None,None,None]]
+		self.line = vtk.vtkLineSource()
+		self.lineprobe = vtk.vtkProbeFilter()
+		self.LineScan = LineScan(self.line, self.lineprobe)
 		self.image2D_amp_real = vtk.vtkImageData()
 		self.image2D_phase_real = vtk.vtkImageData()
 		self.image2D_amp_real_vtk = None
@@ -1430,6 +1706,18 @@ class PanelVisual(wx.Panel,wx.App):
 		self.lut_phase_recip = vtk.vtkLookupTable()
 		self.scalebar_amp_recip=vtk.vtkScalarBarActor()
 		self.scalebar_phase_recip=vtk.vtkScalarBarActor()
+		self.scalebar_amp_real.SetWidth(0.07)
+		self.scalebar_amp_real.SetHeight(0.8)
+		self.scalebar_amp_real.SetPosition(0.01,0.1)
+		self.scalebar_amp_recip.SetWidth(0.07)
+		self.scalebar_amp_recip.SetHeight(0.8)
+		self.scalebar_amp_recip.SetPosition(0.01,0.1)
+		self.scalebar_phase_real.SetWidth(0.07)
+		self.scalebar_phase_real.SetHeight(0.80)
+		self.scalebar_phase_real.SetPosition(0.01,0.1)
+		self.scalebar_phase_recip.SetWidth(0.07)
+		self.scalebar_phase_recip.SetHeight(0.80)
+		self.scalebar_phase_recip.SetPosition(0.01,0.1)
 		self.color_amp_real = vtk.vtkImageMapToColors()
 		self.color_phase_real = vtk.vtkImageMapToColors()
 		self.color_amp_recip = vtk.vtkImageMapToColors()
@@ -1442,6 +1730,9 @@ class PanelVisual(wx.Panel,wx.App):
 		self.filter_amp_real = vtk.vtkContourFilter()
 		self.filter_amp_recip = vtk.vtkContourFilter()
 		self.filter_support = vtk.vtkContourFilter()
+		self.filter_amp_real.AddObserver(vtk.vtkCommand.ErrorEvent, self.SmoothFilterObserver)
+		self.filter_amp_recip.AddObserver(vtk.vtkCommand.ErrorEvent, self.SmoothFilterObserver)
+		self.filter_support.AddObserver(vtk.vtkCommand.ErrorEvent, self.SmoothFilterObserver)
 		self.filter_march_amp_real = vtk.vtkImageMarchingCubes()
 		self.smooth_filter_real = vtk.vtkSmoothPolyDataFilter()
 		self.smooth_filter_recip = vtk.vtkSmoothPolyDataFilter()
@@ -1450,8 +1741,11 @@ class PanelVisual(wx.Panel,wx.App):
 		self.smooth_filter_recip.AddObserver(vtk.vtkCommand.ErrorEvent, self.SmoothFilterObserver)
 		self.smooth_filter_support.AddObserver(vtk.vtkCommand.ErrorEvent, self.SmoothFilterObserver)
 		self.normals_amp_real = vtk.vtkPolyDataNormals()
+		self.normals_phase_real = vtk.vtkPolyDataNormals()
 		self.normals_amp_recip = vtk.vtkPolyDataNormals()
+		self.normals_phase_recip = vtk.vtkPolyDataNormals()
 		self.normals_support = vtk.vtkPolyDataNormals()
+		self.normals_plane = vtk.vtkPolyDataNormals()
 		self.triangles_amp_real = vtk.vtkTriangleFilter()
 		self.triangles_phase_real = vtk.vtkTriangleFilter()
 		self.triangles_amp_recip = vtk.vtkTriangleFilter()
@@ -1463,14 +1757,25 @@ class PanelVisual(wx.Panel,wx.App):
 		self.strips_phase_recip = vtk.vtkStripper()
 		self.strips_support = vtk.vtkStripper()
 		self.plane = vtk.vtkPlane()
+		self.planes = vtk.vtkPlaneCollection()
 		self.cutter = vtk.vtkCutter()
+		self.clipper = vtk.vtkClipPolyData()
+		self.triangles_plane = vtk.vtkTriangleFilter()
+		if not self.VTKIsNot7:
+			self.meshsub = vtk.vtkAdaptiveSubdivisionFilter()
+		self.probefilter = vtk.vtkProbeFilter()
+		self.filter_plane = vtk.vtkContourFilter()
+		self.smooth_plane = vtk.vtkSmoothPolyDataFilter()
+		self.filter_tri = vtk.vtkContourTriangulator()
 		self.mapper_amp_real = vtk.vtkPolyDataMapper()
+		self.mapper_amp_real2 = vtk.vtkPolyDataMapper()
 		self.mapper_phase_real = vtk.vtkPolyDataMapper()
 		self.mapper_amp_recip = vtk.vtkPolyDataMapper()
 		self.mapper_phase_recip = vtk.vtkPolyDataMapper()
 		self.mapper_support = vtk.vtkPolyDataMapper()
 		self.textMapper_amp_real = vtk.vtkTextMapper()
 		self.actor_amp_real = vtk.vtkActor()
+		self.actor_amp_real2 = vtk.vtkActor()
 		self.actor_phase_real = vtk.vtkActor()
 		self.actor_amp_recip = vtk.vtkActor()
 		self.actor_phase_recip = vtk.vtkActor()
@@ -1623,30 +1928,6 @@ class PanelVisual(wx.Panel,wx.App):
 		self.Bind(wx.EVT_BUTTON, self.OnContourSelect, self.button_contour)
 		self.hbox_btn.Add(self.button_contour)
 		self.hbox_btn.Add((2, -1))
-		self.contour_real = SpinnerObject(self,"RSI:",MAX_INT,0,1,100,30,90)
-		self.contour_real.label.SetToolTipNew("Real space isosurface")
-		self.contour_real.label.Disable()
-		self.contour_real.spin.SetEventFunc(self.OnContourReal)
-		self.contour_real.value.Bind(wx.EVT_KEY_UP, self.OnContourRealKey)
-		self.hbox_btn.Add(self.contour_real,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
-		self.contour_real.Hide()
-		self.hbox_btn.Add((5, -1))
-		self.contour_recip = SpinnerObject(self,"FSI:",MAX_INT,0,1,100,30,90)
-		self.contour_recip.label.SetToolTipNew("Fourier space isosurface")
-		self.contour_recip.label.Disable()
-		self.contour_recip.spin.SetEventFunc(self.OnContourRecip)
-		self.contour_recip.value.Bind(wx.EVT_KEY_UP, self.OnContourRecipKey)
-		self.hbox_btn.Add(self.contour_recip,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
-		self.contour_recip.Hide()
-		self.hbox_btn.Add((5, -1))
-		self.contour_support = SpinnerObject(self,"SI:",1.0,0.0,0.1,0.5,30,90)
-		self.contour_support.label.SetToolTipNew("Support isosurface")
-		self.contour_support.label.Disable()
-		self.contour_support.spin.SetEventFunc(self.OnContourSupport)
-		self.contour_support.value.Bind(wx.EVT_KEY_UP, self.OnContourSupportKey)
-		self.hbox_btn.Add(self.contour_support,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
-		self.contour_support.Hide()
-		self.hbox_btn.Add((5, -1))
 		self.datarangelist = []
 		self.r = 255.0
 		self.g = 255.0
@@ -1722,6 +2003,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.ancestor.GetParent().viewmenudock.Enable(1)
 		self.ancestor.GetParent().scenemenu_animate.Enable(1)
 		self.ancestor.GetParent().scenemenu_measure.Enable(1)
+		self.ancestor.GetParent().scenemenu_lut_range.Enable(1)
 		self.RefreshSceneFull(gotovisual)
 	def SetPhaseVisualButtons(self):
 		self.button_animate.Enable(True)
@@ -1730,6 +2012,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.button_vremove.Enable(False)
 		self.ancestor.GetParent().scenemenu_animate.Enable(0)
 		self.ancestor.GetParent().scenemenu_measure.Enable(0)
+		self.ancestor.GetParent().scenemenu_lut_range.Enable(0)
 		self.ancestor.GetParent().viewmenuundock.Enable(1)
 		self.ancestor.GetParent().viewmenudock.Enable(1)
 	def PickCoords(self, object, event):
@@ -1844,89 +2127,14 @@ class PanelVisual(wx.Panel,wx.App):
 		no_renderers = renderers.GetNumberOfItems()
 		for i in range(no_renderers):
 			renderers.GetItemAsObject(i).SetBackground(r, g, b)
-	def OnContourSelect(self, event, forceshow=False):
-		if self.button_contours_shown and not forceshow:
-			self.button_contour.SetBitmapLabel(getsphereBitmap())
-			self.contour_real.Hide()
-			self.contour_recip.Hide()
-			self.contour_support.Hide()
-			self.button_contours_shown = 0
-		else:
-			self.button_contour.SetBitmapLabel(getsphere2Bitmap())
-			self.contour_real.Show()
-			self.contour_recip.Show()
-			self.contour_support.Show()
-			self.Layout()
-			self.button_contours_shown = 1
-	def OnContourRealKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
-			event.Skip()
-		else:
-			self.OnContourReal(event)
-	def OnContourReal(self, event):
-		if self.filter_amp_real.GetTotalNumberOfInputConnections() > 0:
-			try:
-				contour = float(self.contour_real.value.GetValue())
-			except:
-				return
-			if self.data is None:
-				max = self.ancestor.GetPage(0).seqdata_max
-			else:
-				max = self.data_max
-			if contour > max: contour = CNTR_CLIP*max;
-			if contour <= 0.0: contour = (1.0-CNTR_CLIP);
-			self.filter_amp_real.SetValue( 0, contour)
-			self.filter_amp_real.Modified()
-			self.filter_amp_real.Update()
-			if event is not None:
-				event.Skip()
-				self.RefreshScene()
-	def OnContourRecipKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
-			event.Skip()
-		else:
-			self.OnContourRecip(event)
-	def OnContourRecip(self, event):
-		if self.filter_amp_recip.GetTotalNumberOfInputConnections() > 0:
-			try:
-				contour = float(self.contour_recip.value.GetValue())
-			except:
-				return
-			if self.data is None:
-				max = self.ancestor.GetPage(0).seqdata_max_recip
-			else:
-				max = self.data_max_recip
-			if contour > max: contour = CNTR_CLIP*max;
-			if contour <= 0.0: contour = (1.0-CNTR_CLIP);
-			self.filter_amp_recip.SetValue( 0, contour)
-			self.filter_amp_recip.Modified()
-			self.filter_amp_recip.Update()
-			if event is not None:
-				event.Skip()
-				self.RefreshScene()
-	def OnContourSupportKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
-			event.Skip()
-		else:
-			self.OnContourSupport(event)
-	def OnContourSupport(self, event):
-		if self.filter_support.GetTotalNumberOfInputConnections() > 0:
-			try:
-				contour = float(self.contour_support.value.GetValue())
-			except:
-				return
-			if self.data is None:
-				max = self.ancestor.GetPage(0).seqdata_max_support
-			else:
-				max = self.data_max_support
-			if contour > max: contour = CNTR_CLIP*max;
-			if contour <= 0.0: contour = (1.0-CNTR_CLIP);
-			self.filter_support.SetValue( 0, contour)
-			self.filter_support.Modified()
-			self.filter_support.Update()
-			if event is not None:
-				event.Skip()
-				self.RefreshScene()
+	def OnContourSelect(self, event):
+		try:
+			self.contourdialog
+		except AttributeError:
+			if self.ancestor.GetPage(0).pipeline_started == False:
+				self.EnablePanelPhase(enable=False)
+			self.contourdialog = ContourDialog(self)
+			self.contourdialog.Show()
 	def OnLUTSelect(self, event):
 		try:
 			self.LUTdialog
@@ -1953,7 +2161,7 @@ class PanelVisual(wx.Panel,wx.App):
 	def UpdateReal(self):
 		if self.ancestor.GetPage(0).visual_amp_real.shape[2] == 1:
 			try:
-				self.flat_data_amp_real = (self.ancestor.GetPage(0).visual_amp_real).transpose(2,1,0).flatten();
+				self.flat_data_amp_real = (self.ancestor.GetPage(0).visual_amp_real).transpose(2,1,0).ravel();
 				self.vtk_data_array_amp_real = numpy_support.numpy_to_vtk(self.flat_data_amp_real)
 				self.image_amp_real.GetPointData().SetScalars(self.vtk_data_array_amp_real)
 				self.image_amp_real.Modified()
@@ -1966,7 +2174,7 @@ class PanelVisual(wx.Panel,wx.App):
 				pass
 			if self.ancestor.GetPage(0).citer_flow[6] > 0:
 				try:
-					self.flat_data_phase_real = (self.ancestor.GetPage(0).visual_phase_real).transpose(2,1,0).flatten();
+					self.flat_data_phase_real = (self.ancestor.GetPage(0).visual_phase_real).transpose(2,1,0).ravel();
 					self.vtk_data_array_phase_real = numpy_support.numpy_to_vtk(self.flat_data_phase_real)
 					self.image_phase_real.GetPointData().SetScalars(self.vtk_data_array_phase_real)
 					self.image_phase_real.Modified()
@@ -1979,13 +2187,13 @@ class PanelVisual(wx.Panel,wx.App):
 					pass
 		else:
 			try:
-				self.flat_data_amp_real = (self.ancestor.GetPage(0).visual_amp_real).transpose(2,1,0).flatten();
+				self.flat_data_amp_real = (self.ancestor.GetPage(0).visual_amp_real).transpose(2,1,0).ravel();
 				self.vtk_data_array_amp_real = numpy_support.numpy_to_vtk(self.flat_data_amp_real)
 				self.image_amp_real.GetPointData().SetScalars(self.vtk_data_array_amp_real)
 				self.image_amp_real.Modified()
 				self.ancestor.GetPage(0).seqdata_max = self.ancestor.GetPage(0).visual_amp_real.max()
 				if self.ancestor.GetPage(0).citer_flow[6] > 0:
-					self.flat_data_phase_real = (self.ancestor.GetPage(0).visual_phase_real).transpose(2,1,0).flatten()
+					self.flat_data_phase_real = (self.ancestor.GetPage(0).visual_phase_real).transpose(2,1,0).ravel()
 					self.vtk_data_array_phase_real = numpy_support.numpy_to_vtk(self.flat_data_phase_real)
 					self.vtk_data_array_phase_real.SetName("mapscalar")
 					points_amp_real = self.image_amp_real.GetPointData()
@@ -2002,7 +2210,6 @@ class PanelVisual(wx.Panel,wx.App):
 					self.mapper_amp_real.SetScalarRange(self.image_amp_real.GetPointData().GetScalars().GetRange())
 					self.mapper_amp_real.Modified()
 					self.mapper_amp_real.Update()
-				#self.renderer_amp_real.ResetCamera()
 				self.RefreshScene()
 			except:
 				pass
@@ -2010,7 +2217,7 @@ class PanelVisual(wx.Panel,wx.App):
 		if self.ancestor.GetPage(0).visual_amp_recip.shape[2] == 1:
 			try:
 				array = WrapArrayAmp(self.ancestor.GetPage(0).visual_amp_recip)
-				self.flat_data_amp_recip = (array).transpose(2,1,0).flatten();
+				self.flat_data_amp_recip = (array).transpose(2,1,0).ravel();
 				self.vtk_data_array_amp_recip = numpy_support.numpy_to_vtk(self.flat_data_amp_recip)
 				self.image_amp_recip.GetPointData().SetScalars(self.vtk_data_array_amp_recip)
 				self.image_amp_recip.Modified()
@@ -2024,7 +2231,7 @@ class PanelVisual(wx.Panel,wx.App):
 			if self.ancestor.GetPage(0).citer_flow[6] > 0:
 				try:
 					array = WrapArrayAmp(self.ancestor.GetPage(0).visual_phase_recip)
-					self.flat_data_phase_recip = (array).transpose(2,1,0).flatten();
+					self.flat_data_phase_recip = (array).transpose(2,1,0).ravel();
 					self.vtk_data_array_phase_recip = numpy_support.numpy_to_vtk(self.flat_data_phase_recip)
 					self.image_phase_recip.GetPointData().SetScalars(self.vtk_data_array_phase_recip)
 					self.image_phase_recip.Modified()
@@ -2038,14 +2245,14 @@ class PanelVisual(wx.Panel,wx.App):
 		else:
 			try:
 				array = WrapArrayAmp(self.ancestor.GetPage(0).visual_amp_recip)
-				self.flat_data_amp_recip = (array).transpose(2,1,0).flatten();
+				self.flat_data_amp_recip = (array).transpose(2,1,0).ravel();
 				self.vtk_data_array_amp_recip = numpy_support.numpy_to_vtk(self.flat_data_amp_recip)
 				self.image_amp_recip.GetPointData().SetScalars(self.vtk_data_array_amp_recip)
 				self.image_amp_recip.Modified()
 				self.ancestor.GetPage(0).seqdata_max_recip = self.ancestor.GetPage(0).visual_amp_recip.max()
 				if self.ancestor.GetPage(0).citer_flow[6] > 0:
 					array2 = WrapArrayAmp(self.ancestor.GetPage(0).visual_phase_recip)
-					self.flat_data_phase_recip = (array2).transpose(2,1,0).flatten()
+					self.flat_data_phase_recip = (array2).transpose(2,1,0).ravel()
 					self.vtk_data_array_phase_recip = numpy_support.numpy_to_vtk(self.flat_data_phase_recip)
 					self.vtk_data_array_phase_recip.SetName("mapscalar")
 					points_amp_recip = self.image_amp_recip.GetPointData()
@@ -2071,7 +2278,7 @@ class PanelVisual(wx.Panel,wx.App):
 			pass
 		else:
 			try:
-				self.flat_data_support = (self.ancestor.GetPage(0).visual_support).transpose(2,1,0).flatten();
+				self.flat_data_support = (self.ancestor.GetPage(0).visual_support).transpose(2,1,0).ravel();
 				self.vtk_data_array_support = numpy_support.numpy_to_vtk(self.flat_data_support)
 				self.image_support.GetPointData().SetScalars(self.vtk_data_array_support)
 				self.image_support.Modified()

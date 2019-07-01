@@ -533,7 +533,20 @@ class DummyEvent():
 		return 0
 	def Skip(self):
 		pass
-class SpinButtonNew(wx.Panel):
+class SpinButtonNew(wx.SpinButton):
+	def __init__(self, parent, id=wx.ID_ANY , style=wx.SP_VERTICAL, size=(-1,-1), spinfunc=None):
+		wx.SpinButton.__init__(self,parent, style=style, size=size)
+		self.Bind(wx.EVT_SPIN, self.OnSpin)
+		self.spinfunc=spinfunc
+		self.MiscFunc = None
+		self.event = DummyEvent()
+	def OnSpin(self, event):
+		self.spinfunc(event.GetPosition())
+		if self.MiscFunc is not None:
+			self.MiscFunc(self.event)
+	def SetEventFunc(self, miscfunc):
+		self.MiscFunc = miscfunc
+class SpinButtonNew2(wx.Panel):
 	def __init__(self, parent, id=wx.ID_ANY, style=wx.ALIGN_LEFT, size=(-1,-1), spinfunc=None):
 		wx.Panel.__init__(self, parent)
 		self.hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -706,21 +719,27 @@ class SpinnerObject(wx.BoxSizer):
 		dc.SetFont(self.font)
 		textw,texth = dc.GetTextExtent(name)
 		if textw > stextwidth:
-			labelw = textw
+			labelw = int(textw + 70)
 		else:
 			labelw = stextwidth
+		textw,texth = dc.GetTextExtent(str(sinit))
+		if textw > swidth:
+			sinitw = int(textw *1.5)
+		else:
+			sinitw = swidth
 		wx.BoxSizer.__init__(self, wx.HORIZONTAL)
 		self.label = StaticTextNew(parent, -1, name, style=wx.ALIGN_RIGHT, size=(labelw,-1) )
 		self.label.SetFont(self.font)
 		self.Add( self.label, 0, wx.CENTER )
-		self.value = TextCtrlNew(parent, value=str(sinit),size=(swidth, -1), style=wx.TE_PROCESS_ENTER)
+		self.value = TextCtrlNew(parent, value=str(sinit),size=(sinitw, -1), style=wx.TE_PROCESS_ENTER)
 		self.value.SetWindowStyle(wx.TE_RIGHT)
 		self.value.SetFont(self.font)
 		self.value.Bind(wx.EVT_TEXT, OnEdit)
 		self.Add( self.value, 0, wx.CENTER )
 		bw,bh = dc.GetTextExtent("0")
-		spinw = int(1.5*bh)
-		self.spin = SpinButtonNew(parent, size=(spinw,-1), spinfunc=OnSpin)
+		spinh = int(1.4*bh)
+		spinw = -1
+		self.spin = SpinButtonNew(parent, size=(spinw,spinh), spinfunc=OnSpin)
 		self.spin.SetRange(int(smin/sinc), int(smax/sinc))
 		self.spin.SetValue(int(sinit/sinc))
 		self.remainder = smin%sinc
@@ -806,6 +825,13 @@ def IsNotVTK6():
 	from vtk import vtkVersion
 	VTKMajor = vtkVersion().GetVTKMajorVersion()
 	if VTKMajor < 6:
+		return True
+	else:
+		return False
+def IsNotVTK7():
+	from vtk import vtkVersion
+	VTKMajor = vtkVersion().GetVTKMajorVersion()
+	if VTKMajor < 7:
 		return True
 	else:
 		return False

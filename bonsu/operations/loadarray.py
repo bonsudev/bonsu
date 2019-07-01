@@ -22,6 +22,7 @@ import numpy
 import os
 from sys import platform
 import ctypes
+from .memory import GetVirtualMemory
 def FreeSpace(path):
 	if platform.startswith('win'):
 		free = ctypes.c_ulonglong(0)
@@ -57,9 +58,15 @@ def NameIsMem(name):
 			return True
 	else:
 		return False
-def NewArray(self,x,y,z):
+def NewArray(self,x,y,z, type=0, val=0):
 	try:
-		array = numpy.zeros((x,y,z), dtype=numpy.cdouble, order='C')
+		if type == 0:
+			array = numpy.zeros((x,y,z), dtype=numpy.cdouble, order='C')
+		elif type == 1:
+			if val == 1:
+				array = numpy.ones((x,y,z), dtype=numpy.double, order='C')
+			else:
+				array = numpy.zeros((x,y,z), dtype=numpy.double, order='C')
 	except MemoryError:
 		self.ancestor.GetPage(0).queue_info.put("Could not create array. Insufficient memory.")
 		raise MemoryError
@@ -74,13 +81,30 @@ def LoadArray(self, filename):
 			raise NameError
 	else:
 		try:
-			array = numpy.array(numpy.load(filename), dtype=numpy.cdouble, copy=True, order='C')
-		except MemoryError:
-			self.ancestor.GetPage(0).queue_info.put("Could not load array. Insufficient memory.")
+			f = open(filename, 'rb')
+			numpy.lib.npyio.format.read_magic(f)
+			head = numpy.lib.npyio.format.read_array_header_1_0(f)
+			f.close()
+			shape = head[0]
+			dt = numpy.dtype(numpy.complex128)
+			memsize = dt.itemsize
+			for i in shape:
+				memsize *= i
+			totalmem = GetVirtualMemory()
+			if 2*memsize > totalmem and self.citer_flow[10] == 0:
+				raise MemoryError
+		except:
+			self.ancestor.GetPage(0).queue_info.put("Could not load array. Array is greater than half of the total memory. You can remove this restriction in the main menu.")
 			raise MemoryError
 		else:
-			array = ArTo3DNpy(array)
-			return array
+			try:
+				array = numpy.array(numpy.load(filename), dtype=numpy.cdouble, copy=True, order='C')
+			except MemoryError:
+				self.ancestor.GetPage(0).queue_info.put("Could not load array. Insufficient memory.")
+				raise MemoryError
+			else:
+				array = ArTo3DNpy(array)
+				return array
 def LoadCoordsArray(self, filename):
 	if filename == 'memorycoords':
 		if numpy.any(self.coordarray):

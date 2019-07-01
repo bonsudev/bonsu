@@ -24,11 +24,16 @@ from sys import argv
 from sys import platform
 from sys import executable
 from sys import exec_prefix
-from distutils.core import setup, Extension
+#from distutils.core import setup, Extension
+#from setuptools import setup, Extension
 from distutils.version import StrictVersion
 from distutils.file_util import copy_file
 DEBUG = True
 args = argv[1:]
+if args[0].startswith('bdist_wheel'):
+	from setuptools import setup, Extension
+else:
+	from distutils.core import setup, Extension
 filename_bonsu = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bonsu', 'interface', 'bonsu.py')
 f1_bonsu = open(filename_bonsu, 'r')
 lines = f1_bonsu.readlines()
@@ -61,7 +66,7 @@ except ImportError :
 	text  = "Bonsu requires numpy.\n"
 	raise ImportError(text)
 else:
-	version = StrictVersion(numpy.version.version)
+	version = StrictVersion(numpy.version.version.split("rc")[0])
 	if (version < StrictVersion('1.4.1')):
 		text  = "Bonsu requires numpy >= 1.4.1 .\n"
 		raise ValueError(text)
@@ -117,20 +122,23 @@ elif platform.startswith('win'):
 	data_files=[]
 	modprfftw_lib = ['fftw3']
 elif platform.startswith('darwin'):
-	binstr = executable
-	binstrbonsu = os.path.join(exec_prefix,'bin','bonsu')
-	appenv = '#!/usr/bin/env bash'
-	approot = os.path.join(os.environ['HOME'],'Desktop')
-	apppath = os.path.join(approot,'bonsu.app/Contents/MacOS')
-	apppathcont = os.path.join(approot,'bonsu.app/Contents')
-	apppathres = os.path.join(approot,'bonsu.app/Contents/Resources')
-	fname='bonsu/macos/bonsu'
-	f = open(fname,'w')
-	f.write(appenv)
-	f.write(os.linesep)
-	f.write(binstr+' '+binstrbonsu)
-	f.close()
-	data_files=[(apppath, [fname]),(apppathcont, ['bonsu/macos/Info.plist']),(apppathres, ['bonsu/macos/bonsu.icns'])]
+	if not args[0].startswith('bdist'):
+		binstr = executable
+		binstrbonsu = os.path.join(exec_prefix,'bin','bonsu')
+		appenv = '#!/usr/bin/env bash'
+		approot = os.path.join(os.environ['HOME'],'Desktop')
+		apppath = os.path.join(approot,'bonsu.app/Contents/MacOS')
+		apppathcont = os.path.join(approot,'bonsu.app/Contents')
+		apppathres = os.path.join(approot,'bonsu.app/Contents/Resources')
+		fname='bonsu/macos/bonsu'
+		f = open(fname,'w')
+		f.write(appenv)
+		f.write(os.linesep)
+		f.write(binstr+' '+binstrbonsu)
+		f.close()
+		data_files=[(apppath, [fname]),(apppathcont, ['bonsu/macos/Info.plist']),(apppathres, ['bonsu/macos/bonsu.icns'])]
+	else:
+		data_files=[]
 	modprfftw_lib = ['fftw3', 'fftw3_threads']
 else:
 	data_files=[]
@@ -159,6 +167,7 @@ setup\
 						'bonsu.operations',
 						'bonsu.lib',
 						'bonsu.sequences',
+						'bonsu.phasing',
 						'bonsu.licence',
 						'bonsu.image',
 						'bonsu.macos',
@@ -168,5 +177,6 @@ setup\
 	scripts=scripts,
 	package_data=package_data_dict,
 	data_files=data_files,
-	requires=['wx (>=2.8.10)', 'numpy (>=1.4.1)', 'vtk (>=5.4.2)']
+	requires=['wx (>=2.8.10)', 'numpy (>=1.4.1)', 'vtk (>=5.4.2)'],
+	long_description='Bonsu is a collection of tools and algorithms primarily for the reconstruction of phase information from diffraction intensity measurements.'
 )

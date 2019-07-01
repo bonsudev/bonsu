@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Library Reference - Export Tools &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="shortcut icon" href="_static/bonsu.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Library Reference - Functions" href="libref-functions.html" />
+    <link rel="prev" title="Library Reference - Import Tools" href="libref-importtools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="libref-functions.html" title="Library Reference - Functions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="libref-importtools.html" title="Library Reference - Import Tools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="library-reference-export-tools">
+<span id="libref-exporttools"></span><h1>Library Reference - Export Tools<a class="headerlink" href="#library-reference-export-tools" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="array-to-vtk">
+<h2>Array to VTK<a class="headerlink" href="#array-to-vtk" title="Permalink to this headline">¶</a></h2>
+<p id="index-0">Convert an input NumPy array into VTK file format. Uses either the amplitude or phase of the array.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
+</dd>
+<dt><strong>Output File</strong></dt><dd><p>User provided path string for the output VTK file.</p>
+</dd>
+<dt><strong>Type</strong></dt><dd><p>Use either the amplitude or the phase of the complex <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> in order to construct a VTK array.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="memory-to-array">
+<h2>Memory to Array<a class="headerlink" href="#memory-to-array" title="Permalink to this headline">¶</a></h2>
+<p id="index-1">Provides a means to save to disk a NumPy array stored in memory.  See <a class="reference internal" href="libref-importtools.html#libref-importtools-arraytomem"><span class="std std-ref">Array to Memory</span></a> for furthr details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
+</dd>
+<dt><strong>Output File</strong></dt><dd><p>User provided choice of memory keyword.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="object-to-vtk">
+<h2>Object to VTK<a class="headerlink" href="#object-to-vtk" title="Permalink to this headline">¶</a></h2>
+<p id="index-2">Convert an input NumPy array and it’s corresponding co-ordinates array into VTK file format. Uses either the amplitude or phase of the array.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
+</dd>
+<dt><strong>Co-ord’s File</strong></dt><dd><p>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-operations.html#libref-operations-coord"><span class="std std-ref">Coordinate transformation</span></a> operation.</p>
+</dd>
+<dt><strong>Output File</strong></dt><dd><p>User provided path string for the output VTK file.</p>
+</dd>
+<dt><strong>Type</strong></dt><dd><p>Use either the amplitude or the phase of the complex <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> in order to construct a VTK array.</p>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="bonsu.html">
+              <img class="logo" src="_static/bonsu.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="bonsu.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Library Reference - Export Tools</a><ul>
+<li><a class="reference internal" href="#array-to-vtk">Array to VTK</a></li>
+<li><a class="reference internal" href="#memory-to-array">Memory to Array</a></li>
+<li><a class="reference internal" href="#object-to-vtk">Object to VTK</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="libref-importtools.html"
+                        title="previous chapter">Library Reference - Import Tools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="libref-functions.html"
+                        title="next chapter">Library Reference - Functions</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="libref-functions.html" title="Library Reference - Functions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="libref-importtools.html" title="Library Reference - Import Tools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011 - 2019, Marcus C. Newton.
+    </div>
+  </body>
+</html>

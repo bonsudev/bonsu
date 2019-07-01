@@ -101,6 +101,8 @@ def SaveInstance(self):
 		mainlist = panelphase.mainlist.GetItem(i,1).GetText()
 		object = []
 		subpanelname = panelphase.pipelineitems[i].treeitem['name']
+		if subpanelname == 'Python Script':
+			object.append( panelphase.pipelineitems[i].txt.GetValue() )
 		if subpanelname == 'Comments':
 			object.append( panelphase.pipelineitems[i].txt.GetValue() )
 		if subpanelname == 'Blank Line Fill':
@@ -278,6 +280,7 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].sy.value.GetValue() )
 			object.append( panelphase.pipelineitems[i].sz.value.GetValue() )
 			object.append( panelphase.pipelineitems[i].axes_fontfactor.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].meshsubiter.value.GetValue() )
 		if subpanelname == 'View Object':
 			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].coords_filename.objectpath.GetValue() )
@@ -295,6 +298,7 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].chkbox_axes.GetValue() )
 			object.append( panelphase.pipelineitems[i].feature_angle.value.GetValue() )
 			object.append( panelphase.pipelineitems[i].axes_fontfactor.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].meshsubiter.value.GetValue() )
 		if subpanelname == 'View VTK Array':
 			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].rbampphase.GetStringSelection() )
@@ -413,6 +417,15 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].phi )
 			object.append( panelphase.pipelineitems[i].waveln )
 			object.append( panelphase.pipelineitems[i].chkbox_relax.GetValue() )
+			object.append( panelphase.pipelineitems[i].taumax.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].dtaumax.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].dtaumin.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].psiexitratio.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].psiexiterror.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].psiresetratio.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].nsoiter.value.GetValue() )
+			object.append( panelphase.pipelineitems[i].chkbox_reweight.GetValue() )
+			object.append( panelphase.pipelineitems[i].reweightiter.value.GetValue() )
 		if subpanelname == 'PGCHIO':
 			object.append( panelphase.pipelineitems[i].exp_amps.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].chkbox_sqrt_expamps.GetValue() )
@@ -529,11 +542,13 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].armln.value.GetValue() )
 			object.append( panelphase.pipelineitems[i].chkbox_ccdflip.GetValue() )
 			object.append( panelphase.pipelineitems[i].rbtype.GetStringSelection() )
+		if subpanelname == 'Load Co-ordinates':
+			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 		if subpanelname == 'Save Co-ordinates':
 			object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
 		object.append( panelphase.mainlist.IsChecked(i) )
 		instance_list.append([mainlist, object, subpanelname])
-	pickle.dump(instance_list, file)
+	pickle.dump(instance_list, file, protocol=2)
 	file.close()
 def DoListCheck(panelphase, object, idx):
 	try:
@@ -558,6 +573,12 @@ def RestoreInstance(self):
 			panelphase.mainlist.SetItem(mainlistidx, 1, instance_list[i][0])
 		object = instance_list[i][1]
 		subpanelname = instance_list[i][2]
+		if subpanelname == 'Python Script':
+			panelphase.pipelineitems.append(SubPanel_PyScript(panelphase.panel2))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].txt.SetValue(object[0])
+			DoListCheck(panelphase, object, -1)
 		if subpanelname == 'Comments':
 			panelphase.pipelineitems.append(SubPanel_Comments(panelphase.panel2, panelphase.ancestor))
 			panelphase.pipelineitems[-1].Hide()
@@ -868,6 +889,11 @@ def RestoreInstance(self):
 				panelphase.pipelineitems[-1].axes_fontfactor.value.SetValue(object[17])
 			except:
 				pass
+			try:
+				panelphase.pipelineitems[-1].meshsubiter.value.SetValue(object[18])
+			except:
+				pass
+			panelphase.pipelineitems[-1].OnRadioSelect(None)
 			DoListCheck(panelphase, object, -1)
 		if subpanelname == 'View Object':
 			panelphase.pipelineitems.append(SubPanel_View_Object(panelphase.panel2, panelphase.ancestor))
@@ -892,6 +918,11 @@ def RestoreInstance(self):
 				panelphase.pipelineitems[-1].axes_fontfactor.value.SetValue(object[15])
 			except:
 				pass
+			try:
+				panelphase.pipelineitems[-1].meshsubiter.value.SetValue(object[16])
+			except:
+				pass
+			panelphase.pipelineitems[-1].OnRadioSelect(None)
 			DoListCheck(panelphase, object, -1)
 		if subpanelname == 'View VTK Array':
 			panelphase.pipelineitems.append(SubPanel_View_VTK(panelphase.panel2, panelphase.ancestor))
@@ -1259,6 +1290,12 @@ def RestoreInstance(self):
 				panelphase.pipelineitems[-1].rbtype.SetStringSelection(object[17])
 			except:
 				pass
+			DoListCheck(panelphase, object, -1)
+		if subpanelname == 'Load Co-ordinates':
+			panelphase.pipelineitems.append(SubPanel_Load_Coordinates(panelphase.panel2))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].input_filename.objectpath.SetValue(object[0])
 			DoListCheck(panelphase, object, -1)
 		if subpanelname == 'Save Co-ordinates' or subpanelname == 2011:
 			panelphase.pipelineitems.append(SubPanel_Save_Coordinates(panelphase.panel2))
