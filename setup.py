@@ -34,7 +34,7 @@ if args[0].startswith('bdist_wheel'):
 	from setuptools import setup, Extension
 else:
 	from distutils.core import setup, Extension
-filename_bonsu = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bonsu', 'interface', 'bonsu.py')
+filename_bonsu = os.path.join(os.path.dirname(__file__), 'bonsu', 'interface', 'bonsu.py')
 f1_bonsu = open(filename_bonsu, 'r')
 lines = f1_bonsu.readlines()
 for i in range(len(lines)):
