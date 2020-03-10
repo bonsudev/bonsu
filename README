@@ -14,6 +14,13 @@ doi:10.1107/S0021889812026751
 HISTORY
 ============
 
+Version 3.1.0
+
+	+ Diamond nexus beamline data viewer for I16.
+	+ Concurrent phase reconstruction
+	* Rotate Support function now works for large arrays
+	* Minor interface improvements and bug fixes.
+
 Version 3.0.0
 
 	+ Algorithm scripting interface.
@@ -136,6 +143,8 @@ wxPython >= 2.8.10
 FFTW with threading >= 3.0
 NumPy (FFTW aware) >= 1.4.1
 VTK (with python bindings) >= 5.4.2
+h5py
+imageio
 A C++ compiler such as gcc
 
 - To instal the package, type:
@@ -148,7 +157,7 @@ $ bonsu
 
 COPYING / LICENCE
 ============
-Copyright 2011 - 2019 - Marcus C. Newton <Bonsu.Devel@gmail.com>
+Copyright 2011 - 2020 - Marcus C. Newton <Bonsu.Devel@gmail.com>
 Registration number 284653218
 
 Please send any bugs, problems, and proposals to: Bonsu.Devel@gmail.com

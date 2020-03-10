@@ -46,7 +46,7 @@ def ArTo3DNpy(array):
 	else:
 		raise TypeError
 def NameIsMem(name):
-	if name == 'memorysequence':
+	if name == 'memorysequence' or name == 'memoryprivate':
 		return True
 	elif name.startswith('memory'):
 		idxpart = name.replace('memory', '')

@@ -162,11 +162,15 @@ void HPRMaskPC
 		fftw_free(tmpdata2);
 		return;
 	}
+	Py_BLOCK_THREADS;
 	FFTPlan( &torecip_tmp, &toreal_tmp, tmpdata1, nn2, ndim );
+	Py_UNBLOCK_THREADS;
 	
 	
 	CopyArray(seqdata, rho_m1, nn); 
+	Py_BLOCK_THREADS;
 	FFTPlan( &torecip, &toreal, seqdata, nn, ndim );
+	Py_UNBLOCK_THREADS;
 	CopyArray(rho_m1, seqdata, nn); 
 
 	MaskedSumOfSquares( expdata, mask, nn, &sos );
@@ -263,7 +267,7 @@ void HPRMaskPC
 		}
 		else
 		{
-			update_count_recip ++;
+			update_count_recip += 1;
 		}
 		
 		MaskedCalculateResiduals(seqdata, expdata, mask, nn, &res);
@@ -303,7 +307,7 @@ void HPRMaskPC
 		}
 		else
 		{
-			update_count_real ++;
+			update_count_real += 1;
 		}
 		
 		Py_BLOCK_THREADS;

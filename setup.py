@@ -24,17 +24,16 @@ from sys import argv
 from sys import platform
 from sys import executable
 from sys import exec_prefix
-#from distutils.core import setup, Extension
-#from setuptools import setup, Extension
 from distutils.version import StrictVersion
 from distutils.file_util import copy_file
+import numpy
 DEBUG = True
 args = argv[1:]
 if args[0].startswith('bdist_wheel'):
 	from setuptools import setup, Extension
 else:
 	from distutils.core import setup, Extension
-filename_bonsu = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bonsu', 'interface', 'bonsu.py')
+filename_bonsu = os.path.join(os.path.dirname(__file__), 'bonsu', 'interface', 'bonsu.py')
 f1_bonsu = open(filename_bonsu, 'r')
 lines = f1_bonsu.readlines()
 for i in range(len(lines)):
@@ -48,50 +47,6 @@ f2_bonsu.writelines(lines)
 f1_bonsu.close()
 f2_bonsu.close()
 from bonsu.interface.bonsu import __version__
-try:
-	import wx
-except ImportError :
-	text  = "Bonsu requires wx.\n"
-	raise ImportError(text)
-else:
-	v = wx.VERSION
-	if (v[0] <= 2):
-		if (v[1] <= 8):
-			if (v[2] <10):
-				text  = "Bonsu requires wx >= 2.8.10 .\n"
-				raise ValueError(text)
-try:
-	import numpy
-except ImportError :
-	text  = "Bonsu requires numpy.\n"
-	raise ImportError(text)
-else:
-	version = StrictVersion(numpy.version.version.split("rc")[0])
-	if (version < StrictVersion('1.4.1')):
-		text  = "Bonsu requires numpy >= 1.4.1 .\n"
-		raise ValueError(text)
-try:
-	import vtk
-except ImportError :
-	text  = "Bonsu requires vtk.\n"
-	raise ImportError(text)
-else:
-	version = StrictVersion(vtk.vtkVersion().GetVTKVersion())
-	if (version < StrictVersion('5.4.2')):
-		text  = "Bonsu requires vtk >= 5.4.2 .\n"
-		raise ValueError(text)
-"""
-try:
-	from numpy.distutils.system_info import get_info
-except ImportError :
-	text  = "Bonsu requires numpy.distutils.\n"
-	raise ImportError, text
-else:
-	info = get_info('fftw3')
-	if (info == {}):
-		text  = "Bonsu requires FFTW >= 3.0 .\n"
-		raise ValueError, text
-"""
 if 'sdist' == args[0]:
 	package_data_dict={'bonsu.licence': ['gpl.txt'], 'bonsu.interface': ['cms.npy'], 'bonsu.image': ['bonsu.ico'], 'bonsu.lib':['prfftwmodule.h'], 'bonsu.macos':['*'], 'bonsu.docs': ['*.*', '_images/*.*', '_images/math/*.*', '_static/*.*']}
 else:
@@ -177,6 +132,6 @@ setup\
 	scripts=scripts,
 	package_data=package_data_dict,
 	data_files=data_files,
-	requires=['wx (>=2.8.10)', 'numpy (>=1.4.1)', 'vtk (>=5.4.2)'],
+	requires=['wx (>=2.8.10)', 'numpy (>=1.4.1)', 'vtk (>=5.4.2)', 'h5py'],
 	long_description='Bonsu is a collection of tools and algorithms primarily for the reconstruction of phase information from diffraction intensity measurements.'
 )

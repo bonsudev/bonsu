@@ -212,7 +212,7 @@ def Sequence_Rotate_Support(\
 	):
 	if self.pipeline_started == True:
 		title = "Sequence " + pipelineitem.treeitem['name']
-		self.ancestor.GetPage(0).queue_info.put("Preparing rotated Numpy array...")
+		self.ancestor.GetPage(0).queue_info.put("Preparing rotated support...")
 		filename_in = pipelineitem.input_filename.objectpath.GetValue()
 		filename_out = pipelineitem.output_filename.objectpath.GetValue()
 		raxis = int(pipelineitem.rotationaxis.value.GetValue())
@@ -224,7 +224,11 @@ def Sequence_Rotate_Support(\
 			wx.CallAfter(self.UserMessage, title, msg)
 			self.pipeline_started = False
 			return
-		array2 = RotateSupport(array, raxis, rangle) + 0j
+		try:
+			array2 = NewArray(self,*array.shape)
+		except:
+			return
+		RotateSupport(array, array2, raxis, rangle)
 		try:
 			SaveArray(self, filename_out, array2)
 		except:
@@ -232,66 +236,46 @@ def Sequence_Rotate_Support(\
 			wx.CallAfter(self.UserMessage, title, msg)
 			self.pipeline_started = False
 			return
-def RotateSupport(inarray, axis, angle):
+def RotateSupport(inarray, outarray, axis, angle):
 	from math import cos,sin,pi,fabs
 	if fabs(angle) < 1e-3:
 		return inarray
-	array = numpy.abs(inarray)
-	shape = array.shape
-	x,y,z = array.shape
+	arrayabs = numpy.abs(inarray)
+	shape = arrayabs.shape
 	deg2rad = pi/180.0
 	tr = numpy.zeros((2,2), dtype=numpy.double)
 	tr[0][0] = cos(angle*deg2rad)
 	tr[0][1] = -sin(angle*deg2rad)
 	tr[1][0] = sin(angle*deg2rad)
 	tr[1][1] = cos(angle*deg2rad)
-	coord2d= numpy.zeros((1,2), dtype=numpy.double)
-	coord2dcen= numpy.zeros((1,2), dtype=numpy.double)
-	newcoord2d= numpy.zeros((1,2), dtype=numpy.double)
-	newarray = numpy.zeros(shape, dtype=numpy.double)
-	newcoordsnn = numpy.zeros((9,2), dtype=numpy.int)
 	d = numpy.zeros((9,2), dtype=numpy.double)
 	nn =numpy.arange(-0.5,1.0,0.5)
 	for i in range(len(nn)):
 		for j in range(len(nn)):
 			d[len(nn)*i+j][0], d[len(nn)*i+j][1] = nn[i], nn[j]
-	axlen = shape[axis-1]
-	if axis == 3:
-		axx = shape[0]
-		axy = shape[1]
-	elif axis == 2:
-		axx = shape[0]
-		axy = shape[2]
-	elif axis == 1:
-		axx = shape[1]
-		axy = shape[2]
-	def RotateObject(array2dflat, newarray2d):
-		for jj in numpy.where(array2dflat > 0.5)[0]:
-			coord2d[0][0], coord2d[0][1] = numpy.unravel_index(jj,(axx,axy))
-			coord2dcen[0][0], coord2dcen[0][1] = coord2d[0][0] - axx/2 ,  coord2d[0][1] - axy/2
-			newcoord2d  = numpy.dot(coord2dcen,tr)
-			for ii in range(len(nn)*len(nn)):
-				newcoordsnn[ii][0], newcoordsnn[ii][1] = int(newcoord2d[0][0] + axx/2 + d[ii][0]), int(newcoord2d[0][1] + axy/2 + d[ii][1])
-				newarray2d[newcoordsnn[ii][0]][newcoordsnn[ii][1]] = array2d[int(coord2d[0][0])][int(coord2d[0][1])]
-	if axis == 1:
-		for i in range(axlen):
-			array2d = array[i,:,:]
-			array2dflat = array2d.flatten()
-			newarray2d = newarray[i,:,:]
-			RotateObject(array2dflat, newarray2d)
-	if axis == 2:
-		for j in range(axlen):
-			array2d = array[:,j,:]
-			array2dflat = array2d.flatten()
-			newarray2d = newarray[:,j,:]
-			RotateObject(array2dflat, newarray2d)
-	elif axis == 3:
-		for k in range(axlen):
-			array2d = array[:,:,k]
-			array2dflat = array2d.flatten()
-			newarray2d = newarray[:,:,k]
-			RotateObject(array2dflat, newarray2d)
-	return newarray
+	d = d.T
+	def RotateObject(farrayabs, finarray, foutarray, axis, spread):
+		rotxy = numpy.array(numpy.where(numpy.array([0,1,2]) != (axis-1)))[0]
+		idxs = numpy.array(numpy.where(farrayabs > 0.5))
+		idxsnew = idxs.copy()
+		cen = numpy.array(farrayabs.shape)//2
+		cen[axis - 1] = 0
+		cenidxs = idxs - cen.reshape(3,1)
+		cenidxsxy = cenidxs[rotxy,:]
+		cenidxsxytr = numpy.dot(cenidxsxy.T,tr).T
+		idxsxytr = cenidxsxytr + cen[rotxy].reshape(2,1)
+		n = len(spread)
+		for i in range(n):
+			xy = spread[:,i,numpy.newaxis]
+			idxsnew[rotxy,:] = (idxsxytr + xy).astype(int)
+			idxsnew[0, idxsnew[0,:] > (shape[0] - 1)] = shape[0] - 1
+			idxsnew[0, idxsnew[0,:] < 0] = 0
+			idxsnew[1, idxsnew[1,:] > (shape[1] - 1)] = shape[1] - 1
+			idxsnew[1, idxsnew[1,:] < 0] = 0
+			idxsnew[2, idxsnew[2,:] > (shape[2] - 1)] = shape[2] - 1
+			idxsnew[2, idxsnew[2,:] < 0] = 0
+			foutarray[idxsnew[0,:],idxsnew[1,:],idxsnew[2,:]] = finarray[idxs[0,:],idxs[1,:],idxs[2,:]]
+	RotateObject(arrayabs, inarray, outarray, axis, d)
 def Sequence_Transpose_Array(\
 	self,
 	pipelineitem

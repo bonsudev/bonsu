@@ -95,7 +95,9 @@ void PCHIO
 	int32_t update_count_recip = 0;
 
 	CopyArray(seqdata, rho_m1, nn); 
+	Py_BLOCK_THREADS;
 	FFTPlan( &torecip, &toreal, seqdata, nn, ndim );
+	Py_UNBLOCK_THREADS;
 	CopyArray(rho_m1, seqdata, nn); 
 
 	MaskedSumOfSquares( expdata, mask, nn, &sos );
@@ -119,7 +121,7 @@ void PCHIO
 		}
 		else
 		{
-			update_count_recip ++;
+			update_count_recip += 1;
 		}
 		MaskedCalculateResiduals(seqdata, expdata, mask, nn, &res);
 		MaskedSetAmplitudes(seqdata, expdata, mask, nn);
@@ -144,7 +146,7 @@ void PCHIO
 		}
 		else
 		{
-			update_count_real ++;
+			update_count_real += 1;
 		}
 		
 		Py_BLOCK_THREADS;

@@ -417,15 +417,6 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].phi )
 			object.append( panelphase.pipelineitems[i].waveln )
 			object.append( panelphase.pipelineitems[i].chkbox_relax.GetValue() )
-			object.append( panelphase.pipelineitems[i].taumax.value.GetValue() )
-			object.append( panelphase.pipelineitems[i].dtaumax.value.GetValue() )
-			object.append( panelphase.pipelineitems[i].dtaumin.value.GetValue() )
-			object.append( panelphase.pipelineitems[i].psiexitratio.value.GetValue() )
-			object.append( panelphase.pipelineitems[i].psiexiterror.value.GetValue() )
-			object.append( panelphase.pipelineitems[i].psiresetratio.value.GetValue() )
-			object.append( panelphase.pipelineitems[i].nsoiter.value.GetValue() )
-			object.append( panelphase.pipelineitems[i].chkbox_reweight.GetValue() )
-			object.append( panelphase.pipelineitems[i].reweightiter.value.GetValue() )
 		if subpanelname == 'PGCHIO':
 			object.append( panelphase.pipelineitems[i].exp_amps.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].chkbox_sqrt_expamps.GetValue() )
@@ -573,6 +564,11 @@ def RestoreInstance(self):
 			panelphase.mainlist.SetItem(mainlistidx, 1, instance_list[i][0])
 		object = instance_list[i][1]
 		subpanelname = instance_list[i][2]
+		if subpanelname == 'Nexus Viewer I16':
+			panelphase.pipelineitems.append(SubPanel_NEXUSView(panelphase.panel2, panelphase.ancestor))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			DoListCheck(panelphase, object, -1)
 		if subpanelname == 'Python Script':
 			panelphase.pipelineitems.append(SubPanel_PyScript(panelphase.panel2))
 			panelphase.pipelineitems[-1].Hide()

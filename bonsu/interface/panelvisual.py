@@ -25,11 +25,15 @@ from .render import wxVTKRenderWindowInteractor
 import numpy
 from vtk.util import numpy_support
 from time import strftime, sleep
-from .plot import PlotCanvas, PolyLine, PlotGraphics
 from .common import *
 from ..operations.wrap import WrapArray
 from ..operations.wrap import WrapArrayAmp
 import threading, time
+if IsNotWX4():
+	from .plot import PlotCanvas, PolyLine, PlotGraphics
+else:
+	from wx.lib.plot.plotcanvas import PlotCanvas, PolyLine
+	from wx.lib.plot.polyobjects import PlotGraphics
 if IsPy3():
     from queue import Queue
 else:
@@ -505,24 +509,33 @@ class MeasureLine(wx.Panel):
 		self.panelvisual = self.GetParent().GetParent().GetParent()
 		self.canvas = PlotCanvas(self)
 		self.canvas.SetInitialSize(size=self.GetClientSize())
-		self.canvas.SetShowScrollbars(False)
-		self.canvas.SetEnableLegend(True)
-		self.canvas.SetGridColour(wx.Colour(0, 0, 0))
-		self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
-		self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
-		self.canvas.SetEnableZoom(False)
-		self.canvas.SetFontSizeAxis(point=12)
-		self.canvas.SetFontSizeTitle(point=12)
+		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		if IsNotWX4():
+			self.canvas.SetShowScrollbars(False)
+			self.canvas.SetEnableLegend(True)
+			self.canvas.SetGridColour(wx.Colour(0, 0, 0))
+			self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
+			self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
+			self.canvas.SetEnableZoom(False)
+			self.canvas.SetFontSizeAxis(point=fontpoint)
+			self.canvas.SetFontSizeTitle(point=fontpoint)
+		else:
+			self.canvas.showScrollbars = False
+			self.canvas.enableLegend = True
+			self.canvas.enablePointLabel = True
+			self.canvas.enableZoom = True
+			self.canvas.fontSizeAxis = fontpoint
+			self.canvas.fontSizeTitle =fontpoint
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.EXPAND)
 		self.hbox_p1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox_p2 = wx.BoxSizer(wx.HORIZONTAL)
-		self.p1x = NumberObject(self,"P1:x:",0.0,35)
-		self.p1y = NumberObject(self,"P1:y:",0.0,35)
-		self.p1z = NumberObject(self,"P1:z:",0.0,35)
-		self.p2x = NumberObject(self,"P2:x:",0.0,35)
-		self.p2y = NumberObject(self,"P2:y:",0.0,35)
-		self.p2z = NumberObject(self,"P2:z:",0.0,35)
+		self.p1x = NumberObject(self,"P1:x:",0.0,60)
+		self.p1y = NumberObject(self,"P1:y:",0.0,60)
+		self.p1z = NumberObject(self,"P1:z:",0.0,60)
+		self.p2x = NumberObject(self,"P2:x:",0.0,60)
+		self.p2y = NumberObject(self,"P2:y:",0.0,60)
+		self.p2z = NumberObject(self,"P2:z:",0.0,60)
 		self.p1x.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
 		self.p1y.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
 		self.p1z.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
@@ -547,6 +560,11 @@ class MeasureLine(wx.Panel):
 		self.pointcount.spin.SetEventFunc(self.OnDataPoints)
 		self.Bind(wx.EVT_TEXT, self.OnDataPoints, self.pointcount.value)
 		self.hbox_btn.Add(self.pointcount)
+		self.hbox_btn.Add((10, -1))
+		self.button_reset = wx.Button(self, label="Reset zoom")
+		self.button_reset.Enable(False)
+		self.Bind(wx.EVT_BUTTON, self.OnClickResetButton, self.button_reset)
+		self.hbox_btn.Add(self.button_reset)
 		self.hbox_btn.Add((10, -1))
 		self.chkbox_enable = CheckBoxNew(self, -1, 'Enable')
 		self.chkbox_enable.SetToolTipNew("Enable Widget")
@@ -630,6 +648,8 @@ class MeasureLine(wx.Panel):
 			self.panelvisual.ancestor.GetParent().Refresh()
 		else:
 			event.Skip()
+	def OnClickResetButton(self, event):
+		self.canvas.Reset()
 	def OnClickSaveButton(self, event):
 		x = (self.linerep.GetDistance() / float(self.nopoints)) * numpy.arange(self.nopoints)
 		y = numpy.array(self.data)
@@ -640,11 +660,13 @@ class MeasureLine(wx.Panel):
 		if(event.GetEventObject().GetValue() == True):
 			self.linewidget.SetEnabled(1)
 			self.EnablePointCoordsDisplay(1)
+			self.button_reset.Enable(True)
 			self.panelvisual.ancestor.GetParent().Refresh()
 			self.DrawGraph(None,None)
 		else:
 			self.linewidget.SetEnabled(0)
 			self.EnablePointCoordsDisplay(0)
+			self.button_reset.Enable(False)
 			self.panelvisual.ancestor.GetParent().Refresh()
 	def OnChkboxLog(self, event):
 		self.panelvisual.ancestor.GetParent().Refresh()
@@ -690,7 +712,10 @@ class MeasureLine(wx.Panel):
 			self.chkbox_log.Enable(True)
 		graphic = PlotGraphics([line],"", "Distance", graphic_y_axis)
 		if self.chkbox_log.GetValue() == True:
-			self.canvas.setLogScale((False,True))
+			if IsNotWX4():
+				self.canvas.setLogScale((False,True))
+			else:
+				self.canvas.logScale = (False,True)
 			ymin = numpy.min(y[numpy.nonzero(y)])
 			ymax = y.max()
 			if ymin < 1e-6:
@@ -699,7 +724,10 @@ class MeasureLine(wx.Panel):
 				ymax = 1e300
 			self.canvas.Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(ymin, ymax))
 		else:
-			self.canvas.setLogScale((False,False))
+			if IsNotWX4():
+				self.canvas.setLogScale((False,True))
+			else:
+				self.canvas.logScale = (False,False)
 			self.canvas.Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(y.min(), y.max()))
 		self.Refresh()
 class MeasureAngle(wx.Panel):

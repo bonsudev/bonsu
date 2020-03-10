@@ -21,10 +21,781 @@
 import wx
 import os
 import numpy
+import h5py
 from PIL import Image
 from ..sequences.functions import *
 from ..sequences.algorithms import *
+from ..operations.loadarray import SaveArray
 from .common import *
+if IsNotWX4():
+	from .plot import PlotCanvas, PolyLine, PolyMarker, PlotGraphics
+else:
+	from wx.lib.plot.plotcanvas import PlotCanvas, PolyMarker, PolyLine
+	from wx.lib.plot.polyobjects import PlotGraphics
+class SubPanel_NEXUSView(wx.ScrolledWindow):
+	treeitem = {'name':  'Nexus Viewer I16', 'type': 'operpreview'}
+	def sequence(self, selff, pipelineitem):
+		pass
+	def __init__(self, parent, ancestor):
+		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		self.panelphase = self.GetParent().GetParent().GetParent()
+		self.ancestor = self.panelphase.ancestor
+		self.panelvisual = self.ancestor.GetPage(1)
+		self.font = self.GetParent().font
+		self.n = 0
+		self.fnames = []
+		self.fnamescache = []
+		self.fnamesn = 0
+		self.fnamesidx = -1
+		self.metacache = []
+		self.plotcache = []
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = wx.StaticText(self, label="Diamond Nexus Viewer I16")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.input_filename = TextPanelObject(self, "Input file: ", "",100,'*.npy')
+		self.input_filename.objectpath.SetValue("memoryprivate")
+		self.input_filename.Hide()
+		vbox.Add(self.input_filename,0)
+		self.rbampphase = wx.RadioBox(self, label="", choices=['Amplitude'],  majorDimension=1, style=wx.RA_SPECIFY_COLS)
+		self.rbampphase.Hide()
+		vbox.Add(self.rbampphase,0)
+		self.sx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
+		self.sy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
+		self.sz = SpinnerObject(self,"z",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
+		self.sx.Hide()
+		self.sy.Hide()
+		self.sz.Hide()
+		vbox.Add(self.sx,0)
+		vbox.Add(self.sy,0)
+		vbox.Add(self.sz,0)
+		self.chkbox_axes = wx.CheckBox(self, -1, 'View axes', size=(200, 20))
+		self.chkbox_axes.SetValue(True)
+		self.chkbox_axes.Hide()
+		vbox.Add(self.chkbox_axes,0)
+		self.axes_fontfactor = SpinnerObject(self,"Font Factor:",MAX_INT,1,1,2,100,100)
+		self.axes_fontfactor.Hide()
+		vbox.Add(self.axes_fontfactor,0)
+		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		hboxscan = wx.BoxSizer(wx.HORIZONTAL)
+		self.scanlabel = StaticTextNew(self, label="Scan No.:", style=wx.ALIGN_RIGHT, size=(100,-1) )
+		self.scanno = TextCtrlNew(self, value="",size=(150, -1), style=wx.TE_PROCESS_ENTER)
+		self.scanspin = wx.SpinButton(self, size=(-1,-1))
+		self.scanspin.SetRange(MIN_INT, MAX_INT)
+		self.Bind(wx.EVT_SPIN, self.OnScanSpinUp, self.scanspin)
+		self.Bind(wx.EVT_SPIN, self.OnScanSpinDown, self.scanspin)
+		hboxscan.Add(self.scanlabel, 0, wx.LEFT|wx.RIGHT|wx.CENTER)
+		hboxscan.Add(self.scanno, 0, wx.LEFT|wx.RIGHT|wx.CENTER)
+		hboxscan.Add(self.scanspin, 0, wx.LEFT|wx.RIGHT|wx.CENTER)
+		hbox1.Add(hboxscan, 0, wx.LEFT|wx.CENTER)
+		hbox1.Add((10, -1))
+		self.button_first = wx.Button(self, label="First")
+		self.Bind(wx.EVT_BUTTON, self.OnClickFirst, self.button_first)
+		hbox1.Add(self.button_first)
+		self.button_last = wx.Button(self, label="Last")
+		self.Bind(wx.EVT_BUTTON, self.OnClickLast, self.button_last)
+		hbox1.Add(self.button_last)
+		hbox1.Add((10, -1))
+		self.button_load = wx.Button(self, label="Load")
+		self.Bind(wx.EVT_BUTTON, self.OnClickLoad, self.button_load)
+		hbox1.Add(self.button_load)
+		hbox1.Add((10, -1))
+		self.button_fresh = wx.Button(self, label="Refresh")
+		self.Bind(wx.EVT_BUTTON, self.OnClickFresh, self.button_fresh)
+		hbox1.Add(self.button_fresh)
+		vbox.Add((-1, 10))
+		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 10))
+		hbox_com = wx.BoxSizer(wx.HORIZONTAL)
+		txtcom = StaticTextNew(self, label="Command : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.txtcom_value = wx.TextCtrl(self, -1, value="", size=(450,-1), style=wx.TE_READONLY|wx.TE_DONTWRAP)
+		hbox_com.Add(txtcom)
+		hbox_com.Add(self.txtcom_value)
+		hbox_npoints = wx.BoxSizer(wx.HORIZONTAL)
+		txtnpoints = StaticTextNew(self, label="No. of points : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.txtnpoints_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
+		hbox_npoints.Add(txtnpoints)
+		hbox_npoints.Add(self.txtnpoints_value)
+		hbox_hkl = wx.BoxSizer(wx.HORIZONTAL)
+		hkl = StaticTextNew(self, label="hkl : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.hkl_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
+		hbox_hkl.Add(hkl)
+		hbox_hkl.Add(self.hkl_value)
+		hbox_energy = wx.BoxSizer(wx.HORIZONTAL)
+		energy = StaticTextNew(self, label="energy : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.energy_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
+		hbox_energy.Add(energy)
+		hbox_energy.Add(self.energy_value)
+		hbox_temp = wx.BoxSizer(wx.HORIZONTAL)
+		temp = StaticTextNew(self, label="Temp : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.temp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
+		hbox_temp.Add(temp)
+		hbox_temp.Add(self.temp_value)
+		hbox_atten = wx.BoxSizer(wx.HORIZONTAL)
+		atten = StaticTextNew(self, label="Transmission : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.atten_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
+		hbox_atten.Add(atten)
+		hbox_atten.Add(self.atten_value)
+		hbox_minimirrors = wx.BoxSizer(wx.HORIZONTAL)
+		minimirrors = StaticTextNew(self, label="Mini mirrors : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.minimirrors_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
+		hbox_minimirrors.Add(minimirrors)
+		hbox_minimirrors.Add(self.minimirrors_value)
+		hbox_detoffset = wx.BoxSizer(wx.HORIZONTAL)
+		detoffset = StaticTextNew(self, label="Det. offset : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.detoffset_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
+		hbox_detoffset.Add(detoffset)
+		hbox_detoffset.Add(self.detoffset_value)
+		hbox_ths = wx.BoxSizer(wx.HORIZONTAL)
+		thp = StaticTextNew(self, label="Theta : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.thp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_ths.Add(thp)
+		hbox_ths.Add(self.thp_value)
+		tthp = StaticTextNew(self, label="2theta : ", style=wx.ALIGN_RIGHT, size=(100,-1))
+		self.tthp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_ths.Add(tthp)
+		hbox_ths.Add(self.tthp_value)
+		thpol = StaticTextNew(self, label="pol : ", style=wx.ALIGN_RIGHT, size=(100,-1))
+		self.thpol_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_ths.Add(thpol)
+		hbox_ths.Add(self.thpol_value)
+		hbox_etamu = wx.BoxSizer(wx.HORIZONTAL)
+		eta = StaticTextNew(self, label="Eta : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.eta_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_etamu.Add(eta)
+		hbox_etamu.Add(self.eta_value)
+		mu = StaticTextNew(self, label="Mu : ", style=wx.ALIGN_RIGHT, size=(100,-1))
+		self.mu_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(200,-1))
+		hbox_etamu.Add(mu)
+		hbox_etamu.Add(self.mu_value)
+		hbox_delgam = wx.BoxSizer(wx.HORIZONTAL)
+		delta = StaticTextNew(self, label="Delta : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.delta_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_delgam.Add(delta)
+		hbox_delgam.Add(self.delta_value)
+		gamma = StaticTextNew(self, label="Gam : ", style=wx.ALIGN_RIGHT, size=(100,-1))
+		self.gamma_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_delgam.Add(gamma)
+		hbox_delgam.Add(self.gamma_value)
+		hbox_chiphi = wx.BoxSizer(wx.HORIZONTAL)
+		chi = StaticTextNew(self, label="Chi : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.chi_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_chiphi.Add(chi)
+		hbox_chiphi.Add(self.chi_value)
+		phi = StaticTextNew(self, label="Phi : ", style=wx.ALIGN_RIGHT, size=(100,-1))
+		self.phi_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_chiphi.Add(phi)
+		hbox_chiphi.Add(self.phi_value)
+		hbox_psi = wx.BoxSizer(wx.HORIZONTAL)
+		psi = StaticTextNew(self, label="Psi : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.psi_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_psi.Add(psi)
+		hbox_psi.Add(self.psi_value)
+		hbox_sxyz = wx.BoxSizer(wx.HORIZONTAL)
+		sx = StaticTextNew(self, label="sx : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.sx_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_sxyz.Add(sx)
+		hbox_sxyz.Add(self.sx_value)
+		sy = StaticTextNew(self, label="sy : ", style=wx.ALIGN_RIGHT, size=(100,-1))
+		self.sy_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_sxyz.Add(sy)
+		hbox_sxyz.Add(self.sy_value)
+		sz = StaticTextNew(self, label="sz : ", style=wx.ALIGN_RIGHT, size=(100,-1))
+		self.sz_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_sxyz.Add(sz)
+		hbox_sxyz.Add(self.sz_value)
+		hbox_spp = wx.BoxSizer(wx.HORIZONTAL)
+		sperp = StaticTextNew(self, label="sperp : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.sperp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_spp.Add(sperp)
+		hbox_spp.Add(self.sperp_value)
+		spara = StaticTextNew(self, label="spara : ", style=wx.ALIGN_RIGHT, size=(100,-1))
+		self.spara_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_spp.Add(spara)
+		hbox_spp.Add(self.spara_value)
+		hbox_slits = wx.BoxSizer(wx.HORIZONTAL)
+		sslits = StaticTextNew(self, label="Sample Slits : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.sslits_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(200,-1))
+		hbox_slits.Add(sslits)
+		hbox_slits.Add(self.sslits_value)
+		dslits = StaticTextNew(self, label="Detector Slits : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.dslits_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		hbox_slits.Add(dslits)
+		hbox_slits.Add(self.dslits_value)
+		hbox_date = wx.BoxSizer(wx.HORIZONTAL)
+		expdate = StaticTextNew(self, label="Date : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.expdate_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(100,-1))
+		hbox_date.Add(expdate)
+		hbox_date.Add(self.expdate_value)
+		hbox_durat = wx.BoxSizer(wx.HORIZONTAL)
+		expdurat = StaticTextNew(self, label="Duration : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		self.expdurat_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(100,-1))
+		hbox_durat.Add(expdurat)
+		hbox_durat.Add(self.expdurat_value)
+		vbox.Add(hbox_com, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_npoints, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_hkl, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_energy, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_temp, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_atten, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_minimirrors, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_detoffset, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_ths, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_etamu, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_delgam, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_chiphi, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_psi, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_sxyz, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_spp, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_slits, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_date, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox_durat, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 10))
+		self.xkeys = []
+		self.xkeyspath ='/,entry1,measurement,'
+		self.motors = []
+		vbox.Add((-1, 10))
+		self.button_showplot = wx.Button(self, label="Show Image")
+		self.Bind(wx.EVT_BUTTON, self.OnClickPlot, self.button_showplot)
+		vbox.Add(self.button_showplot, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 10))
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+		self.FitInside()
+		self.SetScrollRate(5, 5)
+		self.LoadFnames()
+		self.OnClickLoad(None)
+	def IterateKey(self,path, file):
+		newitem = file
+		for key in path.split(","):
+			newitem = newitem.get(key)
+		return newitem
+	def IterateH5(self, name, node):
+		if isinstance(node, h5py.Dataset):
+			self.motors.append(name.split('/')[-1])
+	def LoadFnames(self):
+		cwd = os.getcwd()
+		self.fnames = [f for f in os.listdir(cwd) if (os.path.isfile(os.path.join(cwd, f)) and f.endswith(".nxs"))]
+		self.fnames.sort()
+		self.fnamesn = len(self.fnames) - 1
+		self.fnamesidx = self.fnamesn
+		self.fnamescache = [""] * len(self.fnames)
+		self.metacache = [""] * len(self.fnames)
+		self.plotcache = [""] * len(self.fnames)
+	def LoadRecordID(self):
+		if len(self.fnames) == 0:
+			return
+		if self.fnamescache[self.fnamesidx] == "":
+			cwd = os.getcwd()
+			try:
+				f = h5py.File(os.path.join(cwd, self.fnames[self.fnamesidx]),'r')
+			except:
+				self.panelphase.ancestor.GetPage(0).queue_info.put("Could not load %s"%self.fnames[-1])
+			else:
+				value = self.IterateKey("/,entry1,entry_identifier",f)[()]
+				if not numpy.isscalar(value):
+					value = value[0]
+				self.scanno.ChangeValue(value)
+				self.fnamescache[self.fnamesidx] = value
+				f.close()
+		else:
+			self.scanno.ChangeValue(self.fnamescache[self.fnamesidx])
+	def GetMetaData(self):
+		if self.metacache[self.fnamesidx] == "":
+			cwd = os.getcwd()
+			f = h5py.File(os.path.join(cwd, self.fnames[self.fnamesidx]),'r')
+			d = {}
+			d['command'] = self.IterateKey("/,entry1,scan_command",f)[()]
+			d['npoints'] = self.IterateKey("/,entry1,scan_dimensions",f)[()]
+			d['h'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,h",f)[()]
+			d['k'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,k",f)[()]
+			d['l'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,l",f)[()]
+			energy = self.IterateKey("/,entry1,sample,beam,incident_energy",f)[()]
+			if not numpy.isscalar(energy):
+				d['energy'] = energy[0]
+			else:
+				d['energy'] = energy
+			d['temp'] = self.IterateKey("/,entry1,before_scan,lakeshore,Tset",f)[()]
+			d['atten'] = self.IterateKey("/,entry1,instrument,attenuator,attenuator_transmission",f)[()]
+			d['minimirrors'] = self.IterateKey("/,entry1,before_scan,mirrors,m4pitch",f)[()]
+			d['detoffset'] = self.IterateKey("/,entry1,before_scan,delta_offset,delta_offset",f)[()]
+			d['thp'] = self.IterateKey("/,entry1,before_scan,pa,thp",f)[()]
+			d['tthp'] = self.IterateKey("/,entry1,before_scan,pa,tthp",f)[()]
+			d['pol'] = self.IterateKey("/,entry1,before_scan,pa,zp",f)[()]
+			d['eta'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,eta",f)[()]
+			d['delta'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,delta",f)[()]
+			d['gam'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,gam",f)[()]
+			d['chi'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,chi",f)[()]
+			d['psi'] = self.IterateKey("/,entry1,before_scan,psi,psi",f)[()]
+			d['kphi'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,kphi",f)[()]
+			d['phi'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,phi",f)[()]
+			d['mu'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,mu",f)[()]
+			d['sx'] = self.IterateKey("/,entry1,before_scan,positions,sx",f)[()]
+			d['sy'] = self.IterateKey("/,entry1,before_scan,positions,sy",f)[()]
+			d['sz'] = self.IterateKey("/,entry1,before_scan,positions,sz",f)[()]
+			d['sperp'] = self.IterateKey("/,entry1,before_scan,positions,sperp",f)[()]
+			d['spara'] = self.IterateKey("/,entry1,before_scan,positions,spara",f)[()]
+			d['sslitsx'] = self.IterateKey("/,entry1,before_scan,jjslits,s5xgap",f)[()]
+			d['sslitsy'] = self.IterateKey("/,entry1,before_scan,jjslits,s5ygap",f)[()]
+			try:
+				d['dslitsx'] = self.IterateKey("/,entry1,before_scan,jjslits,s6xgap",f)[()]
+				d['dslitsy'] = self.IterateKey("/,entry1,before_scan,jjslits,s6ygap",f)[()]
+			except:
+				d['dslitsx'] = self.IterateKey("/,entry1,before_scan,jjslits,s7xgap",f)[()]
+				d['dslitsy'] = self.IterateKey("/,entry1,before_scan,jjslits,s7ygap",f)[()]
+			d['starttime'] = self.IterateKey("/,entry1,start_time",f)[()]
+			timesec = self.IterateKey("/,entry1,measurement,TimeSec",f)[()]
+			timesec = timesec.flatten()
+			dtime = timesec[-1] - timesec[0]
+			d['timetotalsec'] = dtime
+			d['timehours'] = numpy.int(numpy.floor(dtime/3600))
+			d['timemin'] = numpy.int(numpy.floor(numpy.remainder(dtime,3600)/60))
+			d['timesec'] = numpy.remainder(numpy.remainder(dtime,3600),60)
+			self.motors = []
+			f.get('entry1').get('before_scan').visititems(self.IterateH5)
+			f.close()
+			self.metacache[self.fnamesidx] = d
+		else:
+			d = self.metacache[self.fnamesidx]
+		return d
+	def OnClickLoad(self, event):
+		if len(self.fnames) == 0:
+			return
+		self.LoadRecordID()
+		try:
+			d = self.GetMetaData()
+		except:
+			self.ancestor.GetPage(0).queue_info.put("Could not load record %d"%self.fnames[self.fnamesidx])
+		else:
+			self.txtcom_value.ChangeValue(d['command'])
+			self.txtnpoints_value.SetLabel(str(d['npoints']).strip('[]'))
+			self.hkl_value.SetLabel("[ %d %d %d ]"%(d['h'],d['k'],d['l']))
+			self.energy_value.SetLabel("%g keV"%d['energy'])
+			self.temp_value.SetLabel("%g K"%d['temp'])
+			self.atten_value.SetLabel("%g"%d['atten'])
+			self.minimirrors_value.SetLabel("%g"%d['minimirrors'])
+			self.detoffset_value.SetLabel("%g"%d['detoffset'])
+			self.thp_value.SetLabel("%g"%d['thp'])
+			self.tthp_value.SetLabel("%g"%d['tthp'])
+			self.thpol_value.SetLabel("%g"%d['pol'])
+			self.eta_value.SetLabel("%g"%d['eta'])
+			self.mu_value.SetLabel("%g"%d['mu'])
+			self.delta_value.SetLabel("%g"%d['delta'])
+			self.gamma_value.SetLabel("%g"%d['gam'])
+			self.chi_value.SetLabel("%g"%d['chi'])
+			self.phi_value.SetLabel("%g"%d['kphi'])
+			self.psi_value.SetLabel("%g"%d['psi'])
+			self.sx_value.SetLabel("%g"%d['sx'])
+			self.sy_value.SetLabel("%g"%d['sy'])
+			self.sz_value.SetLabel("%g"%d['sz'])
+			self.sperp_value.SetLabel("%g"%d['sperp'])
+			self.spara_value.SetLabel("%g"%d['spara'])
+			self.sslits_value.SetLabel("(%g, %g)"%(d['sslitsx'],d['sslitsy']))
+			self.dslits_value.SetLabel("(%g, %g)"%(d['dslitsx'],d['dslitsy']))
+			self.expdate_value.SetLabel(d['starttime'].split('T')[0]+" "+d['starttime'].split('T')[1])
+			self.expdurat_value.SetLabel("%d hours, %d mins, %d sec"%(d['timehours'],d['timemin'],d['timesec']))
+			self.xkeys = []
+			cmds = d['command'].split(' ')
+			for word in cmds:
+				if word in self.motors:
+					self.xkeys.append(word)
+	def OnScanSpinUp(self, event):
+		self.OnScanSpin(self.scanspin.GetValue())
+	def OnScanSpinDown(self, event):
+		self.OnScanSpin(self.scanspin.GetValue())
+	def OnScanSpin(self, updown):
+		if (self.fnamesidx+updown-1 < self.fnamesn) and (self.fnamesidx+updown+1 > 0):
+			self.fnamesidx = self.fnamesidx + updown
+			self.LoadRecordID()
+		self.scanspin.SetValue(0)
+	def OnClickFresh(self, event):
+		self.LoadFnames()
+		self.LoadRecordID()
+	def OnClickFirst(self, event):
+		self.fnamesidx = 0
+		self.LoadRecordID()
+	def OnClickLast(self, event):
+		self.fnamesidx = self.fnamesn
+		self.LoadRecordID()
+	def LoadImage(self, filepath):
+		with open(filepath, 'rb') as Image_handle:
+			Image_file_raw=Image.open(Image_handle)
+			type = Image_file_raw.format
+			if type == 'TIFF':
+				imgobj = TIFFStackRead(Image_file_raw)
+				x,y = imgobj.im_sz
+				z = imgobj.nframes
+				tarray = NewArray(self,x,y,z)
+				for i in range(z):
+					tarray[:,:,i] = imgobj.get_frame(i)[:]
+			else:
+				Image_file=Image_file_raw.convert('L')
+				tarray = numpy.array(Image_file)
+		return tarray
+	def SaveImage(self,image):
+		SaveArray(self.panelphase,'memoryprivate',image)
+	def ViewImage(self):
+		Sequence_View_Array(self, self.ancestor)
+		self.ancestor.GetPage(4).data_poll_timer.Start(1000)
+	def OnClickPlot(self, event):
+		if len(self.fnames) == 0:
+			return
+		self.OnClickLoad(None)
+		cwd = os.getcwd()
+		f = h5py.File(os.path.join(cwd, self.fnames[self.fnamesidx]),'r')
+		try:
+			imgarraypath = self.IterateKey("/,entry1,instrument,pil3_100k,image_data",f)[()]
+			imgarraysum = self.IterateKey("/,entry1,instrument,pil3_100k,sum",f)[()]
+		except:
+			try:
+				imgarraypath = self.IterateKey("/,entry1,instrument,merlin,image_data",f)[()]
+				imgarraysum = self.IterateKey("/,entry1,instrument,merlin,sum",f)[()]
+			except:
+				self.ancestor.GetPage(0).queue_info.put("Could not load image data from path")
+				f.close()
+				return
+		self.n = imgarraysum.ndim
+		if self.plotcache[self.fnamesidx] == "":
+			xwhole = []
+			if self.n > 0:
+				xwhole.append( self.IterateKey(self.xkeyspath+self.xkeys[0],f)[()] )
+			if self.n > 1:
+				xwhole.append( self.IterateKey(self.xkeyspath+self.xkeys[1],f)[()] )
+			if self.n == 3:
+				xwhole.append( self.IterateKey(self.xkeyspath+self.xkeys[2],f)[()] )
+			self.plotcache[self.fnamesidx] = xwhole
+		if self.n >= 1:
+			dialog = LoadNexusPlotDialog(self,imgarraypath,imgarraysum)
+			dialog.Show()
+		f.close()
+class LoadNexusPlotDialog(wx.Dialog):
+	def __init__(self, parent,imgarraypath,imgarraysum):
+		wx.Dialog.__init__(self, parent, title="Nexus Image View I16", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX)
+		self.SetSizeHints(750,600,-1,-1)
+		self.parent = parent
+		self.ancestor = parent.ancestor
+		self.panelphase = self.ancestor.GetPage(0)
+		self.panelphase.Enable(False)
+		self.Bind(wx.EVT_SIZE, self.OnSize)
+		self.Bind(wx.EVT_CLOSE, self.OnExit)
+		self.imgarraypath = imgarraypath
+		self.imgarraysum = imgarraysum
+		self.datashape = self.imgarraypath.shape
+		self.n = imgarraysum.ndim
+		self.xyz = numpy.ones(3, dtype=numpy.int)
+		for i in range(self.n):
+			self.xyz[i] = self.datashape[i]
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		self.vbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.vbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.vbox3 = wx.BoxSizer(wx.HORIZONTAL)
+		self.canvas1 = PlotCanvas(self)
+		self.canvas1.SetInitialSize(size=self.GetClientSize())
+		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		if IsNotWX4():
+			self.canvas1.SetShowScrollbars(False)
+			self.canvas1.SetEnableLegend(False)
+			self.canvas1.SetGridColour(wx.Colour(0, 0, 0))
+			self.canvas1.SetForegroundColour(wx.Colour(0, 0, 0))
+			self.canvas1.SetBackgroundColour(wx.Colour(255, 255, 255))
+			self.canvas1.SetEnableZoom(False)
+			self.canvas1.SetFontSizeAxis(point=fontpoint)
+			self.canvas1.SetFontSizeTitle(point=fontpoint)
+		else:
+			self.canvas1.showScrollbars = False
+			self.canvas1.enableLegend = False
+			self.canvas1.enablePointLabel = True
+			self.canvas1.enableZoom = False
+			self.canvas1.fontSizeAxis = fontpoint
+			self.canvas1.fontSizeTitle =fontpoint
+		self.vbox1.Add(self.canvas1, 1, flag=wx.EXPAND|wx.ALL)
+		self.canvas2 = PlotCanvas(self)
+		self.canvas2.SetInitialSize(size=self.GetClientSize())
+		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		if IsNotWX4():
+			self.canvas2.SetShowScrollbars(False)
+			self.canvas2.SetEnableLegend(True)
+			self.canvas2.SetGridColour(wx.Colour(0, 0, 0))
+			self.canvas2.SetForegroundColour(wx.Colour(0, 0, 0))
+			self.canvas2.SetBackgroundColour(wx.Colour(255, 255, 255))
+			self.canvas2.SetEnableZoom(False)
+			self.canvas2.SetFontSizeAxis(point=fontpoint)
+			self.canvas2.SetFontSizeTitle(point=fontpoint)
+		else:
+			self.canvas2.showScrollbars = False
+			self.canvas2.enableLegend = False
+			self.canvas2.enablePointLabel = True
+			self.canvas2.enableZoom = False
+			self.canvas2.fontSizeAxis = fontpoint
+			self.canvas2.fontSizeTitle =fontpoint
+		self.vbox2.Add(self.canvas2, 1, flag=wx.EXPAND|wx.ALL)
+		self.canvas3 = PlotCanvas(self)
+		self.canvas3.SetInitialSize(size=self.GetClientSize())
+		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		if IsNotWX4():
+			self.canvas3.SetShowScrollbars(False)
+			self.canvas3.SetEnableLegend(True)
+			self.canvas3.SetGridColour(wx.Colour(0, 0, 0))
+			self.canvas3.SetForegroundColour(wx.Colour(0, 0, 0))
+			self.canvas3.SetBackgroundColour(wx.Colour(255, 255, 255))
+			self.canvas3.SetEnableZoom(False)
+			self.canvas3.SetFontSizeAxis(point=fontpoint)
+			self.canvas3.SetFontSizeTitle(point=fontpoint)
+		else:
+			self.canvas3.showScrollbars = False
+			self.canvas3.enableLegend = False
+			self.canvas3.enablePointLabel = True
+			self.canvas3.enableZoom = False
+			self.canvas3.fontSizeAxis = fontpoint
+			self.canvas3.fontSizeTitle =fontpoint
+		self.vbox3.Add(self.canvas3, 1, flag=wx.EXPAND|wx.ALL)
+		self.canvass = [self.canvas1,self.canvas2,self.canvas3]
+		vbox.Add(self.vbox1, 1, wx.EXPAND | wx.ALL, border=0)
+		vbox.Add(self.vbox2, 1, wx.EXPAND | wx.ALL, border=0)
+		vbox.Add(self.vbox3, 1, wx.EXPAND | wx.ALL, border=0)
+		vbox.Add((-1, 5))
+		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+		self.chkbox_enable1 = CheckBoxNew(self, -1, 'Y Limits')
+		self.chkbox_enable1.SetToolTipNew("Enable max min")
+		self.chkbox_enable1.SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox1, self.chkbox_enable1)
+		self.plotymax1 = NumberObject(self,"y max:",1.0,40)
+		self.plotymax1.Disable()
+		self.plotymin1 = NumberObject(self,"y min:",0.0,40)
+		self.plotymin1.Disable()
+		self.hbox1.Add(self.chkbox_enable1,1, border=5)
+		self.hbox11 = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox11.Add(self.plotymax1, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox11.Add(self.plotymin1, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox1.Add(self.hbox11, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.chkbox_enable2 = CheckBoxNew(self, -1, 'Y Limits')
+		self.chkbox_enable2.SetToolTipNew("Enable max min")
+		self.chkbox_enable2.SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox2, self.chkbox_enable2)
+		self.plotymax2 = NumberObject(self,"y max:",1.0,40)
+		self.plotymax2.Disable()
+		self.plotymin2 = NumberObject(self,"y min:",0.0,40)
+		self.plotymin2.Disable()
+		self.hbox2.Add(self.chkbox_enable2,1, border=5)
+		self.hbox22 = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox22.Add(self.plotymax2, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox22.Add(self.plotymin2, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox2.Add(self.hbox22, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.chkbox_enable3 = CheckBoxNew(self, -1, 'Y Limits')
+		self.chkbox_enable3.SetToolTipNew("Enable max min")
+		self.chkbox_enable3.SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox3, self.chkbox_enable3)
+		self.plotymax3 = NumberObject(self,"y max:",1.0,40)
+		self.plotymax3.Disable()
+		self.plotymin3 = NumberObject(self,"y min:",0.0,40)
+		self.plotymin3.Disable()
+		self.hbox3.Add(self.chkbox_enable3,1, border=5)
+		self.hbox33 = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox33.Add(self.plotymax3, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox33.Add(self.plotymin3, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		self.hbox3.Add(self.hbox33, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		vbox.Add(self.hbox1, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, border=0)
+		vbox.Add(self.hbox2, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, border=0)
+		vbox.Add(self.hbox3, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, border=0)
+		self.plotymaxs = [self.plotymax1,self.plotymax2,self.plotymax3]
+		self.plotymins = [self.plotymin1,self.plotymin2,self.plotymin3]
+		self.chkbox_enables = [self.chkbox_enable1,self.chkbox_enable2,self.chkbox_enable3]
+		vbox.Add((-1, 5))
+		self.sliders = []
+		self.slider1 = wx.Slider(self, -1, pos=wx.DefaultPosition, size=(150, -1),style=wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
+		self.slider1.SetRange(0,self.xyz[0] - 1)
+		self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScrollAxis, self.slider1)
+		self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScrollAxis, self.slider1)
+		vbox.Add(self.slider1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
+		if self.n < 1:
+			self.slider1.Hide()
+			self.canvas1.Hide()
+			self.chkbox_enable1.Hide()
+			self.plotymin1.Hide()
+			self.plotymax1.Hide()
+		self.slider2 = wx.Slider(self, -1, pos=wx.DefaultPosition, size=(150, -1),style=wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
+		self.slider2.SetRange(0,self.xyz[1] - 1)
+		self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScrollAxis, self.slider2)
+		self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScrollAxis, self.slider2)
+		vbox.Add(self.slider2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
+		if self.n < 2:
+			self.slider2.Hide()
+			self.canvas2.Hide()
+			self.chkbox_enable2.Hide()
+			self.plotymin2.Hide()
+			self.plotymax2.Hide()
+		self.slider3 = wx.Slider(self, -1, pos=wx.DefaultPosition, size=(150, -1),style=wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
+		self.slider3.SetRange(0,self.xyz[2] - 1)
+		self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScrollAxis, self.slider3)
+		self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScrollAxis, self.slider3)
+		vbox.Add(self.slider3, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
+		if self.n < 3:
+			self.slider3.Hide()
+			self.canvas3.Hide()
+			self.chkbox_enable3.Hide()
+			self.plotymin3.Hide()
+			self.plotymax3.Hide()
+		self.sliders.append(self.slider1)
+		self.sliders.append(self.slider2)
+		self.sliders.append(self.slider3)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+		self.Fit()
+		self.Layout()
+		self.Show()
+		self.UpdateImage([0,0,0])
+		self.PlotGraph([0,0,0])
+	def OnChkbox1(self, event):
+		if(event.GetEventObject().GetValue() == True):
+			self.plotymax1.Enable()
+			self.plotymin1.Enable()
+		else:
+			self.plotymax1.Disable()
+			self.plotymin1.Disable()
+	def OnChkbox2(self, event):
+		if(event.GetEventObject().GetValue() == True):
+			self.plotymax2.Enable()
+			self.plotymin2.Enable()
+		else:
+			self.plotymax2.Disable()
+			self.plotymin2.Disable()
+	def OnChkbox3(self, event):
+		if(event.GetEventObject().GetValue() == True):
+			self.plotymax3.Enable()
+			self.plotymin3.Enable()
+		else:
+			self.plotymax3.Disable()
+			self.plotymin3.Disable()
+	def OnScrollAxis(self, event):
+		pos1 = self.slider1.GetValue()
+		pos2 = self.slider2.GetValue()
+		pos3 = self.slider3.GetValue()
+		self.RefreshImage([pos1,pos2,pos3])
+		self.PlotGraph([pos1,pos2,pos3])
+	def PlotGraph(self,poss):
+		pos1 = poss[0]
+		pos2 = poss[1]
+		pos3 = poss[2]
+		yarr = []
+		xarr = []
+		knames = []
+		cwd = os.getcwd()
+		if self.n == 3:
+			try:
+				yarr.append(self.imgarraysum[:,pos2,pos3])
+				yarr.append(self.imgarraysum[pos1,:,pos3])
+				yarr.append(self.imgarraysum[pos1,pos2,:])
+				xwhole = self.parent.plotcache[self.parent.fnamesidx]
+				xarr.append(xwhole[0][:,pos2,pos3])
+				xarr.append(xwhole[1][pos1,:,pos3])
+				xarr.append(xwhole[2][pos1,pos2,:])
+				knames.append(self.parent.xkeys[0])
+				knames.append(self.parent.xkeys[1])
+				knames.append(self.parent.xkeys[2])
+			except:
+				return
+		elif self.n == 2:
+			try:
+				yarr.append(self.imgarraysum[:,pos2])
+				yarr.append(self.imgarraysum[pos1,:])
+				xwhole = self.parent.plotcache[self.parent.fnamesidx]
+				xarr.append(xwhole[0][:,pos2])
+				xarr.append(xwhole[1][pos1,:])
+				knames.append(self.parent.xkeys[0])
+				knames.append(self.parent.xkeys[1])
+			except:
+				return
+		elif self.n == 1:
+			try:
+				yarr.append(self.imgarraysum[:])
+				xwhole = self.parent.plotcache[self.parent.fnamesidx]
+				xarr.append(xwhole[0])
+				knames.append(self.parent.xkeys[0])
+			except:
+				return
+		else:
+			return
+		for i in range(self.n):
+			c = ['cyan','green','blue']
+			x = xarr[i]
+			y = yarr[i]
+			n = len(x)
+			graphdata = numpy.vstack((x,y)).T
+			mdata1 = graphdata[0:poss[i],:]
+			mdata2 = graphdata[(poss[i]+1)%n:,:]
+			mdatapoint = graphdata[poss[i],:]
+			marker1 = PolyMarker(mdata1, marker='circle', colour='blue', size=2)
+			marker2 = PolyMarker(mdata2, marker='circle', colour='blue', size=2)
+			markerp = PolyMarker(mdatapoint, marker='circle', colour='red', size=4)
+			line = PolyLine(graphdata, colour=c[i], width=2.5)
+			graphic = PlotGraphics([line,marker1,marker2,markerp],"", knames[i], "Amplitude")
+			if self.chkbox_enables[i].GetValue():
+				try:
+					ymax = float(self.plotymaxs[i].value.GetValue())
+					ymin = float(self.plotymins[i].value.GetValue())
+				except:
+					ymax = 1.0
+					ymin = 0.0
+			else:
+				ymax = y.max()
+				ymin = y.min()
+				self.plotymaxs[i].value.SetValue("%g"%ymax)
+				self.plotymins[i].value.SetValue("%g"%ymin)
+			self.canvass[i].Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(ymin, ymax))
+	def GetImageData(self, poss):
+		pos1 = poss[0]
+		pos2 = poss[1]
+		pos3 = poss[2]
+		idx = pos3+(self.xyz[2])*(pos2+(self.xyz[1])*pos1)
+		if self.n == 3:
+			path = self.imgarraypath[pos1,pos2,pos3]
+		elif self.n == 2:
+			path = self.imgarraypath[pos1,pos2]
+		elif self.n == 1:
+			path = self.imgarraypath[pos1]
+		else:
+			return
+		cwd = os.getcwd()
+		try:
+			shortpath = '/'.join([cwd,path])
+			imageraw = self.parent.LoadImage(shortpath)
+		except:
+			shortpath = '/'.join(path.split('/')[-2::1])
+			shortpath = '/'.join([cwd,shortpath])
+			imageraw = self.parent.LoadImage(shortpath)
+		return imageraw
+	def RefreshImage(self, poss):
+		imageraw = self.GetImageData(poss)
+		self.parent.panelvisual.flat_data[:] = (numpy.abs(imageraw)).transpose(2,1,0).flatten();
+		self.parent.panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(self.parent.panelvisual.flat_data)
+		points = self.parent.panelvisual.image_amp_real.GetPointData()
+		points.SetScalars(self.parent.panelvisual.vtk_data_array)
+		self.parent.panelvisual.image_amp_real.Modified()
+		if self.parent.panelvisual.lut_amp_real.GetScale() != 0:
+			old_range = self.parent.panelvisual.lut_amp_real.GetTableRange()
+			data_range = self.parent.panelvisual.image_amp_real.GetPointData().GetScalars().GetRange()
+			self.parent.panelvisual.lut_amp_real.SetTableRange([old_range[0],data_range[1]])
+		else:
+			self.parent.panelvisual.lut_amp_real.SetTableRange(self.parent.panelvisual.image_amp_real.GetPointData().GetScalars().GetRange())
+		self.parent.panelvisual.lut_amp_real.Build()
+		self.parent.panelvisual.RefreshSceneFull()
+		self.parent.panelvisual.Layout()
+		self.parent.panelvisual.Show()
+	def UpdateImage(self, poss):
+		try:
+			imageraw = self.GetImageData(poss)
+		except:
+			self.ancestor.GetPage(0).queue_info.put("Could not load image from path")
+		imageraw = self.GetImageData(poss)
+		self.parent.SaveImage(imageraw)
+		self.parent.ViewImage()
+	def OnSize(self, event):
+		self.Layout()
+		self.Refresh()
+	def OnExit(self,event):
+		self.panelphase.Enable(True)
+		self.Destroy()
 class SubPanel_PyScript(wx.Panel):
 	treeitem = {'name':  'Python Script' , 'type': 'operpre'}
 	def sequence(self, selff, pipelineitem):
@@ -450,7 +1221,6 @@ class SubPanel_HDF_to_Numpy(wx.Panel):
 		self.SetSizer( vbox )
 	def OnBrowse(self, event):
 		try:
-			import h5py
 			self.file = h5py.File(self.input_filename.objectpath.GetValue(),'r')
 		except:
 			title = "Sequence " + self.treeitem['name']
@@ -792,6 +1562,7 @@ class KeyDialog(wx.Dialog):
 			object = self.file
 			for key in hdfpath:
 				object = object.get(key)
+			#object = object[()]
 			self.object = object
 			self.info.Clear()
 			self.info.AppendText("Data type: "+str(object.dtype.name)+" ,    Byte order: "+str(object.dtype.byteorder)+os.linesep)
@@ -800,6 +1571,11 @@ class KeyDialog(wx.Dialog):
 				self.dataview.Clear()
 				if str(object.dtype.name).startswith('string'):
 					self.dataview.AppendText(str(numpy.char.mod('%s',object)))
+				if str(object.dtype.name).startswith('object'):
+					try:
+						self.dataview.AppendText(str(numpy.char.mod('%s',object[()])))
+					except:
+						pass
 				elif str(object.dtype.name).startswith('uint') or str(object.dtype.name).startswith('int'):
 					self.dataview.AppendText(str(numpy.char.mod('%d',object)))
 				elif str(object.dtype.name).startswith('float'):

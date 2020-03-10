@@ -19,10 +19,10 @@
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
 __author__ = "Marcus C. Newton"
-__copyright__ = "Copyright 2011-2019 Marcus C. Newton"
+__copyright__ = "Copyright 2011-2020 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 __maintainer__ = "Marcus C. Newton"
 __email__ = "Bonsu.Devel@gmail.com"
 __status__ = "Production"

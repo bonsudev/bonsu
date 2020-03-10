@@ -87,7 +87,9 @@ void ER
 	int32_t update_count_recip = 0;
 
 	CopyArray(seqdata, rho_m1, nn); 
+	Py_BLOCK_THREADS;
 	FFTPlan( &torecip, &toreal, seqdata, nn, ndim );
+	Py_UNBLOCK_THREADS;
 	CopyArray(rho_m1, seqdata, nn); 
 
 	SumOfSquares( expdata, nn, &sos );
@@ -111,7 +113,7 @@ void ER
 		}
 		else
 		{
-			update_count_recip ++;
+			update_count_recip += 1;
 		}
 		CalculateResiduals(seqdata, expdata, nn, &res);
 		SetAmplitudes(seqdata, expdata, nn);
@@ -136,7 +138,7 @@ void ER
 		}
 		else
 		{
-			update_count_real ++;
+			update_count_real += 1;
 		}
 		
 		Py_BLOCK_THREADS;
