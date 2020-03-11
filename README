@@ -144,7 +144,6 @@ FFTW with threading >= 3.0
 NumPy (FFTW aware) >= 1.4.1
 VTK (with python bindings) >= 5.4.2
 h5py
-imageio
 A C++ compiler such as gcc
 
 - To instal the package, type:

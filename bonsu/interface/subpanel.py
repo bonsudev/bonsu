@@ -475,6 +475,10 @@ class LoadNexusPlotDialog(wx.Dialog):
 		self.ancestor = parent.ancestor
 		self.panelphase = self.ancestor.GetPage(0)
 		self.panelphase.Enable(False)
+		self.panelvisual = self.ancestor.GetPage(1)
+		self.panelvisual.button_start.Enable(False)
+		self.panelvisual.button_pause.Enable(False)
+		self.panelvisual.button_stop.Enable(False)
 		self.Bind(wx.EVT_SIZE, self.OnSize)
 		self.Bind(wx.EVT_CLOSE, self.OnExit)
 		self.imgarraypath = imgarraypath
@@ -795,6 +799,9 @@ class LoadNexusPlotDialog(wx.Dialog):
 		self.Refresh()
 	def OnExit(self,event):
 		self.panelphase.Enable(True)
+		self.panelvisual.button_start.Enable(True)
+		self.panelvisual.button_pause.Enable(True)
+		self.panelvisual.button_stop.Enable(True)
 		self.Destroy()
 class SubPanel_PyScript(wx.Panel):
 	treeitem = {'name':  'Python Script' , 'type': 'operpre'}
