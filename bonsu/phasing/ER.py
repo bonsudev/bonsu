@@ -26,8 +26,8 @@ class ER(PhaseAbstract):
 	"""
 	Error Reduction (ER) algorithm.
 	"""
-	def __init__(self):
-		PhaseAbstract.__init__(self)
+	def __init__(self, parent=None):
+		PhaseAbstract.__init__(self, parent)
 		from ..lib.prfftw import er
 		self.algorithm = er
 	def Algorithm(self):
@@ -47,8 +47,8 @@ class ERMask(PhaseAbstract):
 	"""
 	Error Reduction (ER) algorithm with the addition of a Fourier space constraint mask.
 	"""
-	def __init__(self):
-		PhaseAbstract.__init__(self)
+	def __init__(self, parent=None):
+		PhaseAbstract.__init__(self, parent)
 		from ..lib.prfftw import ermask
 		self.algorithm = ermask
 		self.numiter_relax = 0
@@ -69,8 +69,8 @@ class POER(PhaseAbstract):
 	"""
 	Phase Only Error Reduction (POER) algorithm with the addition of a Fourier space constraint mask.
 	"""
-	def __init__(self):
-		PhaseAbstract.__init__(self)
+	def __init__(self, parent=None):
+		PhaseAbstract.__init__(self, parent)
 		from ..lib.prfftw import poermask
 		self.algorithm = poermask
 	def Algorithm(self):
@@ -82,18 +82,21 @@ class ERMaskPC(PhaseAbstractPC):
 	"""
 	ER Mask with Partial Coherence Optimisation algorithm.
 	"""
-	def __init__(self):
-		PhaseAbstractPC.__init__(self)
+	def __init__(self, parent=None):
+		PhaseAbstractPC.__init__(self, parent)
 		from ..lib.prfftw import ermaskpc
 		self.algorithm = ermaskpc
 	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self. mask,\
-					self.gammaHWHM,self.reset_gamma,self.niterrl,self.niterrlpre,\
-					self.niterrlinterval,self.ze[0],self.ze[1],self.ze[2],\
-					self.startiter,self.numiter,self.ndim,self.rho_m1,\
-					self.psf,self.nn,self.residual,self.residualRL,self.citer_flow,\
-					self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-					self.updatereal,self.updaterecip,self.updatelog,self.updatelog2,self.accel)
+		SeqArrayObjects = [self.seqdata,self.expdata,self.support,self.mask,self.psf,\
+									self.rho_m1,self.pca_inten,self.pca_rho_m1_ft,self.pca_Idm_iter,\
+									self.pca_Idmdiv_iter,self.pca_IdmdivId_iter,self.tmpdata1,self.tmpdata2,\
+									self.nn,self.ndim, self.nn2,self.startiter,self.numiter,self.citer_flow]
+		SeqObjects = [self.residual,self.residualRL,\
+								self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
+								self.updatereal,self.updaterecip, self.updatelog, self.updatelog2,\
+								self.gammaHWHM, self.reset_gamma, self.niterrl, self.niterrlpre, self.niterrlinterval, self.ze[0], self.ze[1], self.ze[2],\
+								self.accel]
+		self.algorithm(SeqObjects,SeqArrayObjects)
 class SWERMaskPC(ERMaskPC,ShrinkWrap):
 	"""
 	ER Mask with Partial Coherence Optimisation algorithm.

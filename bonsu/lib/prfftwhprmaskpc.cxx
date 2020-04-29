@@ -29,40 +29,51 @@
 
 void HPRMaskPC
 (
-	double* seqdata,
-	double* expdata,
-	double* support,
-	double* mask,
-	double gammaHWHM, 
-	int gammaRS,
-	int numiterRL,
-	int startiterRL,
-	int waititerRL,
-	int zex,
-	int zey,
-	int zez,
-	double beta,
-	int startiter,
-	int numiter,
-	int ndim,
-	double* rho_m1,
-	double* pca_gamma_ft,
-	int32_t* nn,
-	double* residual,
-	double* residualRL,
-	int32_t* citer_flow,
-	double* visual_amp_real,
-	double* visual_phase_real,
-	double* visual_amp_recip,
-	double* visual_phase_recip,
-	PyObject* updatereal,
-	PyObject* updaterecip,
-	PyObject* updatelog,
-	PyObject* updatelog2,
-	int accel
+	SeqObjects* seqobs,
+	SeqArrayObjects* seqarrays
 )
 {
 	Py_BEGIN_ALLOW_THREADS;
+	
+	double* seqdata = seqarrays->seqdata;
+	double* expdata = seqarrays->expdata;
+	double* support = seqarrays->support;
+	double* mask = seqarrays->mask;
+	double* rho_m1 = seqarrays->rho_m1;
+	double* pca_inten = seqarrays->pca_inten;
+    double* pca_rho_m1_ft = seqarrays->pca_rho_m1_ft;
+    double* pca_Idm_iter = seqarrays->pca_Idm_iter;
+    double* pca_Idmdiv_iter = seqarrays->pca_Idmdiv_iter;
+    double* pca_IdmdivId_iter = seqarrays->pca_IdmdivId_iter;
+	double* tmpdata1 = seqarrays->tmparray1;
+	double* tmpdata2 = seqarrays->tmparray2;
+	double* pca_gamma_ft = seqarrays->pca_gamma_ft;
+	int ndim = seqarrays->ndim;
+	int32_t* nn = seqarrays->nn;
+	int32_t* nn2 = seqarrays->nn2;
+	double gammaHWHM = seqobs->gammaHWHM;
+	int gammaRS = seqobs->gammaRS;
+	int numiterRL = seqobs->numiterRL;
+	int startiterRL = seqobs->startiterRL;
+	int waititerRL = seqobs->waititerRL;
+	int zex = seqobs->zex;
+	int zey = seqobs->zey;
+	int zez = seqobs->zez;
+	double beta = seqobs->beta;
+	int startiter = seqobs->startiter;
+	int numiter = seqobs->numiter;
+	double* residual = seqobs->residual;
+	double* residualRL = seqobs->residualRL;
+	int32_t* citer_flow = seqobs->citer_flow;
+	double* visual_amp_real = seqobs->visual_amp_real;
+	double* visual_phase_real = seqobs->visual_phase_real ;
+	double* visual_amp_recip = seqobs->visual_amp_recip;
+	double* visual_phase_recip = seqobs->visual_phase_recip;
+	PyObject* updatereal = seqobs->updatereal;
+	PyObject* updaterecip = seqobs->updaterecip;
+	PyObject* updatelog = seqobs->updatelog;
+	PyObject* updatelog2 = seqobs->updatelog2;
+	int accel = seqobs->accel;
 
 	fftw_init_threads();
 	fftw_plan_with_nthreads(citer_flow[7]);
@@ -81,39 +92,13 @@ void HPRMaskPC
 	int32_t gamma_count = (int32_t) waititerRL +1;
 	double itnsty_sum = 0.0;
 	
-	
 	int len = ((int) nn[0]) * ((int) nn[1]) * ((int) nn[2]);
-	double* pca_inten = (double*) fftw_malloc( 2*len * sizeof(double));
-	
-	double* pca_rho_m1_ft = (double*) fftw_malloc( 2*len * sizeof(double));
 	
 	
 	wrap_array(pca_gamma_ft, nn, 1);
 	double gamma_sum;
 	SumArray(pca_gamma_ft, nn, &gamma_sum);
 	ScaleArray(pca_gamma_ft, nn, (1.0/gamma_sum));
-
-	if (!pca_inten || !pca_rho_m1_ft)
-	{
-		fftw_free(pca_inten);
-		fftw_free(pca_rho_m1_ft);
-		return;
-	}
-	
-	
-	
-	double* pca_Idm_iter = (double*) fftw_malloc( 2*len * sizeof(double));
-	double* pca_Idmdiv_iter = (double*) fftw_malloc( 2*len * sizeof(double));
-	double* pca_IdmdivId_iter = (double*) fftw_malloc( 2*len * sizeof(double));
-	if (!pca_Idm_iter || !pca_Idmdiv_iter || !pca_IdmdivId_iter)
-	{
-		fftw_free(pca_inten);
-		fftw_free(pca_rho_m1_ft);
-		fftw_free(pca_Idm_iter);
-		fftw_free(pca_Idmdiv_iter);
-		fftw_free(pca_IdmdivId_iter);
-		return;
-	}
 	
 	int32_t nnh[3] = {(nn[0] - zex), (nn[1] - zey), (nn[2] - zez)};
 	if( nnh[0] < 1)
@@ -132,36 +117,7 @@ void HPRMaskPC
 	
 	fftw_plan torecip_tmp;
 	fftw_plan toreal_tmp;
-	int32_t nn2[3] = {0, 0, 0};
-	nn2[0] = nn[0] + 2*(nn[0]/2);
-	nn2[1] = nn[1] + 2*(nn[1]/2);
-	nn2[2] = nn[2] + 2*(nn[2]/2);
-	if( nn[0] == 1)
-	{
-		nn2[0] = nn[0];
-	}
-	if( nn[1] == 1)
-	{
-		nn2[1] = nn[1];
-	}
-	if( nn[2] == 1)
-	{
-		nn2[2] = nn[2];
-	}
-	int len2 = ((int) nn2[0]) * ((int) nn2[1]) * ((int) nn2[2]);
-	double* tmpdata1 = (double*) fftw_malloc( 2*len2 * sizeof(double));
-	double* tmpdata2 = (double*) fftw_malloc( 2*len2 * sizeof(double));
-	if (!tmpdata1 || !tmpdata2)
-	{
-		fftw_free(pca_inten);
-		fftw_free(pca_rho_m1_ft);
-		fftw_free(pca_Idm_iter);
-		fftw_free(pca_Idmdiv_iter);
-		fftw_free(pca_IdmdivId_iter);
-		fftw_free(tmpdata1);
-		fftw_free(tmpdata2);
-		return;
-	}
+	
 	Py_BLOCK_THREADS;
 	FFTPlan( &torecip_tmp, &toreal_tmp, tmpdata1, nn2, ndim );
 	Py_UNBLOCK_THREADS;
@@ -320,15 +276,6 @@ void HPRMaskPC
 	
 	
 	wrap_array(pca_gamma_ft, nn, -1);
-	
-	fftw_free(tmpdata1);
-	fftw_free(tmpdata2);
-	fftw_free(pca_inten);
-	fftw_free(pca_rho_m1_ft);
-	
-	fftw_free(pca_Idm_iter);
-	fftw_free(pca_Idmdiv_iter);
-	fftw_free(pca_IdmdivId_iter);
 	
 	fftw_destroy_plan( torecip_tmp );
 	fftw_destroy_plan( toreal_tmp );

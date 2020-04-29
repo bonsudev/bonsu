@@ -26,40 +26,13 @@ from .wrap import WrapArray
 from .loadarray import NewArray
 def POER\
 	(
-		self,
+		parent,
 		startiter,
 		numiter
 	):
-	def updatereal():
-		wx.CallAfter(self.ancestor.GetPage(1).UpdateReal,)
-	def updaterecip():
-		wx.CallAfter(self.ancestor.GetPage(1).UpdateRecip,)
-	def updatelog():
-		try:
-			n = self.citer_flow[0]
-			res = self.ancestor.GetPage(0).residual[n]
-			string = "Iteration: %06d, Residual: %1.9f" %(n,res)
-			self.ancestor.GetPage(0).queue_info.put(string)
-		except:
-			pass
-	seqdata = self.seqdata
-	expdata = self.expdata
-	support = self.support
-	mask = self.mask
-	residual = self.residual
-	citer_flow = self.citer_flow
-	visual_amp_real = self.visual_amp_real
-	visual_amp_recip = self.visual_amp_recip
-	visual_phase_real = self.visual_phase_real
-	visual_phase_recip = self.visual_phase_recip
-	try:
-		rho_m1 = NewArray(self, *seqdata.shape)
-	except:
-		return
-	nn=numpy.asarray( seqdata.shape, numpy.int32 )
-	ndim=int(seqdata.ndim)
-	from ..lib.prfftw import poermask
-	poermask(seqdata,expdata,support, mask,\
-	startiter,numiter,ndim,rho_m1,nn,residual,citer_flow,\
-	visual_amp_real,visual_phase_real,visual_amp_recip,visual_phase_recip,\
-	updatereal,updaterecip, updatelog)
+	from bonsu.phasing.ER import POER
+	er = POER(parent)
+	er.SetStartiter(startiter)
+	er.SetNumiter(numiter)
+	er.Prepare()
+	er.Start()

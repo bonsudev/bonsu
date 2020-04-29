@@ -28,6 +28,13 @@ MIN_INT = -2**31
 MAX_INT_16 = 2**15 - 1
 MIN_INT_16 = -2**15
 CNTR_CLIP = 0.999
+FFTW_ESTIMATE = 1 << 6
+FFTW_MEASURE = 0
+FFTW_PATIENT = 1 << 5
+FFTW_EXHAUSTIVE = 1 << 3
+FFTW_TORECIP = 1
+FFTW_TOREAL = -1
+FFTW_PSLEEP = 0.1
 #----------------------------------------------------------------------
 maincollapse = PyEmbeddedImage(
     "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAAAmJLR0QA/4ePzL8AAAAJcEhZ"
@@ -912,7 +919,6 @@ class CustomAboutDialog(wx.Dialog):
 		self.SetAutoLayout(True)
 		self.Fit()
 		self.Layout()
-		self.Show()
 	def OnCredits(self, event):
 		msg = ""
 		for name in self.parent.version_str_list:
@@ -932,4 +938,7 @@ class CustomAboutDialog(wx.Dialog):
 		result = dlg.ShowModal()
 		dlg.Destroy()
 	def OnClose(self, event):
-		self.Destroy()
+		if self.IsModal():
+			self.EndModal(event.EventObject.Id)
+		else:
+			self.Close()

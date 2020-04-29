@@ -26,11 +26,15 @@ class HPR(PhaseAbstract):
 	"""
 	Hybrid Projection Reflection (HPR) algorithm.
 	"""
-	def __init__(self):
-		PhaseAbstract.__init__(self)
+	def __init__(self, parent=None):
+		PhaseAbstract.__init__(self, parent)
 		from ..lib.prfftw import hpr
 		self.algorithm = hpr
 		self.numiter_relax = 0
+	def SetNumiterRelax(self,numiter_relax):
+		self.numiter_relax = numiter_relax
+	def GetNumiterRelax(self):
+		return self.numiter_relax
 	def Algorithm(self):
 		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,\
 		self.beta,self.startiter,self.numiter,self.ndim,self.rho_m1,self.nn,self.residual,self.citer_flow,\
@@ -48,18 +52,21 @@ class HPRPC(PhaseAbstractPC):
 	"""
 	HPR Mask with Partial Coherence Optimisation algorithm.
 	"""
-	def __init__(self):
-		PhaseAbstractPC.__init__(self)
+	def __init__(self, parent=None):
+		PhaseAbstractPC.__init__(self, parent)
 		from ..lib.prfftw import hprmaskpc
 		self.algorithm = hprmaskpc
 	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self. mask,\
-					self.gammaHWHM,self.reset_gamma,self.niterrl,self.niterrlpre,\
-					self.niterrlinterval,self.ze[0],self.ze[1],self.ze[2],\
-					self.beta,self.startiter,self.numiter,self.ndim,self.rho_m1,\
-					self.psf,self.nn,self.residual,self.residualRL,self.citer_flow,\
-					self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-					self.updatereal,self.updaterecip,self.updatelog,self.updatelog2,self.accel)
+		SeqArrayObjects = [self.seqdata,self.expdata,self.support,self.mask,self.psf,\
+									self.rho_m1,self.pca_inten,self.pca_rho_m1_ft,self.pca_Idm_iter,\
+									self.pca_Idmdiv_iter,self.pca_IdmdivId_iter,self.tmpdata1,self.tmpdata2,\
+									self.nn,self.ndim, self.nn2,self.startiter,self.numiter,self.citer_flow]
+		SeqObjects = [self.residual,self.residualRL,\
+								self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
+								self.updatereal,self.updaterecip, self.updatelog, self.updatelog2,\
+								self.gammaHWHM, self.reset_gamma, self.niterrl, self.niterrlpre, self.niterrlinterval, self.ze[0], self.ze[1], self.ze[2],\
+								self.beta,self.accel]
+		self.algorithm(SeqObjects,SeqArrayObjects)
 class SWHPRPC(HPRPC,ShrinkWrap):
 	"""
 	HPR Mask with Partial Coherence Optimisation algorithm.

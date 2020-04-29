@@ -58,6 +58,7 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args);
 PyObject* prfftw_ermaskpc(PyObject *self, PyObject *args);
 PyObject* prfftw_hprmaskpc(PyObject *self, PyObject *args);
 PyObject* prfftw_raarmaskpc(PyObject *self, PyObject *args);
+PyObject* prfftw_so2d(PyObject *self, PyObject *args);
 
 PyObject* prfftw_fft(PyObject *self, PyObject *args);
 PyObject* prfftw_threshold(PyObject *self, PyObject *args);
@@ -74,6 +75,7 @@ PyObject* prfftw_conj_reflect(PyObject *self, PyObject *args);
 typedef struct _SeqObjects
 {
 	double* residual;
+	double* residualRL;
 	int32_t* citer_flow;
 	double* visual_amp_real;
 	double* visual_phase_real;
@@ -82,6 +84,7 @@ typedef struct _SeqObjects
 	PyObject* updatereal;
 	PyObject* updaterecip;
 	PyObject* updatelog;
+	PyObject* updatelog2;
 	int startiter;
 	int numiter;
 	int maxiter;
@@ -89,6 +92,15 @@ typedef struct _SeqObjects
 	double beta;
 	double gamma;
 	double delta;
+	double gammaHWHM;
+	int gammaRS;
+	int numiterRL;
+	int startiterRL;
+	int waititerRL;
+	int zex;
+	int zey;
+	int zez;
+	int accel;
 } SeqObjects;
 
 typedef struct _SeqArrayObjects
@@ -97,6 +109,7 @@ typedef struct _SeqArrayObjects
 	int ndim;
 	npy_intp *dims;
     int32_t nn[3];
+    int32_t nn2[3];
 	int32_t* citer_flow;
 	int startiter;
 	int numiter;
@@ -104,14 +117,29 @@ typedef struct _SeqArrayObjects
     double* expdata;
     double* support;
     double* mask;
+    double* pca_gamma_ft;
     double* rho_m1;
     double* rho_m2;
     double* epsilon;
+    double* pca_inten;
+    double* pca_rho_m1_ft;
+    double* pca_Idm_iter;
+    double* pca_Idmdiv_iter;
+    double* pca_IdmdivId_iter;
     double* tmparray1;
     double* tmparray2;
     double* tmparray3;
     double* tmparray4;
 } SeqArrayObjects;
+
+
+typedef struct _FFTWPlan
+{
+    fftw_plan torecip;
+	fftw_plan toreal;
+	int nthreads;
+	unsigned int planflag;
+} FFTWPlan;
 
 
 void conj_reflect(double* data, int32_t* nn);
@@ -202,33 +230,33 @@ void CSHIO(double* seqdata,	double* expdata, double* support, double* mask,
 						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
 						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog);
 						
-void HIOMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
-						double gammaHWHM, int gammaRS, int numiterRL, int startiterRL, int waititerRL, int zex, int zey, int zez,
-						double beta, int startiter, int numiter, int ndim,
-						double* rho_m1, double* pca_gamma_ft, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
-						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2, int accel);
+void HIOMaskPC(SeqObjects* seqobs, SeqArrayObjects* seqarrays);
 
-void ERMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
-						double gammaHWHM, int gammaRS, int numiterRL, int startiterRL, int waititerRL, int zex, int zey, int zez,
-						int startiter, int numiter, int ndim,
-						double* rho_m1, double* pca_gamma_ft, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
-						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2, int accel);
+void ERMaskPC(SeqObjects* seqobs, SeqArrayObjects* seqarrays);
 
-void HPRMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
-						double gammaHWHM, int gammaRS, int numiterRL, int startiterRL, int waititerRL, int zex, int zey, int zez,
-						double beta, int startiter, int numiter, int ndim,
-						double* rho_m1, double* pca_gamma_ft, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
-						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2, int accel);
+void HPRMaskPC(SeqObjects* seqobs, SeqArrayObjects* seqarrays);
 
-void RAARMaskPC(double* seqdata,	double* expdata, double* support, double* mask,
-						double gammaHWHM, int gammaRS, int numiterRL, int startiterRL, int waititerRL, int zex, int zey, int zez,
-						double beta, int startiter, int numiter, int ndim,
-						double* rho_m1, double* pca_gamma_ft, int32_t* nn, double* residual, double* residualRL, int32_t* citer_flow,
-						double* visual_amp_real, double* visual_phase_real, double* visual_amp_recip, double* visual_phase_recip,
-						PyObject* updatereal, PyObject* updaterecip, PyObject* updatelog, PyObject* updatelog2, int accel);
+void RAARMaskPC(SeqObjects* seqobs, SeqArrayObjects* seqarrays);
+
+void SO2D(SeqObjects* seqobs, SeqArrayObjects* seqarrays);
+void SupportScaleArray( SeqArrayObjects* seqarrays, double* tau, double Sfactor, double nSfactor);
+void SupportScaleAddArray( SeqArrayObjects* seqarrays, double* tau, double Sfactor, double nSfactor);
+void SOGradStep( SeqArrayObjects* seqarrays);
+void SOMinMaxtau( SeqObjects* seqobs, SeqArrayObjects* seqarrays, double* tau,
+					double* tauav, double H[2][2], double Hav[2][2], double* psi, int algiter, fftw_plan* torecip, fftw_plan* toreal);
+double SOFrobSupport( SeqArrayObjects* seqarrays);
+void SOGradPsi( SeqArrayObjects* seqarrays, double* tau, double* psi, fftw_plan* torecip, fftw_plan* toreal);
+void SOH( SeqArrayObjects* seqarrays, fftw_plan* torecip, fftw_plan* toreal, double H[2][2], double* y, double* dtau, double* steps);
+void SOTrueHi( SeqArrayObjects* seqarrays, double H[2][2], fftw_plan* torecip, fftw_plan* toreal);
+void SOMatVecProd( double H[2][2], double* y, double* dtau);
+double SOVecNorm( double* vec);
+void SOMatInv( double H[2][2] );
+void Hfit( double* taui, double* psii, double* tau, double* dtau, double* psi, double H[2][2], int niter);
+void MaskedSetAmplitudesZero(SeqArrayObjects* seqarrays);
+inline double wLGradS( double rho[2], double rho_m1[2], double rho_m2[2], int idx);
+inline double wLGradnS(	double rho[2], double rho_m1[2], double rho_m2[2], int idx);
+inline double LGradS( double rho[2], double rho_m1[2], int idx);
+inline double LGradnS(	double rho[2], double rho_m1[2], int idx);
 
 
 void MaskedSetPCAmplitudes( double* seqdata, double* expdata, double* itnsty, double* mask, int32_t* nn );

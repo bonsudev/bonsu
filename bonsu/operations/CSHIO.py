@@ -26,7 +26,7 @@ from .wrap import WrapArray
 from .loadarray import NewArray
 def CSHIO\
 	(
-		self,
+		parent,
 		beta,
 		startiter,
 		numiter,
@@ -37,43 +37,16 @@ def CSHIO\
 		cs_eta,
 		relax
 	):
-	def updatereal():
-		wx.CallAfter(self.ancestor.GetPage(1).UpdateReal,)
-	def updaterecip():
-		wx.CallAfter(self.ancestor.GetPage(1).UpdateRecip,)
-	def updatelog():
-		try:
-			n = self.citer_flow[0]
-			res = self.ancestor.GetPage(0).residual[n]
-			string = "Iteration: %06d, Residual: %1.9f, Epsilon: %1.6e" %(n,res,epsilon[0])
-			self.ancestor.GetPage(0).queue_info.put(string)
-		except:
-			pass
-	seqdata = self.seqdata
-	expdata = self.expdata
-	support = self.support
-	mask = self.mask
-	residual = self.residual
-	citer_flow = self.citer_flow
-	visual_amp_real = self.visual_amp_real
-	visual_amp_recip = self.visual_amp_recip
-	visual_phase_real = self.visual_phase_real
-	visual_phase_recip = self.visual_phase_recip
-	try:
-		rho_m1 = NewArray(self, *seqdata.shape)
-		rho_m2 = NewArray(self, *seqdata.shape)
-		elp = NewArray(self, *seqdata.shape)
-	except:
-		return
-	epsilon = numpy.zeros((2),dtype=numpy.double)
-	epsilon[0] = cs_epsilon
-	epsilon[1] = cs_epsilon_min
-	nn=numpy.asarray( seqdata.shape, numpy.int32 )
-	ndim=int(seqdata.ndim)
-	from ..lib.prfftw import cshio
-	cshio(seqdata,expdata,support, mask,\
-	beta,startiter,numiter,ndim,\
-	cs_p,epsilon,cs_d,cs_eta,relax,\
-	rho_m1,rho_m2,elp,nn,residual,citer_flow,\
-	visual_amp_real,visual_phase_real,visual_amp_recip,visual_phase_recip,\
-	updatereal,updaterecip, updatelog)
+	from bonsu.phasing.CSHIO import CSHIO
+	cshio = CSHIO(parent)
+	cshio.SetStartiter(startiter)
+	cshio.SetNumiter(numiter)
+	cshio.SetBeta(beta)
+	cshio.SetPnorm(cs_p)
+	cshio.SetEpsilon(cs_epsilon)
+	cshio.SetEpsilonmin(cs_epsilon_min)
+	cshio.SetDivisor(cs_d)
+	cshio.SetEta(cs_eta)
+	cshio.SetRelax(relax)
+	cshio.Prepare()
+	cshio.Start()

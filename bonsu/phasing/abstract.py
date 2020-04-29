@@ -19,31 +19,106 @@
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
 import numpy
+import wx
+from math import sqrt
+from time import sleep
+from ..operations.loadarray import NewArray
+from ..lib.prfftw import fftw_create_plan
+from ..lib.prfftw import fftw_destroy_plan
+from ..lib.prfftw import fftw_stride
+from ..interface.common import FFTW_ESTIMATE, FFTW_MEASURE
+from ..interface.common import FFTW_PATIENT, FFTW_EXHAUSTIVE
+from ..interface.common import FFTW_TORECIP, FFTW_TOREAL, FFTW_PSLEEP
 class PhaseAbstract():
 	"""
 	Phasing Base Class
 	"""
-	def __init__(self):
+	def __init__(self, parent=None):
+		self.parent = parent
 		self.seqdata = None
 		self.expdata = None
 		self.support = None
 		self.mask = None
 		self.rho_m1 = None
+		self.rho_m2 = None
 		self.beta = 0.9
 		self.startiter = 0
 		self.numiter = 0
 		self.nthreads = 1
-		self.citer_flow = numpy.zeros((20), dtype=numpy.int32)
-		self.residual = None
-		self.visual_amp_real = numpy.zeros((1), dtype=numpy.double)
-		self.visual_amp_recip = numpy.zeros((1), dtype=numpy.double)
-		self.visual_phase_real = numpy.zeros((1), dtype=numpy.double)
-		self.visual_phase_recip = numpy.zeros((1), dtype=numpy.double)
+		if self.parent != None:
+			self.seqdata = parent.seqdata
+			self.expdata = parent.expdata
+			self.support = parent.support
+			self.mask = parent.mask
+			self.citer_flow = parent.citer_flow
+			self.residual = parent.residual
+			self.visual_amp_real = parent.visual_amp_real
+			self.visual_amp_recip = parent.visual_amp_recip
+			self.visual_phase_real = parent.visual_phase_real
+			self.visual_phase_recip = parent.visual_phase_recip
+			self.updatereal = self._updatereala
+			self.updaterecip = self._updaterecipa
+			self.updatelog = self._updateloga
+			self.nthreads = parent.citer_flow[7]
+		else:
+			self.citer_flow = numpy.zeros((20), dtype=numpy.int32)
+			self.residual = None
+			self.visual_amp_real = numpy.zeros((1), dtype=numpy.double)
+			self.visual_amp_recip = numpy.zeros((1), dtype=numpy.double)
+			self.visual_phase_real = numpy.zeros((1), dtype=numpy.double)
+			self.visual_phase_recip = numpy.zeros((1), dtype=numpy.double)
+			self.updatereal = self._updaterealb
+			self.updaterecip = self._updaterecipb
+			self.updatelog = self._updatelogb
+		self.update_count_real = 0
+		self.update_count_recip = 0
+		self.sos = 0.0
+		self.res = 0.0
 		self.algorithm = None
+		self.plan = None
 	def Algorithm(self):
 		pass
+	def DoIter(self):
+		while self.citer_flow[1] == 1:
+			sleep(FFTW_PSLEEP);
+		self.rho_m1[:] = self.seqdata[:]
+		fftw_stride(self.seqdata,self.seqdata,self.plan,FFTW_TORECIP,1)
+		if self.citer_flow[5] > 0 and self.update_count_recip == self.citer_flow[5]:
+			self.visual_amp_recip[:] = numpy.absolute(self.seqdata)
+			if self.citer_flow[6] > 0:  self.visual_phase_recip[:] = numpy.angle(self.seqdata);
+			self.update_count_recip = 0
+			self.updaterecip()
+		else:
+			self.update_count_recip += 1
+		self.SetRes()
+		self.SetAmplitudes()
+		fftw_stride(self.seqdata,self.seqdata,self.plan,FFTW_TOREAL,1)
+		n = self.citer_flow[0]
+		self.residual[n] = self.res/self.sos
+		amp = numpy.absolute(self.seqdata)
+		sos1 = numpy.sum(amp*amp)
+		self.RSCons()
+		amp = numpy.absolute(self.seqdata)
+		sos2 = numpy.sum(amp*amp)
+		norm = sqrt(sos1/sos2)
+		self.seqdata[:] = norm*self.seqdata[:]
+		if self.citer_flow[3] > 0 and self.update_count_real == self.citer_flow[3]:
+			self.visual_amp_real[:] = numpy.absolute(self.seqdata)
+			if self.citer_flow[6] > 0: self.visual_phase_real[:] = numpy.angle(self.seqdata);
+			self.update_count_real = 0
+			self.updatereal()
+		else:
+			self.update_count_real += 1
+		self.updatelog()
+		self.citer_flow[0] += 1
+	def Phase(self):
+		for i in range(self.startiter, self.startiter+self.numiter, 1):
+			if self.citer_flow[1] == 2:
+				self.DestroyPlan()
+				break
+			self.DoIter()
 	def SetResidual(self):
-		self.residual = numpy.zeros(self.numiter, dtype=numpy.double)
+		self.residual = numpy.zeros(self.startiter+self.numiter, dtype=numpy.double)
 	def SetDimensions(self):
 		self.nn = numpy.asarray( self.seqdata.shape, numpy.int32 )
 		self.ndim = int(self.seqdata.ndim)
@@ -51,21 +126,77 @@ class PhaseAbstract():
 		"""
 		Prepare algorithm.
 		"""
-		self.rho_m1 = numpy.empty_like(self.seqdata)
-		self.SetResidual()
+		if self.parent != None:
+			self.rho_m1 = NewArray(self.parent, *self.seqdata.shape)
+		else:
+			self.rho_m1 = numpy.empty_like(self.seqdata)
+			self.SetResidual()
 		self.SetDimensions()
+	def Prepare2(self):
+		"""
+		Prepare algorithm using FFTW python interface.
+		"""
+		self.Prepare()
+		self.SetSOS()
+		if self.plan == None:
+			self.NewPlan()
+	def SetPlan(self, plan):
+		self.plan = plan
+	def NewPlan(self, flag=FFTW_MEASURE):
+		data = self.rho_m1
+		self.plan = fftw_create_plan(data,self.nthreads,FFTW_MEASURE)
+	def GetPlan(self):
+		return self.plan
+	def DestroyPlan(self):
+		fftw_destroy_plan(self.plan)
+	def SetSOS(self):
+		"""
+		Set Sum of Squares.
+		"""
+		amp = numpy.absolute(self.expdata)
+		if isinstance(self.mask, numpy.ndarray):
+			self.sos = numpy.sum(amp*amp*numpy.real(self.mask))
+		else:
+			self.sos = numpy.sum(amp*amp)
+	def GetSOS(self):
+		"""
+		Get Sum of Squares.
+		"""
+		return self.sos
+	def SetRes(self):
+		dif = numpy.absolute(self.seqdata) - numpy.absolute(self.expdata)
+		if isinstance(self.mask, numpy.ndarray):
+			self.res = numpy.sum(dif * dif * numpy.real(self.mask))
+		else:
+			self.res = numpy.sum(dif * dif)
+	def GetRes(self):
+		return self.res
+	def SetAmplitudes(self):
+		amp = numpy.absolute(self.expdata)
+		phase = numpy.angle(self.seqdata)
+		realmask = numpy.real(self.mask)
+		unmask = realmask > 0.0
+		if isinstance(self.mask, numpy.ndarray):
+			self.seqdata[unmask] = amp[unmask]*numpy.cos(phase[unmask]) + 1j*amp[unmask]*numpy.sin(phase[unmask])
+		else:
+			self.seqdata[:] = amp*numpy.cos(phase) + 1j*amp*numpy.sin(phase)
+	def RSCons(self):
+		realsupport = numpy.real(self.support)
+		nosupport = realsupport < 0.5
+		self.seqdata[nosupport] = self.rho_m1[nosupport] - self.seqdata[nosupport] * self.beta
 	def SetStartiter(self,startiter):
 		"""
 		Set the starting iteration number.
 		"""
 		self.startiter = startiter
-		self.citer_flow[0] = self.startiter
+		if self.parent == None:
+			self.citer_flow[0] = self.startiter
 	def SetNumiter(self,numiter):
 		"""
 		Set the number of iterations of the
 		algorithm to perform.
 		"""
-		self.numiter = numiter + self.startiter
+		self.numiter = numiter
 	def SetNumthreads(self,nthreads):
 		"""
 		Set the number of FFTW threads.
@@ -122,11 +253,23 @@ class PhaseAbstract():
 		Get beta relaxation parameter.
 		"""
 		return self.beta
-	def updatereal(self):
+	def _updatereala(self):
+		wx.CallAfter(self.parent.ancestor.GetPage(1).UpdateReal,)
+	def _updaterealb(self):
 		pass
-	def updaterecip(self):
+	def _updaterecipa(self):
+		wx.CallAfter(self.parent.ancestor.GetPage(1).UpdateRecip,)
+	def _updaterecipb(self):
 		pass
-	def updatelog(self):
+	def _updateloga(self):
+		try:
+			n = self.citer_flow[0]
+			res = self.parent.ancestor.GetPage(0).residual[n]
+			string = "Iteration: %06d, Residual: %1.9f" %(n,res)
+			self.parent.ancestor.GetPage(0).queue_info.put(string)
+		except:
+			pass
+	def _updatelogb(self):
 		try:
 			n = self.citer_flow[0]
 			res = self.residual[n]
@@ -150,7 +293,10 @@ class PhaseAbstract():
 		"""
 		Start the reconstruction process.
 		"""
-		self.Algorithm()
+		if self.plan == None:
+			self.Algorithm()
+		else:
+			self.Phase()
 	def Stop(self):
 		"""
 		Stop the reconstruction process.
@@ -160,11 +306,18 @@ class PhaseAbstractPC(PhaseAbstract):
 	"""
 	Phasing Partial Coherence Base Class
 	"""
-	def __init__(self):
-		PhaseAbstract.__init__(self)
+	def __init__(self, parent=None):
+		PhaseAbstract.__init__(self, parent)
+		self.parent = parent
 		self.algorithm = None
-		self.residualRL = None
-		self.psf = None
+		if self.parent != None:
+			self.residualRL = parent.residualRL
+			self.psf = parent.psf
+			self.updatelog2 = self._updatelog2a
+		else:
+			self.residualRL = None
+			self.psf = None
+			self.updatelog2 = self._updatelog2b
 		self.niterrlpre = 100
 		self.niterrlpretmp = 0
 		self.niterrl = 10
@@ -249,15 +402,54 @@ class PhaseAbstractPC(PhaseAbstract):
 		Get zero voxels perimeter size.
 		"""
 		return self.ze
+	def SetResetGamma(self, reset_gamma):
+		self.reset_gamma = reset_gamma
+	def GetResetGamma(self):
+		return self.reset_gamma
 	def SetAccel(self, accel):
 		self.accel = accel
 	def Prepare(self):
 		self.niterrlpretmp = self.niterrlpre
-		self.rho_m1 = numpy.empty_like(self.seqdata)
-		self.SetResidual()
-		self.SetResidualRL()
+		self.nn=numpy.asarray( self.seqdata.shape, numpy.int32 )
+		self.ndim=int(self.seqdata.ndim)
+		self.nn2 = numpy.asarray( self.seqdata.shape, numpy.int32 )
+		self.nn2[0] = self.nn[0] + 2*(self.nn[0]//2)
+		self.nn2[1] = self.nn[1] + 2*(self.nn[1]//2)
+		self.nn2[2] = self.nn[2] + 2*(self.nn[2]//2)
+		if self.nn[0] == 1: self.nn2[0] = self.nn[0];
+		if self.nn[1] == 1: self.nn2[1] = self.nn[1];
+		if self.nn[2] == 1: self.nn2[2] = self.nn[2];
+		if self.parent != None:
+			self.rho_m1 = NewArray(self.parent, *self.seqdata.shape)
+			self.pca_inten = NewArray(self.parent, *self.seqdata.shape)
+			self.pca_rho_m1_ft = NewArray(self.parent, *self.seqdata.shape)
+			self.pca_Idm_iter = NewArray(self.parent, *self.seqdata.shape)
+			self.pca_Idmdiv_iter = NewArray(self.parent, *self.seqdata.shape)
+			self.pca_IdmdivId_iter = NewArray(self.parent, *self.seqdata.shape)
+			self.tmpdata1 = NewArray(self.parent, self.nn2[0],self.nn2[1],self.nn2[2])
+			self.tmpdata2 = NewArray(self.parent, self.nn2[0],self.nn2[1],self.nn2[2])
+			self.updatelog2 = self._updatelog2a
+		else:
+			self.rho_m1 = numpy.empty_like(self.seqdata)
+			self.pca_inten = numpy.empty_like(self.seqdata)
+			self.pca_rho_m1_ft = numpy.empty_like(self.seqdata)
+			self.pca_Idm_iter = numpy.empty_like(self.seqdata)
+			self.pca_Idmdiv_iter = numpy.empty_like(self.seqdata)
+			self.pca_IdmdivId_iter = numpy.empty_like(self.seqdata)
+			self.tmpdata1 = numpy.empty(self.nn2, dtype=numpy.cdouble, order='C')
+			self.tmpdata2 = numpy.empty(self.nn2, dtype=numpy.cdouble, order='C')
+			self.updatelog2 = self._updatelog2b
+			self.SetResidual()
+			self.SetResidualRL()
 		self.SetDimensions()
-	def updatelog2(self):
+	def _updatelog2a(self):
+		try:
+			n = self.citer_flow[8]
+			string = " R-L iteration: %03d, mean scaling factor: %1.6f" %(n,self.residualRL[0])
+			self.parent.ancestor.GetPage(0).queue_info.put(string)
+		except:
+			pass
+	def _updatelog2b(self):
 		try:
 			n = self.citer_flow[8]
 			string = " R-L iteration: %03d, mean scaling factor: %1.6f" %(n,self.residualRL[0])

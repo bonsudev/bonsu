@@ -25,8 +25,8 @@ class CSHIO(PhaseAbstract):
 	"""
 	Compressed Sensing HIO (CSHIO) algorithm.
 	"""
-	def __init__(self):
-		PhaseAbstract.__init__(self)
+	def __init__(self, parent=None):
+		PhaseAbstract.__init__(self, parent)
 		from ..lib.prfftw import cshio
 		self.algorithm = cshio
 		self.epsilon = numpy.zeros((2),dtype=numpy.double)
@@ -86,14 +86,24 @@ class CSHIO(PhaseAbstract):
 		Get parameter in the divisor condition.
 		"""
 		return self.cs_eta
+	def SetRelax(self, relax):
+		self.relax = relax
+	def GetRelax(self):
+		return self.relax
 	def Prepare(self):
+		if self.parent != None:
+			from ..operations.loadarray import NewArray
+			self.rho_m1 = NewArray(self.parent, *self.seqdata.shape)
+			self.rho_m2 = NewArray(self.parent, *self.seqdata.shape)
+			self.elp = NewArray(self.parent, *self.seqdata.shape)
+		else:
+			self.rho_m1 = numpy.empty_like(self.seqdata)
+			self.rho_m2 = numpy.empty_like(self.seqdata)
+			self.elp = numpy.empty_like(self.seqdata)
+			self.SetResidual()
+		self.SetDimensions()
 		self.epsilon[0] = self.cs_epsilon
 		self.epsilon[1] = self.cs_epsilon_min
-		self.rho_m1 = numpy.empty_like(self.seqdata)
-		self.rho_m2 = numpy.empty_like(self.seqdata)
-		self.elp = numpy.empty_like(self.seqdata)
-		self.SetResidual()
-		self.SetDimensions()
 	def Algorithm(self):
 		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,\
 			self.beta,self.startiter,self.numiter,self.ndim,\

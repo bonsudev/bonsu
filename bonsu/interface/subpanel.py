@@ -364,7 +364,7 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 		try:
 			d = self.GetMetaData()
 		except:
-			self.ancestor.GetPage(0).queue_info.put("Could not load record %d"%self.fnames[self.fnamesidx])
+			self.ancestor.GetPage(0).queue_info.put("Could not load record %s"%self.fnames[self.fnamesidx])
 		else:
 			self.txtcom_value.ChangeValue(d['command'])
 			self.txtnpoints_value.SetLabel(str(d['npoints']).strip('[]'))
@@ -441,7 +441,10 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 			return
 		self.OnClickLoad(None)
 		cwd = os.getcwd()
-		f = h5py.File(os.path.join(cwd, self.fnames[self.fnamesidx]),'r')
+		try:
+			f = h5py.File(os.path.join(cwd, self.fnames[self.fnamesidx]),'r')
+		except:
+			return
 		try:
 			imgarraypath = self.IterateKey("/,entry1,instrument,pil3_100k,image_data",f)[()]
 			imgarraysum = self.IterateKey("/,entry1,instrument,pil3_100k,sum",f)[()]
@@ -2900,6 +2903,7 @@ class SubPanel_ShrinkWrap(wx.ScrolledWindow):
 		self.vbox.Add(hbox2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.vbox.Add((1,5))
 		self.rbrs = RadioBoxNew(self, label="Algorithm:", choices=['HIO','HIOMask','HIOPlus','PCHIO','PGCHIO','ER','HPR','RAAR', 'CSHIO'\
+			,'SO2D'\
 			],  majorDimension=5, style=wx.RA_SPECIFY_COLS)
 		self.rbrs.SetToolTipNew("Select an algorithm for the shrink wrap to use.")
 		self.vbox.Add(self.rbrs ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -2956,10 +2960,61 @@ class SubPanel_ShrinkWrap(wx.ScrolledWindow):
 		self.vbox.Add(self.vboxPGCHIO, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=0)
 		self.Bind(wx.EVT_BUTTON, self.OnCalcQ, self.gc_buttonq)
 		self.vboxPGCHIO.ShowItems(show=False)
+		self.vboxSO2D = wx.BoxSizer(wx.VERTICAL)
+		self.vboxSO2D.Add((1,5))
+		hboxSO2D0 = wx.BoxSizer(wx.HORIZONTAL)
+		self.chkbox_reweight = wx.CheckBox(self, -1, 'Reweight', (50, 10))
+		self.chkbox_reweight.SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, self.chkbox_reweight)
+		self.reweightiter = SpinnerObject(self,"Apply reweighting "+os.linesep+"after iteration no.: ",MAX_INT,0,1,0,200,100)
+		self.reweightiter.label.SetToolTipNew("A negative value implies no reweighting.")
+		self.reweightiter.Disable()
+		hboxSO2D0.Add(self.reweightiter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		hboxSO2D0.Add((20,1))
+		hboxSO2D0.Add(self.chkbox_reweight, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vboxSO2D.Add(hboxSO2D0, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vboxSO2D.Add((1,10))
+		steptitle = wx.StaticText(self, label="Step Optimisation: ")
+		self.vboxSO2D.Add(steptitle ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vboxSO2D.Add((1,5))
+		self.nsoiter = SpinnerObject(self,"Iterations:",MAX_INT,1,1,20,200,100)
+		self.vboxSO2D.Add(self.nsoiter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.taumax = SpinnerObject(self,"Max step size: ",MAX_INT_16,0.0,0.1,2.5,200,100)
+		self.vboxSO2D.Add(self.taumax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vboxSO2D.Add((1,20))
+		deltatitle = wx.StaticText(self, label=" Change in Step (delta) Optimisation: ")
+		self.vboxSO2D.Add(deltatitle ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vboxSO2D.Add((1,5))
+		hboxSO2D1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.dtaumax = SpinnerObject(self,"Delta Max: ",1.0,0.0,0.005,0.3,200,100)
+		self.dtaumin = SpinnerObject(self,"Delta Min: ",1.0,0.0,0.005,0.005,200,100)
+		hboxSO2D1.Add(self.dtaumax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=0)
+		hboxSO2D1.Add((20,1))
+		hboxSO2D1.Add(self.dtaumin, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=0)
+		self.vboxSO2D.Add(hboxSO2D1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vboxSO2D.Add((1,20))
+		exittitle = wx.StaticText(self, label=" Step loop exit condition: ")
+		self.vboxSO2D.Add(exittitle ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		hboxSO2D2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.psiexitratio = SpinnerObject(self,"Exit Ratio: ",1.0,0.0,0.01,0.01,200,100)
+		self.psiexiterror = SpinnerObject(self,"Exit Error: ",1.0,0.0,0.01,0.01,200,100)
+		hboxSO2D2.Add(self.psiexitratio, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=0)
+		hboxSO2D2.Add((20,1))
+		hboxSO2D2.Add(self.psiexiterror, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=0)
+		self.vboxSO2D.Add(hboxSO2D2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.psiresetratio = SpinnerObject(self,"Reset Ratio: ",MAX_INT_16,0.0,0.01,2.00,200,100)
+		self.vboxSO2D.Add(self.psiresetratio ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vbox.Add(self.vboxSO2D ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.vboxSO2D.ShowItems(show=False)
 		self.SetAutoLayout(True)
 		self.SetSizer( self.vbox )
 		self.FitInside()
 		self.SetScrollRate(5, 5)
+	def OnChkbox(self, event):
+		if self.chkbox_reweight.GetValue() == False:
+			self.reweightiter.Disable()
+		else:
+			self.reweightiter.Enable()
 	def OnCalcQ(self, event):
 		calcq = QDialog(self.parent, self)
 		calcq.ShowModal()
@@ -2970,18 +3025,27 @@ class SubPanel_ShrinkWrap(wx.ScrolledWindow):
 			self.vboxPCHIO.ShowItems(show=False)
 			self.vboxCSHIO.ShowItems(show=False)
 			self.vboxPGCHIO.ShowItems(show=False)
+			self.vboxSO2D.ShowItems(show=False)
 		if rselect == 'PCHIO':
 			self.vboxPCHIO.ShowItems(show=True)
 			self.vboxCSHIO.ShowItems(show=False)
 			self.vboxPGCHIO.ShowItems(show=False)
+			self.vboxSO2D.ShowItems(show=False)
 		if rselect == 'CSHIO':
 			self.vboxPCHIO.ShowItems(show=False)
 			self.vboxCSHIO.ShowItems(show=True)
 			self.vboxPGCHIO.ShowItems(show=False)
+			self.vboxSO2D.ShowItems(show=False)
 		if rselect == 'PGCHIO':
 			self.vboxPCHIO.ShowItems(show=False)
 			self.vboxCSHIO.ShowItems(show=False)
 			self.vboxPGCHIO.ShowItems(show=True)
+			self.vboxSO2D.ShowItems(show=False)
+		if rselect == 'SO2D':
+			self.vboxPCHIO.ShowItems(show=False)
+			self.vboxCSHIO.ShowItems(show=False)
+			self.vboxPGCHIO.ShowItems(show=False)
+			self.vboxSO2D.ShowItems(show=True)
 		self.Layout()
 class SubPanel_CSHIO(wx.Panel):
 	treeitem = {'name':  'CSHIO' , 'type': 'algs'}
@@ -3028,10 +3092,90 @@ class SubPanel_CSHIO(wx.Panel):
 		vbox.Add(self.chkbox_relax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+class SubPanel_SO2D(wx.ScrolledWindow):
+	treeitem = {'name':  'SO2D' , 'type': 'algs'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_SO2D(selff, pipelineitem)
+	def __init__(self, parent):
+		self.start_iter = None
+		wx.ScrolledWindow.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = wx.StaticText(self, label="2D Saddle-point Optimisation")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.exp_amps = TextPanelObject(self, "Exp Amp: ", "",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.exp_amps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.chkbox_sqrt_expamps = wx.CheckBox(self, -1, 'Square Root Exp Amp', (50, 10))
+		self.chkbox_sqrt_expamps.SetValue(True)
+		vbox.Add(self.chkbox_sqrt_expamps, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.support = TextPanelObject(self,"Support: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		self.support.label.SetToolTipNew("Support. If empty, previous instance will be used.")
+		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,200,100)
+		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		hbox0 = wx.BoxSizer(wx.HORIZONTAL)
+		self.chkbox_reweight = wx.CheckBox(self, -1, 'Reweight', (50, 10))
+		self.chkbox_reweight.SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, self.chkbox_reweight)
+		self.reweightiter = SpinnerObject(self,"Apply reweighting "+os.linesep+"after iteration no.: ",MAX_INT,0,1,0,200,100)
+		self.reweightiter.label.SetToolTipNew("A negative value implies no reweighting.")
+		self.reweightiter.Disable()
+		hbox0.Add(self.reweightiter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		hbox0.Add((20,1))
+		hbox0.Add(self.chkbox_reweight, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox0, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,20))
+		steptitle = wx.StaticText(self, label="Step Optimisation: ")
+		vbox.Add(steptitle ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.nsoiter = SpinnerObject(self,"Iterations:",MAX_INT,1,1,20,200,100)
+		vbox.Add(self.nsoiter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.taumax = SpinnerObject(self,"Max step size: ",MAX_INT_16,0.0,0.1,2.5,200,100)
+		vbox.Add(self.taumax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.beta = SpinnerObject(self,"Initial beta: ",1.0,0.0,0.01,0.9,200,100)
+		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,20))
+		deltatitle = wx.StaticText(self, label=" Change in Step (delta) Optimisation: ")
+		vbox.Add(deltatitle ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.dtaumax = SpinnerObject(self,"Delta Max: ",1.0,0.0,0.005,0.3,200,100)
+		self.dtaumin = SpinnerObject(self,"Delta Min: ",1.0,0.0,0.005,0.005,200,100)
+		hbox1.Add(self.dtaumax, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=0)
+		hbox1.Add((20,1))
+		hbox1.Add(self.dtaumin, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=0)
+		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,20))
+		exittitle = wx.StaticText(self, label=" Step loop exit condition: ")
+		vbox.Add(exittitle ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.psiexitratio = SpinnerObject(self,"Exit Ratio: ",1.0,0.0,0.01,0.01,200,100)
+		self.psiexitratio.label.SetToolTipNew("|psi|/|psi_0| below this will halt tau optim. loop.")
+		self.psiexiterror = SpinnerObject(self,"Exit Error: ",1.0,0.0,0.01,0.01,200,100)
+		self.psiexiterror.label.SetToolTipNew("(psi^{n+1} - psi^n)/psi^n below this will halt tau optim. loop.")
+		hbox2.Add(self.psiexitratio, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=0)
+		hbox2.Add((20,1))
+		hbox2.Add(self.psiexiterror, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=0)
+		vbox.Add(hbox2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.psiresetratio = SpinnerObject(self,"Reset Ratio: ",MAX_INT_16,0.0,0.01,2.00,200,100)
+		self.psiresetratio.label.SetToolTipNew("|psi|/|psi_0| above this will reset tau to HIO.")
+		vbox.Add(self.psiresetratio ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((1,5))
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+		self.FitInside()
+		self.SetScrollRate(5, 5)
+	def OnChkbox(self, event):
+		if self.chkbox_reweight.GetValue() == False:
+			self.reweightiter.Disable()
+		else:
+			self.reweightiter.Enable()
 class SubPanel_HIOMaskPC(wx.Panel):
 	treeitem = {'name':  'HIO Mask PC' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
-		Sequence_PhasePC(selff, pipelineitem)
 		Sequence_HIOMaskPC(selff, pipelineitem)
 	def __init__(self, parent):
 		self.start_iter = None
@@ -3089,7 +3233,6 @@ class SubPanel_HIOMaskPC(wx.Panel):
 class SubPanel_ERMaskPC(wx.Panel):
 	treeitem = {'name':  'ER Mask PC' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
-		Sequence_PhasePC(selff, pipelineitem)
 		Sequence_ERMaskPC(selff, pipelineitem)
 	def __init__(self, parent):
 		self.start_iter = None
@@ -3145,7 +3288,6 @@ class SubPanel_ERMaskPC(wx.Panel):
 class SubPanel_HPRMaskPC(wx.Panel):
 	treeitem = {'name':  'HPR PC' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
-		Sequence_PhasePC(selff, pipelineitem)
 		Sequence_HPRMaskPC(selff, pipelineitem)
 	def __init__(self, parent):
 		self.start_iter = None
@@ -3203,7 +3345,6 @@ class SubPanel_HPRMaskPC(wx.Panel):
 class SubPanel_RAARMaskPC(wx.Panel):
 	treeitem = {'name':  'RAAR PC' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
-		Sequence_PhasePC(selff, pipelineitem)
 		Sequence_RAARMaskPC(selff, pipelineitem)
 	def __init__(self, parent):
 		self.start_iter = None

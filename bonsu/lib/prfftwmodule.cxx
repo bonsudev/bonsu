@@ -27,6 +27,96 @@
 #include "prfftwmodule.h"
 
 
+PyObject* prfftw_fft_stride(PyObject *self, PyObject *args)
+{
+	double *data1;
+	double *data2;
+	PyArrayObject *arg1;
+	PyArrayObject *arg2;
+	PyObject *pyplan;
+	FFTWPlan* plan;
+	int direction;
+	int scale;
+	npy_intp *dims;
+	fftw_plan* plan_direction;
+	if (!PyArg_ParseTuple(args, "OOOii", &arg1, &arg2, &pyplan, &direction, &scale)){return NULL;};
+	data1 = (double*) PyArray_DATA(arg1);
+	data2 = (double*) PyArray_DATA(arg2);
+	dims = PyArray_DIMS(arg1);
+	if (!(plan = (FFTWPlan*) PyCapsule_GetPointer(pyplan, "prfftw.plan"))){return NULL;};
+	if (direction == 1)
+	{
+		plan_direction = &plan->torecip;
+	}
+	else if (direction == -1)
+	{
+		plan_direction = &plan->toreal;
+	}
+	else
+	{
+		return NULL;
+	};
+	fftw_execute_dft( *plan_direction, (fftw_complex*) data1, (fftw_complex*) data2 );
+	if (scale > 0)
+	{
+		double inv_sqrt_n;
+		int64_t i;
+		int64_t len = (int64_t) dims[0] * dims[1] * dims[2];
+		inv_sqrt_n = 1.0 / sqrt((double) len);
+		for(i=0; i<len; i++)
+		{
+			data2[2*i] *= inv_sqrt_n;
+			data2[2*i+1] *= inv_sqrt_n;
+		}
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+PyObject* prfftw_destroyplan(PyObject *self, PyObject *args)
+{
+	PyObject *pyplan;
+	if (!PyArg_ParseTuple(args, "O", &pyplan)){return NULL;};
+	FFTWPlan* plan;
+	if (!(plan = (FFTWPlan*) PyCapsule_GetPointer(pyplan, "prfftw.plan"))){return NULL;};
+	/* fftw_init_threads(); */
+	/* fftw_plan_with_nthreads(plan.nthreads); */
+	fftw_destroy_plan( plan->torecip );
+	fftw_destroy_plan( plan->toreal );
+	fftw_cleanup_threads();
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* prfftw_createplan(PyObject *self, PyObject *args)
+{
+	double *data;
+	npy_intp *dims;
+	int32_t ndim;
+	int32_t nn[3];
+	int nthreads;
+	unsigned int planflag;
+	PyArrayObject *arg;
+	if (!PyArg_ParseTuple(args, "OiI", &arg, &nthreads, &planflag)){return NULL;};
+	data = (double*) PyArray_DATA(arg);
+	dims = PyArray_DIMS(arg);
+	ndim = PyArray_NDIM(arg);
+	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
+	fftw_init_threads();
+	fftw_plan_with_nthreads(nthreads);
+	FFTWPlan* plan = (FFTWPlan*) malloc(sizeof(FFTWPlan));
+	if (!plan){return NULL;};
+	plan->nthreads = nthreads;
+	plan->planflag = planflag;
+	plan->torecip = fftw_plan_dft(ndim, (int32_t*) nn,(fftw_complex*) data, (fftw_complex*) data, +1, plan->planflag);	
+	plan->toreal = fftw_plan_dft(ndim, (int32_t*) nn,(fftw_complex*) data, (fftw_complex*) data, -1, plan->planflag);
+	if (plan->torecip == NULL || plan->toreal == NULL){return NULL;};
+    PyObject *pyplan = PyCapsule_New(plan, "prfftw.plan", NULL);
+    return pyplan;
+}
+
+
 int wrap_array(double* indata, int32_t* nn, int drctn)
 {
 	int ii, i, j, k;
@@ -1020,41 +1110,50 @@ PyObject* prfftw_cshio(PyObject *self, PyObject *args)
 
 PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 {
-	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
-	double gammaHWHM; int gammaRS, numiterRL, startiterRL, waititerRL;
-	int zex, zey, zez;
-	double beta; int startiter, numiter, ndim;
-	PyArrayObject *psf=NULL;
-	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
-	PyObject *updatereal, *updaterecip, *updatelog, *updatelog2;
-	int accel;
-
-    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiidiiiOOOOOOOOOOOOOOi",
-		&arg1, &arg2, &arg3, &arg4,
-		&gammaHWHM, &gammaRS, &numiterRL, &startiterRL, &waititerRL,
-		&zex, &zey, &zez,
-		&beta, &startiter, &numiter, &ndim,
-		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
-		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
-        {return NULL;};
+	PyObject *pylist1=NULL;
+	PyObject *pylist2=NULL;
+	if (!PyArg_ParseTuple(args, "OO", &pylist1, &pylist2)){return NULL;};
 	
-	double *seqdata = (double*) PyArray_DATA(arg1);
-	double *expdata = (double*) PyArray_DATA(arg2);
-	double *support = (double*) PyArray_DATA(arg3);
-	double *mask = (double*) PyArray_DATA(arg4);
+	PyArrayObject *p2arg0=(PyArrayObject*) PyList_GetItem(pylist2, 0); double *seqdata = (double*) PyArray_DATA(p2arg0);
+	PyArrayObject *p2arg1=(PyArrayObject*) PyList_GetItem(pylist2, 1); double *expdata = (double*) PyArray_DATA(p2arg1);
+	PyArrayObject *p2arg2=(PyArrayObject*) PyList_GetItem(pylist2, 2); double *support = (double*) PyArray_DATA(p2arg2);
+	PyArrayObject *p2arg3=(PyArrayObject*) PyList_GetItem(pylist2, 3); double *mask = (double*) PyArray_DATA(p2arg3);
+	PyArrayObject *p2arg4=(PyArrayObject*) PyList_GetItem(pylist2, 4); double *pca_gamma_ft = (double*) PyArray_DATA(p2arg4);
+	PyArrayObject *p2arg5=(PyArrayObject*) PyList_GetItem(pylist2, 5); double *rho_m1 = (double*) PyArray_DATA(p2arg5);
+	PyArrayObject *p2arg6=(PyArrayObject*) PyList_GetItem(pylist2, 6); double *pca_inten = (double*) PyArray_DATA(p2arg6);
+	PyArrayObject *p2arg7=(PyArrayObject*) PyList_GetItem(pylist2, 7); double *pca_rho_m1_ft = (double*) PyArray_DATA(p2arg7);
+	PyArrayObject *p2arg8=(PyArrayObject*) PyList_GetItem(pylist2, 8); double *pca_Idm_iter = (double*) PyArray_DATA(p2arg8);
+	PyArrayObject *p2arg9=(PyArrayObject*) PyList_GetItem(pylist2, 9); double *pca_Idmdiv_iter = (double*) PyArray_DATA(p2arg9);
+	PyArrayObject *p2arg10=(PyArrayObject*) PyList_GetItem(pylist2, 10); double *pca_IdmdivId_iter = (double*) PyArray_DATA(p2arg10);
+	PyArrayObject *p2arg11=(PyArrayObject*) PyList_GetItem(pylist2, 11); double *tmparray1 = (double*) PyArray_DATA(p2arg11);
+	PyArrayObject *p2arg12=(PyArrayObject*) PyList_GetItem(pylist2, 12); double *tmparray2 = (double*) PyArray_DATA(p2arg12);
+	PyArrayObject *p2arg13=(PyArrayObject*) PyList_GetItem(pylist2, 13); int32_t  *nn = (int32_t*) PyArray_DATA(p2arg13);
+	int ndim=PyLong_AsLong(PyList_GetItem(pylist2, 14));
+	PyArrayObject *p2arg15=(PyArrayObject*) PyList_GetItem(pylist2, 15); int32_t  *nn2 = (int32_t*) PyArray_DATA(p2arg15);
+	int startiter=PyLong_AsLong(PyList_GetItem(pylist2, 16));
+	int numiter=PyLong_AsLong(PyList_GetItem(pylist2, 17));
+	PyArrayObject *p2arg18=(PyArrayObject*) PyList_GetItem(pylist2, 18); int32_t  *citer_flow = (int32_t*) PyArray_DATA(p2arg18);
 	
-	double *rho_m1 = (double*) PyArray_DATA(arg9);
-	double *pca_gamma_ft = (double*) PyArray_DATA(psf);
-	int32_t *nn = (int32_t*) PyArray_DATA(arg10);
-	double *residual = (double*) PyArray_DATA(arg11);
-	double *residualRL = (double*) PyArray_DATA(arg12);
-	int32_t *citer_flow = (int32_t*) PyArray_DATA(arg13);
-	
-	double *visual_amp_real = (double*) PyArray_DATA(arg14);
-	double *visual_phase_real = (double*) PyArray_DATA(arg15);
-	double *visual_amp_recip = (double*) PyArray_DATA(arg16);
-	double *visual_phase_recip = (double*) PyArray_DATA(arg17);
+	PyArrayObject *p1arg0=(PyArrayObject*) PyList_GetItem(pylist1, 0); double *residual = (double*) PyArray_DATA(p1arg0);
+	PyArrayObject *p1arg1=(PyArrayObject*) PyList_GetItem(pylist1, 1); double *residualRL = (double*) PyArray_DATA(p1arg1);
+	PyArrayObject *p1arg2=(PyArrayObject*) PyList_GetItem(pylist1, 2); double *visual_amp_real = (double*) PyArray_DATA(p1arg2);
+	PyArrayObject *p1arg3=(PyArrayObject*) PyList_GetItem(pylist1, 3); double *visual_phase_real = (double*) PyArray_DATA(p1arg3);
+	PyArrayObject *p1arg4=(PyArrayObject*) PyList_GetItem(pylist1, 4); double *visual_amp_recip = (double*) PyArray_DATA(p1arg4);
+	PyArrayObject *p1arg5=(PyArrayObject*) PyList_GetItem(pylist1, 5); double *visual_phase_recip = (double*) PyArray_DATA(p1arg5);
+	PyObject *updatereal=PyList_GetItem(pylist1, 6); 
+	PyObject *updaterecip=PyList_GetItem(pylist1, 7); 
+	PyObject *updatelog=PyList_GetItem(pylist1, 8); 
+	PyObject *updatelog2=PyList_GetItem(pylist1, 9);
+	double gammaHWHM=PyFloat_AsDouble(PyList_GetItem(pylist1, 10));
+	int gammaRS=PyLong_AsLong(PyList_GetItem(pylist1, 11));
+	int numiterRL=PyLong_AsLong(PyList_GetItem(pylist1, 12));
+	int startiterRL=PyLong_AsLong(PyList_GetItem(pylist1, 13));
+	int waititerRL=PyLong_AsLong(PyList_GetItem(pylist1, 14));
+	int zex=PyLong_AsLong(PyList_GetItem(pylist1, 15));
+	int zey=PyLong_AsLong(PyList_GetItem(pylist1, 16));
+	int zez=PyLong_AsLong(PyList_GetItem(pylist1, 17));
+	double beta=PyFloat_AsDouble(PyList_GetItem(pylist1, 18));
+	int accel=PyLong_AsLong(PyList_GetItem(pylist1, 19));
 	
 	if (!PyCallable_Check(updatereal))
 	{
@@ -1081,55 +1180,109 @@ PyObject* prfftw_hiomaskpc(PyObject *self, PyObject *args)
 	Py_XINCREF(updatelog);
 	Py_XINCREF(updatelog2);
 	
-	HIOMaskPC(seqdata, expdata, support, mask,
-					gammaHWHM, gammaRS, numiterRL, startiterRL, waititerRL,
-					zex, zey, zez,
-					beta, startiter, numiter, ndim, 
-					rho_m1, pca_gamma_ft, nn, residual, residualRL, citer_flow,
-					visual_amp_real, visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog, updatelog2, accel);
-
+	SeqArrayObjects seqarrays;
+	seqarrays.arraytype = (int) PyArray_TYPE(p2arg0);
+	seqarrays.ndim = ndim;
+	seqarrays.dims = (npy_intp*) PyArray_DIMS(p2arg0);
+	seqarrays.nn[0] = nn[0];
+	seqarrays.nn[1] = nn[1];
+	seqarrays.nn[2] = nn[2];
+	seqarrays.nn2[0] = nn2[0];
+	seqarrays.nn2[1] = nn2[1];
+	seqarrays.nn2[2] = nn2[2];
+	seqarrays.seqdata = seqdata;
+	seqarrays.expdata = expdata;
+	seqarrays.support = support;
+	seqarrays.mask = mask;
+	seqarrays.pca_gamma_ft = pca_gamma_ft;
+	seqarrays.rho_m1 = rho_m1;
+	seqarrays.pca_inten = pca_inten;
+    seqarrays.pca_rho_m1_ft = pca_rho_m1_ft;
+    seqarrays.pca_Idm_iter = pca_Idm_iter;
+    seqarrays.pca_Idmdiv_iter = pca_Idmdiv_iter;
+    seqarrays.pca_IdmdivId_iter = pca_IdmdivId_iter;
+	seqarrays.tmparray1 = tmparray1;
+	seqarrays.tmparray2 = tmparray2;
+	seqarrays.citer_flow = citer_flow;
+	seqarrays.startiter = startiter;
+	seqarrays.numiter = numiter;
+	
+	SeqObjects seqobs;
+	seqobs.residual = residual;
+	seqobs.residualRL = residualRL;
+	seqobs.citer_flow = citer_flow;
+	seqobs.visual_amp_real = visual_amp_real;
+	seqobs.visual_phase_real = visual_phase_real;
+	seqobs.visual_amp_recip = visual_amp_recip;
+	seqobs.visual_phase_recip = visual_phase_recip;
+	seqobs.updatereal = updatereal;
+	seqobs.updaterecip = updaterecip;
+	seqobs.updatelog = updatelog;
+	seqobs.updatelog2 = updatelog2;
+	seqobs.startiter = startiter;
+	seqobs.numiter = numiter;
+	seqobs.beta = beta;
+	seqobs.gammaHWHM = gammaHWHM;
+	seqobs.gammaRS = gammaRS;
+	seqobs.numiterRL = numiterRL;
+	seqobs.startiterRL = startiterRL;
+	seqobs.waititerRL = waititerRL;
+	seqobs.zex = zex;
+	seqobs.zey = zey;
+	seqobs.zez = zez;
+	seqobs.accel = accel;
+	
+	HIOMaskPC(&seqobs,&seqarrays);
+	
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
 PyObject* prfftw_ermaskpc(PyObject *self, PyObject *args)
 {
-	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
-	double gammaHWHM; int gammaRS, numiterRL, startiterRL, waititerRL;
-	int zex, zey, zez;
-	int startiter, numiter, ndim;
-	PyArrayObject *psf=NULL;
-	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
-	PyObject *updatereal, *updaterecip, *updatelog, *updatelog2;
-	int accel;
-
-    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiiiiiOOOOOOOOOOOOOOi",
-		&arg1, &arg2, &arg3, &arg4,
-		&gammaHWHM, &gammaRS, &numiterRL, &startiterRL, &waititerRL,
-		&zex, &zey, &zez,
-		&startiter, &numiter, &ndim,
-		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
-		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
-        {return NULL;};
+	PyObject *pylist1=NULL;
+	PyObject *pylist2=NULL;
+	if (!PyArg_ParseTuple(args, "OO", &pylist1, &pylist2)){return NULL;};
 	
-	double *seqdata = (double*) PyArray_DATA(arg1);
-	double *expdata = (double*) PyArray_DATA(arg2);
-	double *support = (double*) PyArray_DATA(arg3);
-	double *mask = (double*) PyArray_DATA(arg4);
+	PyArrayObject *p2arg0=(PyArrayObject*) PyList_GetItem(pylist2, 0); double *seqdata = (double*) PyArray_DATA(p2arg0);
+	PyArrayObject *p2arg1=(PyArrayObject*) PyList_GetItem(pylist2, 1); double *expdata = (double*) PyArray_DATA(p2arg1);
+	PyArrayObject *p2arg2=(PyArrayObject*) PyList_GetItem(pylist2, 2); double *support = (double*) PyArray_DATA(p2arg2);
+	PyArrayObject *p2arg3=(PyArrayObject*) PyList_GetItem(pylist2, 3); double *mask = (double*) PyArray_DATA(p2arg3);
+	PyArrayObject *p2arg4=(PyArrayObject*) PyList_GetItem(pylist2, 4); double *pca_gamma_ft = (double*) PyArray_DATA(p2arg4);
+	PyArrayObject *p2arg5=(PyArrayObject*) PyList_GetItem(pylist2, 5); double *rho_m1 = (double*) PyArray_DATA(p2arg5);
+	PyArrayObject *p2arg6=(PyArrayObject*) PyList_GetItem(pylist2, 6); double *pca_inten = (double*) PyArray_DATA(p2arg6);
+	PyArrayObject *p2arg7=(PyArrayObject*) PyList_GetItem(pylist2, 7); double *pca_rho_m1_ft = (double*) PyArray_DATA(p2arg7);
+	PyArrayObject *p2arg8=(PyArrayObject*) PyList_GetItem(pylist2, 8); double *pca_Idm_iter = (double*) PyArray_DATA(p2arg8);
+	PyArrayObject *p2arg9=(PyArrayObject*) PyList_GetItem(pylist2, 9); double *pca_Idmdiv_iter = (double*) PyArray_DATA(p2arg9);
+	PyArrayObject *p2arg10=(PyArrayObject*) PyList_GetItem(pylist2, 10); double *pca_IdmdivId_iter = (double*) PyArray_DATA(p2arg10);
+	PyArrayObject *p2arg11=(PyArrayObject*) PyList_GetItem(pylist2, 11); double *tmparray1 = (double*) PyArray_DATA(p2arg11);
+	PyArrayObject *p2arg12=(PyArrayObject*) PyList_GetItem(pylist2, 12); double *tmparray2 = (double*) PyArray_DATA(p2arg12);
+	PyArrayObject *p2arg13=(PyArrayObject*) PyList_GetItem(pylist2, 13); int32_t  *nn = (int32_t*) PyArray_DATA(p2arg13);
+	int ndim=PyLong_AsLong(PyList_GetItem(pylist2, 14));
+	PyArrayObject *p2arg15=(PyArrayObject*) PyList_GetItem(pylist2, 15); int32_t  *nn2 = (int32_t*) PyArray_DATA(p2arg15);
+	int startiter=PyLong_AsLong(PyList_GetItem(pylist2, 16));
+	int numiter=PyLong_AsLong(PyList_GetItem(pylist2, 17));
+	PyArrayObject *p2arg18=(PyArrayObject*) PyList_GetItem(pylist2, 18); int32_t  *citer_flow = (int32_t*) PyArray_DATA(p2arg18);
 	
-	double *rho_m1 = (double*) PyArray_DATA(arg9);
-	double *pca_gamma_ft = (double*) PyArray_DATA(psf);
-	int32_t *nn = (int32_t*) PyArray_DATA(arg10);
-	double *residual = (double*) PyArray_DATA(arg11);
-	double *residualRL = (double*) PyArray_DATA(arg12);
-	int32_t *citer_flow = (int32_t*) PyArray_DATA(arg13);
-	
-	double *visual_amp_real = (double*) PyArray_DATA(arg14);
-	double *visual_phase_real = (double*) PyArray_DATA(arg15);
-	double *visual_amp_recip = (double*) PyArray_DATA(arg16);
-	double *visual_phase_recip = (double*) PyArray_DATA(arg17);
+	PyArrayObject *p1arg0=(PyArrayObject*) PyList_GetItem(pylist1, 0); double *residual = (double*) PyArray_DATA(p1arg0);
+	PyArrayObject *p1arg1=(PyArrayObject*) PyList_GetItem(pylist1, 1); double *residualRL = (double*) PyArray_DATA(p1arg1);
+	PyArrayObject *p1arg2=(PyArrayObject*) PyList_GetItem(pylist1, 2); double *visual_amp_real = (double*) PyArray_DATA(p1arg2);
+	PyArrayObject *p1arg3=(PyArrayObject*) PyList_GetItem(pylist1, 3); double *visual_phase_real = (double*) PyArray_DATA(p1arg3);
+	PyArrayObject *p1arg4=(PyArrayObject*) PyList_GetItem(pylist1, 4); double *visual_amp_recip = (double*) PyArray_DATA(p1arg4);
+	PyArrayObject *p1arg5=(PyArrayObject*) PyList_GetItem(pylist1, 5); double *visual_phase_recip = (double*) PyArray_DATA(p1arg5);
+	PyObject *updatereal=PyList_GetItem(pylist1, 6); 
+	PyObject *updaterecip=PyList_GetItem(pylist1, 7); 
+	PyObject *updatelog=PyList_GetItem(pylist1, 8); 
+	PyObject *updatelog2=PyList_GetItem(pylist1, 9);
+	double gammaHWHM=PyFloat_AsDouble(PyList_GetItem(pylist1, 10));
+	int gammaRS=PyLong_AsLong(PyList_GetItem(pylist1, 11));
+	int numiterRL=PyLong_AsLong(PyList_GetItem(pylist1, 12));
+	int startiterRL=PyLong_AsLong(PyList_GetItem(pylist1, 13));
+	int waititerRL=PyLong_AsLong(PyList_GetItem(pylist1, 14));
+	int zex=PyLong_AsLong(PyList_GetItem(pylist1, 15));
+	int zey=PyLong_AsLong(PyList_GetItem(pylist1, 16));
+	int zez=PyLong_AsLong(PyList_GetItem(pylist1, 17));
+	int accel=PyLong_AsLong(PyList_GetItem(pylist1, 18));
 	
 	if (!PyCallable_Check(updatereal))
 	{
@@ -1156,13 +1309,58 @@ PyObject* prfftw_ermaskpc(PyObject *self, PyObject *args)
 	Py_XINCREF(updatelog);
 	Py_XINCREF(updatelog2);
 	
-	ERMaskPC(seqdata, expdata, support, mask,
-					gammaHWHM, gammaRS, numiterRL, startiterRL, waititerRL,
-					zex, zey, zez,
-					startiter, numiter, ndim, 
-					rho_m1, pca_gamma_ft, nn, residual, residualRL, citer_flow,
-					visual_amp_real, visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog, updatelog2, accel);
+	SeqArrayObjects seqarrays;
+	seqarrays.arraytype = (int) PyArray_TYPE(p2arg0);
+	seqarrays.ndim = ndim;
+	seqarrays.dims = (npy_intp*) PyArray_DIMS(p2arg0);
+	seqarrays.nn[0] = nn[0];
+	seqarrays.nn[1] = nn[1];
+	seqarrays.nn[2] = nn[2];
+	seqarrays.nn2[0] = nn2[0];
+	seqarrays.nn2[1] = nn2[1];
+	seqarrays.nn2[2] = nn2[2];
+	seqarrays.seqdata = seqdata;
+	seqarrays.expdata = expdata;
+	seqarrays.support = support;
+	seqarrays.mask = mask;
+	seqarrays.pca_gamma_ft = pca_gamma_ft;
+	seqarrays.rho_m1 = rho_m1;
+	seqarrays.pca_inten = pca_inten;
+    seqarrays.pca_rho_m1_ft = pca_rho_m1_ft;
+    seqarrays.pca_Idm_iter = pca_Idm_iter;
+    seqarrays.pca_Idmdiv_iter = pca_Idmdiv_iter;
+    seqarrays.pca_IdmdivId_iter = pca_IdmdivId_iter;
+	seqarrays.tmparray1 = tmparray1;
+	seqarrays.tmparray2 = tmparray2;
+	seqarrays.citer_flow = citer_flow;
+	seqarrays.startiter = startiter;
+	seqarrays.numiter = numiter;
+	
+	SeqObjects seqobs;
+	seqobs.residual = residual;
+	seqobs.residualRL = residualRL;
+	seqobs.citer_flow = citer_flow;
+	seqobs.visual_amp_real = visual_amp_real;
+	seqobs.visual_phase_real = visual_phase_real;
+	seqobs.visual_amp_recip = visual_amp_recip;
+	seqobs.visual_phase_recip = visual_phase_recip;
+	seqobs.updatereal = updatereal;
+	seqobs.updaterecip = updaterecip;
+	seqobs.updatelog = updatelog;
+	seqobs.updatelog2 = updatelog2;
+	seqobs.startiter = startiter;
+	seqobs.numiter = numiter;
+	seqobs.gammaHWHM = gammaHWHM;
+	seqobs.gammaRS = gammaRS;
+	seqobs.numiterRL = numiterRL;
+	seqobs.startiterRL = startiterRL;
+	seqobs.waititerRL = waititerRL;
+	seqobs.zex = zex;
+	seqobs.zey = zey;
+	seqobs.zez = zez;
+	seqobs.accel = accel;
+	
+	ERMaskPC(&seqobs,&seqarrays);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1170,41 +1368,50 @@ PyObject* prfftw_ermaskpc(PyObject *self, PyObject *args)
 
 PyObject* prfftw_hprmaskpc(PyObject *self, PyObject *args)
 {
-	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
-	double gammaHWHM; int gammaRS, numiterRL, startiterRL, waititerRL;
-	int zex, zey, zez;
-	double beta; int startiter, numiter, ndim;
-	PyArrayObject *psf=NULL;
-	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
-	PyObject *updatereal, *updaterecip, *updatelog, *updatelog2;
-	int accel;
-
-    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiidiiiOOOOOOOOOOOOOOi",
-		&arg1, &arg2, &arg3, &arg4,
-		&gammaHWHM, &gammaRS, &numiterRL, &startiterRL, &waititerRL,
-		&zex, &zey, &zez,
-		&beta, &startiter, &numiter, &ndim,
-		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
-		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
-        {return NULL;};
+	PyObject *pylist1=NULL;
+	PyObject *pylist2=NULL;
+	if (!PyArg_ParseTuple(args, "OO", &pylist1, &pylist2)){return NULL;};
 	
-	double *seqdata = (double*) PyArray_DATA(arg1);
-	double *expdata = (double*) PyArray_DATA(arg2);
-	double *support = (double*) PyArray_DATA(arg3);
-	double *mask = (double*) PyArray_DATA(arg4);
+	PyArrayObject *p2arg0=(PyArrayObject*) PyList_GetItem(pylist2, 0); double *seqdata = (double*) PyArray_DATA(p2arg0);
+	PyArrayObject *p2arg1=(PyArrayObject*) PyList_GetItem(pylist2, 1); double *expdata = (double*) PyArray_DATA(p2arg1);
+	PyArrayObject *p2arg2=(PyArrayObject*) PyList_GetItem(pylist2, 2); double *support = (double*) PyArray_DATA(p2arg2);
+	PyArrayObject *p2arg3=(PyArrayObject*) PyList_GetItem(pylist2, 3); double *mask = (double*) PyArray_DATA(p2arg3);
+	PyArrayObject *p2arg4=(PyArrayObject*) PyList_GetItem(pylist2, 4); double *pca_gamma_ft = (double*) PyArray_DATA(p2arg4);
+	PyArrayObject *p2arg5=(PyArrayObject*) PyList_GetItem(pylist2, 5); double *rho_m1 = (double*) PyArray_DATA(p2arg5);
+	PyArrayObject *p2arg6=(PyArrayObject*) PyList_GetItem(pylist2, 6); double *pca_inten = (double*) PyArray_DATA(p2arg6);
+	PyArrayObject *p2arg7=(PyArrayObject*) PyList_GetItem(pylist2, 7); double *pca_rho_m1_ft = (double*) PyArray_DATA(p2arg7);
+	PyArrayObject *p2arg8=(PyArrayObject*) PyList_GetItem(pylist2, 8); double *pca_Idm_iter = (double*) PyArray_DATA(p2arg8);
+	PyArrayObject *p2arg9=(PyArrayObject*) PyList_GetItem(pylist2, 9); double *pca_Idmdiv_iter = (double*) PyArray_DATA(p2arg9);
+	PyArrayObject *p2arg10=(PyArrayObject*) PyList_GetItem(pylist2, 10); double *pca_IdmdivId_iter = (double*) PyArray_DATA(p2arg10);
+	PyArrayObject *p2arg11=(PyArrayObject*) PyList_GetItem(pylist2, 11); double *tmparray1 = (double*) PyArray_DATA(p2arg11);
+	PyArrayObject *p2arg12=(PyArrayObject*) PyList_GetItem(pylist2, 12); double *tmparray2 = (double*) PyArray_DATA(p2arg12);
+	PyArrayObject *p2arg13=(PyArrayObject*) PyList_GetItem(pylist2, 13); int32_t  *nn = (int32_t*) PyArray_DATA(p2arg13);
+	int ndim=PyLong_AsLong(PyList_GetItem(pylist2, 14));
+	PyArrayObject *p2arg15=(PyArrayObject*) PyList_GetItem(pylist2, 15); int32_t  *nn2 = (int32_t*) PyArray_DATA(p2arg15);
+	int startiter=PyLong_AsLong(PyList_GetItem(pylist2, 16));
+	int numiter=PyLong_AsLong(PyList_GetItem(pylist2, 17));
+	PyArrayObject *p2arg18=(PyArrayObject*) PyList_GetItem(pylist2, 18); int32_t  *citer_flow = (int32_t*) PyArray_DATA(p2arg18);
 	
-	double *rho_m1 = (double*) PyArray_DATA(arg9);
-	double *pca_gamma_ft = (double*) PyArray_DATA(psf);
-	int32_t *nn = (int32_t*) PyArray_DATA(arg10);
-	double *residual = (double*) PyArray_DATA(arg11);
-	double *residualRL = (double*) PyArray_DATA(arg12);
-	int32_t *citer_flow = (int32_t*) PyArray_DATA(arg13);
-	
-	double *visual_amp_real = (double*) PyArray_DATA(arg14);
-	double *visual_phase_real = (double*) PyArray_DATA(arg15);
-	double *visual_amp_recip = (double*) PyArray_DATA(arg16);
-	double *visual_phase_recip = (double*) PyArray_DATA(arg17);
+	PyArrayObject *p1arg0=(PyArrayObject*) PyList_GetItem(pylist1, 0); double *residual = (double*) PyArray_DATA(p1arg0);
+	PyArrayObject *p1arg1=(PyArrayObject*) PyList_GetItem(pylist1, 1); double *residualRL = (double*) PyArray_DATA(p1arg1);
+	PyArrayObject *p1arg2=(PyArrayObject*) PyList_GetItem(pylist1, 2); double *visual_amp_real = (double*) PyArray_DATA(p1arg2);
+	PyArrayObject *p1arg3=(PyArrayObject*) PyList_GetItem(pylist1, 3); double *visual_phase_real = (double*) PyArray_DATA(p1arg3);
+	PyArrayObject *p1arg4=(PyArrayObject*) PyList_GetItem(pylist1, 4); double *visual_amp_recip = (double*) PyArray_DATA(p1arg4);
+	PyArrayObject *p1arg5=(PyArrayObject*) PyList_GetItem(pylist1, 5); double *visual_phase_recip = (double*) PyArray_DATA(p1arg5);
+	PyObject *updatereal=PyList_GetItem(pylist1, 6); 
+	PyObject *updaterecip=PyList_GetItem(pylist1, 7); 
+	PyObject *updatelog=PyList_GetItem(pylist1, 8); 
+	PyObject *updatelog2=PyList_GetItem(pylist1, 9);
+	double gammaHWHM=PyFloat_AsDouble(PyList_GetItem(pylist1, 10));
+	int gammaRS=PyLong_AsLong(PyList_GetItem(pylist1, 11));
+	int numiterRL=PyLong_AsLong(PyList_GetItem(pylist1, 12));
+	int startiterRL=PyLong_AsLong(PyList_GetItem(pylist1, 13));
+	int waititerRL=PyLong_AsLong(PyList_GetItem(pylist1, 14));
+	int zex=PyLong_AsLong(PyList_GetItem(pylist1, 15));
+	int zey=PyLong_AsLong(PyList_GetItem(pylist1, 16));
+	int zez=PyLong_AsLong(PyList_GetItem(pylist1, 17));
+	double beta=PyFloat_AsDouble(PyList_GetItem(pylist1, 18));
+	int accel=PyLong_AsLong(PyList_GetItem(pylist1, 19));
 	
 	if (!PyCallable_Check(updatereal))
 	{
@@ -1231,13 +1438,59 @@ PyObject* prfftw_hprmaskpc(PyObject *self, PyObject *args)
 	Py_XINCREF(updatelog);
 	Py_XINCREF(updatelog2);
 	
-	HPRMaskPC(seqdata, expdata, support, mask,
-					gammaHWHM, gammaRS, numiterRL, startiterRL, waititerRL,
-					zex, zey, zez,
-					beta, startiter, numiter, ndim, 
-					rho_m1, pca_gamma_ft, nn, residual, residualRL, citer_flow,
-					visual_amp_real, visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog, updatelog2, accel);
+	SeqArrayObjects seqarrays;
+	seqarrays.arraytype = (int) PyArray_TYPE(p2arg0);
+	seqarrays.ndim = ndim;
+	seqarrays.dims = (npy_intp*) PyArray_DIMS(p2arg0);
+	seqarrays.nn[0] = nn[0];
+	seqarrays.nn[1] = nn[1];
+	seqarrays.nn[2] = nn[2];
+	seqarrays.nn2[0] = nn2[0];
+	seqarrays.nn2[1] = nn2[1];
+	seqarrays.nn2[2] = nn2[2];
+	seqarrays.seqdata = seqdata;
+	seqarrays.expdata = expdata;
+	seqarrays.support = support;
+	seqarrays.mask = mask;
+	seqarrays.pca_gamma_ft = pca_gamma_ft;
+	seqarrays.rho_m1 = rho_m1;
+	seqarrays.pca_inten = pca_inten;
+    seqarrays.pca_rho_m1_ft = pca_rho_m1_ft;
+    seqarrays.pca_Idm_iter = pca_Idm_iter;
+    seqarrays.pca_Idmdiv_iter = pca_Idmdiv_iter;
+    seqarrays.pca_IdmdivId_iter = pca_IdmdivId_iter;
+	seqarrays.tmparray1 = tmparray1;
+	seqarrays.tmparray2 = tmparray2;
+	seqarrays.citer_flow = citer_flow;
+	seqarrays.startiter = startiter;
+	seqarrays.numiter = numiter;
+	
+	SeqObjects seqobs;
+	seqobs.residual = residual;
+	seqobs.residualRL = residualRL;
+	seqobs.citer_flow = citer_flow;
+	seqobs.visual_amp_real = visual_amp_real;
+	seqobs.visual_phase_real = visual_phase_real;
+	seqobs.visual_amp_recip = visual_amp_recip;
+	seqobs.visual_phase_recip = visual_phase_recip;
+	seqobs.updatereal = updatereal;
+	seqobs.updaterecip = updaterecip;
+	seqobs.updatelog = updatelog;
+	seqobs.updatelog2 = updatelog2;
+	seqobs.startiter = startiter;
+	seqobs.numiter = numiter;
+	seqobs.beta = beta;
+	seqobs.gammaHWHM = gammaHWHM;
+	seqobs.gammaRS = gammaRS;
+	seqobs.numiterRL = numiterRL;
+	seqobs.startiterRL = startiterRL;
+	seqobs.waititerRL = waititerRL;
+	seqobs.zex = zex;
+	seqobs.zey = zey;
+	seqobs.zez = zez;
+	seqobs.accel = accel;
+	
+	HPRMaskPC(&seqobs,&seqarrays);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1245,41 +1498,50 @@ PyObject* prfftw_hprmaskpc(PyObject *self, PyObject *args)
 
 PyObject* prfftw_raarmaskpc(PyObject *self, PyObject *args)
 {
-	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
-	double gammaHWHM; int gammaRS, numiterRL, startiterRL, waititerRL;
-	int zex, zey, zez;
-	double beta; int startiter, numiter, ndim;
-	PyArrayObject *psf=NULL;
-	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
-	PyArrayObject *arg13=NULL, *arg14=NULL, *arg15=NULL, *arg16=NULL, *arg17=NULL;
-	PyObject *updatereal, *updaterecip, *updatelog, *updatelog2;
-	int accel;
-
-    if (!PyArg_ParseTuple(args, "OOOOdiiiiiiidiiiOOOOOOOOOOOOOOi",
-		&arg1, &arg2, &arg3, &arg4,
-		&gammaHWHM, &gammaRS, &numiterRL, &startiterRL, &waititerRL,
-		&zex, &zey, &zez,
-		&beta, &startiter, &numiter, &ndim,
-		&arg9, &psf, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16,
-		&arg17, &updatereal, &updaterecip, &updatelog, &updatelog2, &accel))
-        {return NULL;};
+	PyObject *pylist1=NULL;
+	PyObject *pylist2=NULL;
+	if (!PyArg_ParseTuple(args, "OO", &pylist1, &pylist2)){return NULL;};
 	
-	double *seqdata = (double*) PyArray_DATA(arg1);
-	double *expdata = (double*) PyArray_DATA(arg2);
-	double *support = (double*) PyArray_DATA(arg3);
-	double *mask = (double*) PyArray_DATA(arg4);
+	PyArrayObject *p2arg0=(PyArrayObject*) PyList_GetItem(pylist2, 0); double *seqdata = (double*) PyArray_DATA(p2arg0);
+	PyArrayObject *p2arg1=(PyArrayObject*) PyList_GetItem(pylist2, 1); double *expdata = (double*) PyArray_DATA(p2arg1);
+	PyArrayObject *p2arg2=(PyArrayObject*) PyList_GetItem(pylist2, 2); double *support = (double*) PyArray_DATA(p2arg2);
+	PyArrayObject *p2arg3=(PyArrayObject*) PyList_GetItem(pylist2, 3); double *mask = (double*) PyArray_DATA(p2arg3);
+	PyArrayObject *p2arg4=(PyArrayObject*) PyList_GetItem(pylist2, 4); double *pca_gamma_ft = (double*) PyArray_DATA(p2arg4);
+	PyArrayObject *p2arg5=(PyArrayObject*) PyList_GetItem(pylist2, 5); double *rho_m1 = (double*) PyArray_DATA(p2arg5);
+	PyArrayObject *p2arg6=(PyArrayObject*) PyList_GetItem(pylist2, 6); double *pca_inten = (double*) PyArray_DATA(p2arg6);
+	PyArrayObject *p2arg7=(PyArrayObject*) PyList_GetItem(pylist2, 7); double *pca_rho_m1_ft = (double*) PyArray_DATA(p2arg7);
+	PyArrayObject *p2arg8=(PyArrayObject*) PyList_GetItem(pylist2, 8); double *pca_Idm_iter = (double*) PyArray_DATA(p2arg8);
+	PyArrayObject *p2arg9=(PyArrayObject*) PyList_GetItem(pylist2, 9); double *pca_Idmdiv_iter = (double*) PyArray_DATA(p2arg9);
+	PyArrayObject *p2arg10=(PyArrayObject*) PyList_GetItem(pylist2, 10); double *pca_IdmdivId_iter = (double*) PyArray_DATA(p2arg10);
+	PyArrayObject *p2arg11=(PyArrayObject*) PyList_GetItem(pylist2, 11); double *tmparray1 = (double*) PyArray_DATA(p2arg11);
+	PyArrayObject *p2arg12=(PyArrayObject*) PyList_GetItem(pylist2, 12); double *tmparray2 = (double*) PyArray_DATA(p2arg12);
+	PyArrayObject *p2arg13=(PyArrayObject*) PyList_GetItem(pylist2, 13); int32_t  *nn = (int32_t*) PyArray_DATA(p2arg13);
+	int ndim=PyLong_AsLong(PyList_GetItem(pylist2, 14));
+	PyArrayObject *p2arg15=(PyArrayObject*) PyList_GetItem(pylist2, 15); int32_t  *nn2 = (int32_t*) PyArray_DATA(p2arg15);
+	int startiter=PyLong_AsLong(PyList_GetItem(pylist2, 16));
+	int numiter=PyLong_AsLong(PyList_GetItem(pylist2, 17));
+	PyArrayObject *p2arg18=(PyArrayObject*) PyList_GetItem(pylist2, 18); int32_t  *citer_flow = (int32_t*) PyArray_DATA(p2arg18);
 	
-	double *rho_m1 = (double*) PyArray_DATA(arg9);
-	double *pca_gamma_ft = (double*) PyArray_DATA(psf);
-	int32_t *nn = (int32_t*) PyArray_DATA(arg10);
-	double *residual = (double*) PyArray_DATA(arg11);
-	double *residualRL = (double*) PyArray_DATA(arg12);
-	int32_t *citer_flow = (int32_t*) PyArray_DATA(arg13);
-	
-	double *visual_amp_real = (double*) PyArray_DATA(arg14);
-	double *visual_phase_real = (double*) PyArray_DATA(arg15);
-	double *visual_amp_recip = (double*) PyArray_DATA(arg16);
-	double *visual_phase_recip = (double*) PyArray_DATA(arg17);
+	PyArrayObject *p1arg0=(PyArrayObject*) PyList_GetItem(pylist1, 0); double *residual = (double*) PyArray_DATA(p1arg0);
+	PyArrayObject *p1arg1=(PyArrayObject*) PyList_GetItem(pylist1, 1); double *residualRL = (double*) PyArray_DATA(p1arg1);
+	PyArrayObject *p1arg2=(PyArrayObject*) PyList_GetItem(pylist1, 2); double *visual_amp_real = (double*) PyArray_DATA(p1arg2);
+	PyArrayObject *p1arg3=(PyArrayObject*) PyList_GetItem(pylist1, 3); double *visual_phase_real = (double*) PyArray_DATA(p1arg3);
+	PyArrayObject *p1arg4=(PyArrayObject*) PyList_GetItem(pylist1, 4); double *visual_amp_recip = (double*) PyArray_DATA(p1arg4);
+	PyArrayObject *p1arg5=(PyArrayObject*) PyList_GetItem(pylist1, 5); double *visual_phase_recip = (double*) PyArray_DATA(p1arg5);
+	PyObject *updatereal=PyList_GetItem(pylist1, 6); 
+	PyObject *updaterecip=PyList_GetItem(pylist1, 7); 
+	PyObject *updatelog=PyList_GetItem(pylist1, 8); 
+	PyObject *updatelog2=PyList_GetItem(pylist1, 9);
+	double gammaHWHM=PyFloat_AsDouble(PyList_GetItem(pylist1, 10));
+	int gammaRS=PyLong_AsLong(PyList_GetItem(pylist1, 11));
+	int numiterRL=PyLong_AsLong(PyList_GetItem(pylist1, 12));
+	int startiterRL=PyLong_AsLong(PyList_GetItem(pylist1, 13));
+	int waititerRL=PyLong_AsLong(PyList_GetItem(pylist1, 14));
+	int zex=PyLong_AsLong(PyList_GetItem(pylist1, 15));
+	int zey=PyLong_AsLong(PyList_GetItem(pylist1, 16));
+	int zez=PyLong_AsLong(PyList_GetItem(pylist1, 17));
+	double beta=PyFloat_AsDouble(PyList_GetItem(pylist1, 18));
+	int accel=PyLong_AsLong(PyList_GetItem(pylist1, 19));
 	
 	if (!PyCallable_Check(updatereal))
 	{
@@ -1306,18 +1568,142 @@ PyObject* prfftw_raarmaskpc(PyObject *self, PyObject *args)
 	Py_XINCREF(updatelog);
 	Py_XINCREF(updatelog2);
 	
-	RAARMaskPC(seqdata, expdata, support, mask,
-					gammaHWHM, gammaRS, numiterRL, startiterRL, waititerRL,
-					zex, zey, zez,
-					beta, startiter, numiter, ndim, 
-					rho_m1, pca_gamma_ft, nn, residual, residualRL, citer_flow,
-					visual_amp_real, visual_phase_real, visual_amp_recip, visual_phase_recip,
-					updatereal, updaterecip, updatelog, updatelog2, accel);
+	SeqArrayObjects seqarrays;
+	seqarrays.arraytype = (int) PyArray_TYPE(p2arg0);
+	seqarrays.ndim = ndim;
+	seqarrays.dims = (npy_intp*) PyArray_DIMS(p2arg0);
+	seqarrays.nn[0] = nn[0];
+	seqarrays.nn[1] = nn[1];
+	seqarrays.nn[2] = nn[2];
+	seqarrays.nn2[0] = nn2[0];
+	seqarrays.nn2[1] = nn2[1];
+	seqarrays.nn2[2] = nn2[2];
+	seqarrays.seqdata = seqdata;
+	seqarrays.expdata = expdata;
+	seqarrays.support = support;
+	seqarrays.mask = mask;
+	seqarrays.pca_gamma_ft = pca_gamma_ft;
+	seqarrays.rho_m1 = rho_m1;
+	seqarrays.pca_inten = pca_inten;
+    seqarrays.pca_rho_m1_ft = pca_rho_m1_ft;
+    seqarrays.pca_Idm_iter = pca_Idm_iter;
+    seqarrays.pca_Idmdiv_iter = pca_Idmdiv_iter;
+    seqarrays.pca_IdmdivId_iter = pca_IdmdivId_iter;
+	seqarrays.tmparray1 = tmparray1;
+	seqarrays.tmparray2 = tmparray2;
+	seqarrays.citer_flow = citer_flow;
+	seqarrays.startiter = startiter;
+	seqarrays.numiter = numiter;
+	
+	SeqObjects seqobs;
+	seqobs.residual = residual;
+	seqobs.residualRL = residualRL;
+	seqobs.citer_flow = citer_flow;
+	seqobs.visual_amp_real = visual_amp_real;
+	seqobs.visual_phase_real = visual_phase_real;
+	seqobs.visual_amp_recip = visual_amp_recip;
+	seqobs.visual_phase_recip = visual_phase_recip;
+	seqobs.updatereal = updatereal;
+	seqobs.updaterecip = updaterecip;
+	seqobs.updatelog = updatelog;
+	seqobs.updatelog2 = updatelog2;
+	seqobs.startiter = startiter;
+	seqobs.numiter = numiter;
+	seqobs.beta = beta;
+	seqobs.gammaHWHM = gammaHWHM;
+	seqobs.gammaRS = gammaRS;
+	seqobs.numiterRL = numiterRL;
+	seqobs.startiterRL = startiterRL;
+	seqobs.waititerRL = waititerRL;
+	seqobs.zex = zex;
+	seqobs.zey = zey;
+	seqobs.zez = zez;
+	seqobs.accel = accel;
+	
+	RAARMaskPC(&seqobs,&seqarrays);
 
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
+PyObject* prfftw_so2d(PyObject *self, PyObject *args)
+{
+	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL, *arg4=NULL;
+	double alpha,beta; int startiter, numiter;
+	int maxiter;
+	PyArrayObject *arg5=NULL, *arg6=NULL, *arg7=NULL, *arg8=NULL;
+	PyArrayObject *arg9=NULL, *arg10=NULL, *arg11=NULL, *arg12=NULL;
+	PyArrayObject *arg13=NULL, *arg14=NULL;
+	PyArrayObject *stepobj=NULL;
+	PyObject *updatereal, *updaterecip, *updatelog;
+
+    if (!PyArg_ParseTuple(args, "OOOOddiiOiOOOOOOOOOOOOO",
+		&arg1, &arg2, &arg3, &arg4, &alpha, &beta, &startiter, &numiter,
+		&stepobj, &maxiter, &arg5, &arg6, &arg7,
+		&arg8, &arg9, &arg10, &arg11, &arg12, &arg13, &arg14,
+		&updatereal, &updaterecip, &updatelog))
+        {return NULL;};
+	
+	SeqArrayObjects seqarrays;
+	seqarrays.arraytype = (int) PyArray_TYPE(arg1);
+	seqarrays.ndim = (int) PyArray_NDIM(arg1);
+	seqarrays.dims = (npy_intp*) PyArray_DIMS(arg1);
+	seqarrays.nn[0] = (int32_t) seqarrays.dims[0];
+	seqarrays.nn[1] = (int32_t) seqarrays.dims[1];
+	seqarrays.nn[2] = (int32_t) seqarrays.dims[2];
+	seqarrays.seqdata = (double*) PyArray_DATA(arg1);
+	seqarrays.expdata = (double*) PyArray_DATA(arg2);
+	seqarrays.support = (double*) PyArray_DATA(arg3);
+	seqarrays.mask = (double*) PyArray_DATA(arg4);
+	seqarrays.epsilon = (double*) PyArray_DATA(arg5);
+	seqarrays.rho_m1 = (double*) PyArray_DATA(arg6);
+	seqarrays.rho_m2 = (double*) PyArray_DATA(arg7);
+	seqarrays.tmparray1 = (double*) PyArray_DATA(arg8);
+	seqarrays.tmparray2 = (double*) PyArray_DATA(stepobj);
+	seqarrays.citer_flow = (int32_t*) PyArray_DATA(arg10);
+	seqarrays.startiter = startiter;
+	seqarrays.numiter = numiter;
+	
+	SeqObjects seqobs;
+	seqobs.residual = (double*) PyArray_DATA(arg9);
+	seqobs.citer_flow = (int32_t*) PyArray_DATA(arg10);
+	seqobs.visual_amp_real = (double*) PyArray_DATA(arg11);
+	seqobs.visual_phase_real = (double*) PyArray_DATA(arg12);
+	seqobs.visual_amp_recip = (double*) PyArray_DATA(arg13);
+	seqobs.visual_phase_recip = (double*) PyArray_DATA(arg14);
+	seqobs.updatereal = updatereal;
+	seqobs.updaterecip = updaterecip;
+	seqobs.updatelog = updatelog;
+	seqobs.startiter = startiter;
+	seqobs.numiter = numiter;
+	seqobs.maxiter = maxiter;
+	seqobs.alpha = alpha;
+	seqobs.beta = beta;
+	
+	if (!PyCallable_Check(updatereal))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updaterecip))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	if (!PyCallable_Check(updatelog))
+	{
+		PyErr_SetString(PyExc_TypeError, "function must be callable");
+		return NULL;
+	}
+	Py_XINCREF(updatereal);
+	Py_XINCREF(updaterecip);
+	Py_XINCREF(updatelog);
+	
+	SO2D(&seqobs,&seqarrays);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 
 
 PyObject* prfftw_threshold(PyObject *self, PyObject *args)
@@ -1978,7 +2364,13 @@ PyObject* prfftw_blanklinereplace(PyObject *self, PyObject *args)
 
 
 static PyMethodDef prfftwMethods[] = {
-	{"fft",  prfftw_fft, METH_VARARGS,
+	{"fftw_stride",  prfftw_fft_stride, METH_VARARGS,
+     "FFTW Stride."},
+	{"fftw_create_plan",  prfftw_createplan, METH_VARARGS,
+     "FFTW Create Plan."},
+	 {"fftw_destroy_plan",  prfftw_destroyplan, METH_VARARGS,
+     "FFTW Destroy Plan."},
+	 {"fft",  prfftw_fft, METH_VARARGS,
      "Fourier transform a complex array."},
 	 {"wrap",  prfftw_wrap, METH_VARARGS,
      "Wrap array."},
@@ -2004,6 +2396,7 @@ static PyMethodDef prfftwMethods[] = {
      "Threshold array."},
 	{"cshio",  prfftw_cshio, METH_VARARGS,
      "CSHIO algorithm."},
+	{"so2dmask", prfftw_so2d, METH_VARARGS, "SO2D algorithm."},
 	{"hpr",  prfftw_hpr, METH_VARARGS,
      "HPR algorithm."},
 	{"raar",  prfftw_raar, METH_VARARGS,

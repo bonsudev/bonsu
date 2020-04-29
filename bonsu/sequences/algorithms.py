@@ -33,6 +33,7 @@ from ..operations.HIO import PCHIO
 from ..operations.HIO import PGCHIO
 from ..operations.HIO import HIOMaskPC
 from ..operations.CSHIO import CSHIO
+from ..operations.SO2D import SO2D
 from ..operations.ER import ER
 from ..operations.ER import ERMask
 from ..operations.ER import ERMaskPC
@@ -518,1420 +519,604 @@ def PrepareVisualisation2D(self,pipelineitem):
 	elif (self.visual_amp_real is not None):
 		panelvisual.renderer_amp_real.SetViewport(0,0,1,1)
 	panelvisual.RefreshSceneFull(gotovisual=True)
-def Sequence_HIO(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
+class SequenceBase():
+	def __init__(self, parent, pipelineitem):
+		self.parent = parent
+		self.pipelineitem = pipelineitem
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
+			if self.LoadExpData():
+				self.parent.pipeline_started = False
 				return
+			self.support_path = pipelineitem.support.objectpath.GetValue()
+			if self.LoadSupport():
+				self.parent.pipeline_started = False
+				return
+			if self.ShapeCheck():
+				self.parent.pipeline_started = False
+				return
+			self.startiter = int(self.pipelineitem.start_iter)
+			self.numiter = int(self.pipelineitem.niter.value.GetValue())
+			self.Prepare()
+	def LoadExpData(self):
+		try:
+			self.parent.expdata = LoadArray(self.parent, self.expdata_path)
+			if self.pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
+				numpy.sqrt(self.parent.expdata, self.parent.expdata)
+			self.parent.expdata[:] = WrapArray(self.parent.expdata).copy()
+		except:
+			msg = "Could not load array from: \n"+ self.expdata_path + "\nPlease check the path."
+			self.MsgDlg(msg)
+			return True
+		else:
+			return False
+	def LoadSupport(self):
+		if self.support_path == "":
+			try:
+				assert type(self.parent.support).__module__ == numpy.__name__
+			except:
+				msg = "No existing Support array found."
+				self.MsgDlg(msg)
+				return True
 		else:
 			try:
-				self.support = LoadArray(self, support_path)
+				self.parent.support = LoadArray(self.parent, self.support_path)
 			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		if (not self.expdata.shape == self.support.shape) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		beta = float(pipelineitem.beta.value.GetValue())
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
+				msg = "Could not load array from: \n"+ self.support_path + "\nPlease check the path."
+				self.MsgDlg(msg)
+				return True
 			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadHIO(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting HIO Algorithm...")
-			self.thread_register.put(1)
-			HIO(self, beta, startiter, numiter)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadHIO, args=(self,))
+				return False
+	def ShapeCheck(self):
+		if (not self.parent.expdata.shape == self.parent.support.shape) == True:
+			msg = "Array dimensions are inconsistent."
+			self.MsgDlg(msg)
+			self.parent.seqdata = None
+			try:
+				self.parent.visual_amp_real = None
+			except:
+				pass
+			try:
+				self.parent.visual_amp_recip = None
+			except:
+				pass
+			try:
+				self.parent.visual_amp_support = None
+			except:
+				pass
+			return True
+	def Prepare(self):
+		if self.startiter == 0 and (self.parent.visual_amp_real is not None or self.parent.visual_support is not None or self.parent.visual_amp_recip is not None):
+			if self.parent.expdata.shape[2] == 1:
+				PrepareVisualisation2D(self.parent,self.pipelineitem)
+			else:
+				PrepareVisualisation(self.parent,self.pipelineitem)
+	def MsgDlg(self, msg):
+		dlg = wx.MessageDialog(self.parent, msg, "Pipeline Message", wx.OK)
+		dlg.ShowModal()
+		dlg.Destroy()
+	def ThreadAlg(self):
+		pass
+	def StartPhasing(self):
+		self.thread = threading.Thread(target=self.ThreadAlg)
 		self.thread.daemon = True
 		self.thread.start()
-		return
-def Sequence_ER(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
+class SequenceBaseMask(SequenceBase):
+	def __init__(self, parent, pipelineitem):
+		self.parent = parent
+		self.pipelineitem = pipelineitem
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.mask_path = self.pipelineitem.mask.objectpath.GetValue()
+			if self.LoadMask():
+				self.parent.pipeline_started = False
 				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		if (not self.expdata.shape == self.support.shape) == True:
+		SequenceBase.__init__(self, parent, pipelineitem)
+	def ShapeCheck(self):
+		if (not (self.parent.expdata.shape == self.parent.support.shape and self.parent.expdata.shape == self.parent.mask.shape)) == True:
 			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
+			self.MsgDlg(msg)
+			self.parent.seqdata = None
 			try:
-				self.visual_amp_real = None
+				self.parent.visual_amp_real = None
 			except:
 				pass
 			try:
-				self.visual_amp_recip = None
+				self.parent.visual_amp_recip = None
 			except:
 				pass
 			try:
-				self.visual_amp_support = None
+				self.parent.visual_amp_support = None
 			except:
 				pass
-			return
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
-			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadER(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting ER Algorithm...")
-			self.thread_register.put(1)
-			ER(self, startiter, numiter)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadER, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_ERMask(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
+			return True
+	def LoadMask(self):
 		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
+			self.parent.mask = LoadArray(self.parent, self.mask_path)
+			self.parent.mask[:] = WrapArray(self.parent.mask).copy()
 		except:
 			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		if pipelineitem.chkbox.GetValue():
-			numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
+			self.MsgDlg(msg)
+			return True
 		else:
-			numiter_relax = 0
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
+			return False
+class SequenceBasePC(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		self.parent = parent
+		self.pipelineitem = pipelineitem
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
+			if self.LoadExpData():
+				self.parent.pipeline_started = False
+				return
+			self.support_path = pipelineitem.support.objectpath.GetValue()
+			if self.LoadSupport():
+				self.parent.pipeline_started = False
+				return
+			self.gammaHWHM = float(self.pipelineitem.gammaHWHM.value.GetValue())
+			if self.LoadPSF():
+				self.parent.pipeline_started = False
+				return
+			self.mask_path = self.pipelineitem.mask.objectpath.GetValue()
+			if self.LoadMask():
+				self.parent.pipeline_started = False
+				return
+			if self.ShapeCheck():
+				self.parent.pipeline_started = False
+				return
+			self.startiter = int(self.pipelineitem.start_iter)
+			self.numiter = int(self.pipelineitem.niter.value.GetValue())
+			self.Prepare()
+			self.niterrlpre = int(self.pipelineitem.niterrlpre.value.GetValue())
+			self.niterrl = int(self.pipelineitem.niterrl.value.GetValue())
+			self.niterrlinterval = int(self.pipelineitem.niterrlinterval.value.GetValue())
+			self.accel = int(self.pipelineitem.accel.value.GetValue())
+			self.zex =  int(self.pipelineitem.zedims[0].value.GetValue())
+			self.zey =  int(self.pipelineitem.zedims[1].value.GetValue())
+			self.zez =  int(self.pipelineitem.zedims[2].value.GetValue())
+			if self.pipelineitem.chkbox_reset_gamma.GetValue() == True:
+				self.reset_gamma = 1
 			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadERMask(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting ER Mask Algorithm...")
-			self.thread_register.put(1)
-			ERMask(self, startiter, numiter, numiter_relax)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadERMask, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_POER(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
+				self.reset_gamma = 0
+	def ShapeCheck(self):
+		if (not (self.parent.expdata.shape == self.parent.support.shape and self.parent.expdata.shape == self.parent.mask.shape and self.parent.expdata.shape == self.parent.psf.shape)) == True:
 			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
+			self.MsgDlg(msg)
+			self.parent.seqdata = None
 			try:
-				self.visual_amp_real = None
+				self.parent.visual_amp_real = None
 			except:
 				pass
 			try:
-				self.visual_amp_recip = None
+				self.parent.visual_amp_recip = None
 			except:
 				pass
 			try:
-				self.visual_amp_support = None
+				self.parent.visual_amp_support = None
 			except:
 				pass
-			return
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
+			return True
+	def LoadPSF(self):
+		try:
+			from ..lib.prfftw import lorentzftfill
+			if self.parent.psf is None:
+				self.parent.psf = NewArray(self.parent, *self.parent.seqdata.shape)
+				lorentzftfill(self.parent.psf,self.gammaHWHM)
+		except MemoryError:
+			msg = "Could not load PSF array. Insufficient memory."
+			self.MsgDlg(msg)
+			return True
+		else:
+			return False
+class Sequence_HIO(SequenceBase):
+	def __init__(self, parent, pipelineitem):
+		SequenceBase.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting HIO Algorithm...")
+		self.parent.thread_register.put(1)
+		HIO(self.parent, self.beta, self.startiter, self.numiter)
+		self.parent.thread_register.get()
+class Sequence_ER(SequenceBase):
+	def __init__(self, parent, pipelineitem):
+		SequenceBase.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting ER Algorithm...")
+		self.parent.thread_register.put(1)
+		ER(self.parent, self.startiter, self.numiter)
+		self.parent.thread_register.get()
+class Sequence_ERMask(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			if pipelineitem.chkbox.GetValue():
+				self.numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
 			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadPOER(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting PO-ER Algorithm...")
-			self.thread_register.put(1)
-			POER(self, startiter, numiter)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadPOER, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_HPR(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		beta = float(pipelineitem.beta.value.GetValue())
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		if pipelineitem.chkbox.GetValue():
-			numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
-		else:
-			numiter_relax = 0
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
+				self.numiter_relax = 0
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting ER Mask Algorithm...")
+		self.parent.thread_register.put(1)
+		ERMask(self.parent, self.startiter, self.numiter, self.numiter_relax)
+		self.parent.thread_register.get()
+class Sequence_HIOMask(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			if pipelineitem.chkbox.GetValue():
+				self.numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
 			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadHPR(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting HPR Algorithm...")
-			self.thread_register.put(1)
-			HPR(self, beta, startiter, numiter, numiter_relax)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadHPR, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_RAAR(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		beta = float(pipelineitem.beta.value.GetValue())
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		if pipelineitem.chkbox.GetValue():
-			numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
-		else:
-			numiter_relax = 0
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
+				self.numiter_relax = 0
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting HIO Algorithm...")
+		self.parent.thread_register.put(1)
+		HIOMask(self.parent, self.beta, self.startiter, self.numiter, self.numiter_relax)
+		self.parent.thread_register.get()
+class Sequence_HIOPlus(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting HIO+ Algorithm...")
+		self.parent.thread_register.put(1)
+		HIOPlus(self.parent, self.beta, self.startiter, self.numiter)
+		self.parent.thread_register.get()
+class Sequence_HPR(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			if pipelineitem.chkbox.GetValue():
+				self.numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
 			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadRAAR(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting RAAR Algorithm...")
-			self.thread_register.put(1)
-			RAAR(self, beta, startiter, numiter, numiter_relax)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadRAAR, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_HIOMask(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		beta = float(pipelineitem.beta.value.GetValue())
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		if pipelineitem.chkbox.GetValue():
-			numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
-		else:
-			numiter_relax = 0
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
+				self.numiter_relax = 0
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting HPR Algorithm...")
+		self.parent.thread_register.put(1)
+		HPR(self.parent, self.beta, self.startiter, self.numiter, self.numiter_relax)
+		self.parent.thread_register.get()
+class Sequence_RAAR(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			if pipelineitem.chkbox.GetValue():
+				self.numiter_relax = int(pipelineitem.niter_relax.value.GetValue())
 			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadHIOMask(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting HIO Algorithm...")
-			self.thread_register.put(1)
-			HIOMask(self, beta, startiter, numiter, numiter_relax)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadHIOMask, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_HIOPlus(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		beta = float(pipelineitem.beta.value.GetValue())
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
+				self.numiter_relax = 0
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting RAAR Algorithm...")
+		self.parent.thread_register.put(1)
+		RAAR(self.parent, self.beta, self.startiter, self.numiter, self.numiter_relax)
+		self.parent.thread_register.get()
+class Sequence_POER(SequenceBase):
+	def __init__(self, parent, pipelineitem):
+		SequenceBase.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting PO-ER Algorithm...")
+		self.parent.thread_register.put(1)
+		POER(self.parent, self.startiter, self.numiter)
+		self.parent.thread_register.get()
+class Sequence_PCHIO(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.phasemax = float(self.pipelineitem.phasemax.value.GetValue())
+			self.phasemin = float(self.pipelineitem.phasemin.value.GetValue())
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting PCHIO Algorithm...")
+		self.parent.thread_register.put(1)
+		PCHIO(self.parent, self.beta, self.startiter, self.numiter, self.phasemax, self.phasemin)
+		self.parent.thread_register.get()
+class Sequence_PGCHIO(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.phasemax = float(self.pipelineitem.phasemax.value.GetValue())
+			self.phasemin = float(self.pipelineitem.phasemin.value.GetValue())
+			self.qx = float(self.pipelineitem.qx.value.GetValue())
+			self.qy = float(self.pipelineitem.qy.value.GetValue())
+			self.qz = float(self.pipelineitem.qz.value.GetValue())
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting PGCHIO Algorithm...")
+		self.parent.thread_register.put(1)
+		PGCHIO(self.parent, self.beta, self.startiter, self.numiter, self.phasemax, self.phasemin, self.qx, self.qy, self.qz)
+		self.parent.thread_register.get()
+class Sequence_CSHIO(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.cs_p = float(self.pipelineitem.cs_p.value.GetValue())
+			self.cs_epsilon = float(self.pipelineitem.cs_epsilon.value.GetValue())
+			self.cs_epsilon_min = float(self.pipelineitem.cs_epsilon_min.value.GetValue())
+			self.cs_d = float(self.pipelineitem.cs_d.value.GetValue())
+			self.cs_eta = float(self.pipelineitem.cs_eta.value.GetValue())
+			if self.pipelineitem.chkbox_relax.GetValue() == True:
+				self.relax = 1
 			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadHIOPlus(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting HIO+ Algorithm...")
-			self.thread_register.put(1)
-			HIOPlus(self, beta, startiter, numiter)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadHIOPlus, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_PCHIO(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		beta = float(pipelineitem.beta.value.GetValue())
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		phasemax = float(pipelineitem.phasemax.value.GetValue())
-		phasemin = float(pipelineitem.phasemin.value.GetValue())
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
-			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadPCHIO(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting PCHIO Algorithm...")
-			self.thread_register.put(1)
-			PCHIO(self, beta, startiter, numiter, phasemax, phasemin)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadPCHIO, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_PGCHIO(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		beta = float(pipelineitem.beta.value.GetValue())
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		phasemax = float(pipelineitem.phasemax.value.GetValue())
-		phasemin = float(pipelineitem.phasemin.value.GetValue())
-		qx = float(pipelineitem.qx.value.GetValue())
-		qy = float(pipelineitem.qy.value.GetValue())
-		qz = float(pipelineitem.qz.value.GetValue())
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
-			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadPGCHIO(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting PGCHIO Algorithm...")
-			self.thread_register.put(1)
-			PGCHIO(self, beta, startiter, numiter, phasemax, phasemin, qx, qy, qz)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadPGCHIO, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_ShrinkWrap(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		try:
-			temparray = NewArray(self, *self.support.shape)
-			temparray2 = NewArray(self, *self.support.shape)
-		except:
-			msg = "Insufficient memory for temporary array."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		beta = float(pipelineitem.beta.value.GetValue())
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		cycle = int(pipelineitem.cycle.value.GetValue())
-		phasemax = float(pipelineitem.phasemax.value.GetValue())
-		phasemin = float(pipelineitem.phasemin.value.GetValue())
-		cs_p = float(pipelineitem.cs_p.value.GetValue())
-		cs_epsilon = float(pipelineitem.cs_epsilon.value.GetValue())
-		cs_epsilon_min = float(pipelineitem.cs_epsilon_min.value.GetValue())
-		cs_d = float(pipelineitem.cs_d.value.GetValue())
-		cs_eta = float(pipelineitem.cs_eta.value.GetValue())
-		if pipelineitem.chkbox_relax.GetValue() == True:
-			cs_relax = 1
-		else:
-			cs_relax = 0
-		gc_phasemax = float(pipelineitem.gc_phasemax.value.GetValue())
-		gc_phasemin = float(pipelineitem.gc_phasemin.value.GetValue())
-		qx = float(pipelineitem.qx.value.GetValue())
-		qy = float(pipelineitem.qy.value.GetValue())
-		qz = float(pipelineitem.qz.value.GetValue())
-		sigma = float(pipelineitem.sigma.value.GetValue())
-		frac = float(pipelineitem.frac.value.GetValue())
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
-			else:
-				PrepareVisualisation(self,pipelineitem)
-		RSConst =  pipelineitem.rbrs.GetStringSelection()
-		from ..lib.prfftw import gaussian_fill
-		from ..lib.prfftw import wrap
-		gaussian_fill(temparray, sigma)
-		wrap(temparray, 1)
-		def threadShrinkWrap(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting shrink wrap algorithm using "+RSConst +"..." )
-			self.thread_register.put(1)
+				self.relax = 0
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting CSHIO Algorithm...")
+		self.parent.thread_register.put(1)
+		CSHIO(self.parent, self.beta, self.startiter, self.numiter, self.cs_p, self.cs_epsilon, self.cs_epsilon_min, self.cs_d, self.cs_eta, self.relax)
+		self.parent.thread_register.get()
+class Sequence_HIOMaskPC(SequenceBasePC):
+	def __init__(self, parent, pipelineitem):
+		SequenceBasePC.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting HIO Mask PC Algorithm...")
+		self.parent.thread_register.put(1)
+		HIOMaskPC(self.parent, self.beta, self.startiter, self.numiter, self.niterrlpre, self.niterrl, self.niterrlinterval, self.gammaHWHM, self.zex, self.zey, self.zez, self.reset_gamma, self.accel)
+		self.parent.thread_register.get()
+class Sequence_HPRMaskPC(SequenceBasePC):
+	def __init__(self, parent, pipelineitem):
+		SequenceBasePC.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting HPR Mask PC Algorithm...")
+		self.parent.thread_register.put(1)
+		HPRMaskPC(self.parent, self.beta, self.startiter, self.numiter, self.niterrlpre, self.niterrl, self.niterrlinterval, self.gammaHWHM, self.zex, self.zey, self.zez, self.reset_gamma, self.accel)
+		self.parent.thread_register.get()
+class Sequence_RAARMaskPC(SequenceBasePC):
+	def __init__(self, parent, pipelineitem):
+		SequenceBasePC.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting RAAR Mask PC Algorithm...")
+		self.parent.thread_register.put(1)
+		RAARMaskPC(self.parent, self.beta, self.startiter, self.numiter, self.niterrlpre, self.niterrl, self.niterrlinterval, self.gammaHWHM, self.zex, self.zey, self.zez, self.reset_gamma, self.accel)
+		self.parent.thread_register.get()
+class Sequence_ERMaskPC(SequenceBasePC):
+	def __init__(self, parent, pipelineitem):
+		SequenceBasePC.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting ER Mask PC Algorithm...")
+		self.parent.thread_register.put(1)
+		ERMaskPC(self.parent, self.startiter, self.numiter, self.niterrlpre, self.niterrl, self.niterrlinterval, self.gammaHWHM, self.zex, self.zey, self.zez, self.reset_gamma, self.accel)
+		self.parent.thread_register.get()
+class Sequence_ShrinkWrap(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
 			from ..lib.prfftw import threshold
 			from ..lib.prfftw import rangereplace
 			from ..lib.prfftw import convolve
 			from ..lib.prfftw import medianfilter
-			def UpdateSupport(self):
-				if self.ancestor.GetPage(0).citer_flow[4] > 0:
-					self.ancestor.GetPage(0).queue_info.put("Updating support ...")
-					self.support[:] = numpy.abs(self.seqdata).copy()
-					maxvalue = numpy.abs(self.support).max()
-					threshold(self.support, (frac*maxvalue), maxvalue, 0.0)
-					medianfilter(self.support, temparray2, 3,3,3, 0.0)
-					wrap(self.support, 1)
-					convolve(self.support, temparray)
-					wrap(self.support, -1)
-					rangereplace(self.support, (frac*maxvalue), sys.float_info.max, 0.0, 1.0)
-					self.visual_support[:] = numpy.abs(self.support)
-					self.ancestor.GetPage(0).queue_info.put("... done.")
-			def UpdateVisualSupport(self):
-				if self.ancestor.GetPage(0).citer_flow[4] > 0:
-					wx.CallAfter(self.ancestor.GetPage(1).UpdateSupport,)
-			def GetIterVars(fstartiter, fnumiter, ii, fcycle):
-				fsw_startiter = fstartiter + (ii * fcycle)
-				if  fnumiter <  ((ii+1) * fcycle):
-					fsw_numiter =  fnumiter - (ii * fcycle)
-				else:
-					fsw_numiter = fcycle
-				return fsw_startiter, fsw_numiter
-			IterLoops = (numiter + cycle - 1)//cycle
-			if RSConst == 'HIO':
-				for i in range( IterLoops ):
-					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
-					HIO(self, beta, sw_startiter, sw_numiter)
-					if self.ancestor.GetPage(0).citer_flow[1] == 2:
-						break
-					UpdateSupport(self)
-					UpdateVisualSupport(self)
-			if RSConst == 'PCHIO':
-				for i in range( IterLoops ):
-					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
-					PCHIO(self, beta, sw_startiter, sw_numiter, phasemax, phasemin)
-					if self.ancestor.GetPage(0).citer_flow[1] == 2:
-						break
-					UpdateSupport(self)
-					UpdateVisualSupport(self)
-			if RSConst == 'PGCHIO':
-				for i in range( IterLoops ):
-					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
-					PGCHIO(self, beta, sw_startiter, sw_numiter, gc_phasemax, gc_phasemin, qx, qy, qz)
-					if self.ancestor.GetPage(0).citer_flow[1] == 2:
-						break
-					UpdateSupport(self)
-					UpdateVisualSupport(self)
-			if RSConst == 'HIOMask':
-				for i in range( IterLoops ):
-					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
-					HIOMask(self, beta, sw_startiter, sw_numiter, 0)
-					if self.ancestor.GetPage(0).citer_flow[1] == 2:
-						break
-					UpdateSupport(self)
-					UpdateVisualSupport(self)
-			if RSConst == 'HIOPlus':
-				for i in range( IterLoops ):
-					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
-					HIOPlus(self, beta, sw_startiter, sw_numiter)
-					if self.ancestor.GetPage(0).citer_flow[1] == 2:
-						break
-					UpdateSupport(self)
-					UpdateVisualSupport(self)
-			if RSConst == 'ER':
-				for i in range( IterLoops ):
-					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
-					ER(self, sw_startiter, sw_numiter)
-					if self.ancestor.GetPage(0).citer_flow[1] == 2:
-						break
-					UpdateSupport(self)
-					UpdateVisualSupport(self)
-			if RSConst == 'HPR':
-				for i in range( IterLoops ):
-					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
-					HPR(self, beta, sw_startiter, sw_numiter,0)
-					if self.ancestor.GetPage(0).citer_flow[1] == 2:
-						break
-					UpdateSupport(self)
-					UpdateVisualSupport(self)
-			if RSConst == 'RAAR':
-				for i in range( IterLoops ):
-					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
-					RAAR(self, beta, sw_startiter, sw_numiter,0)
-					if self.ancestor.GetPage(0).citer_flow[1] == 2:
-						break
-					UpdateSupport(self)
-					UpdateVisualSupport(self)
-			if RSConst == 'CSHIO':
-				for i in range( IterLoops ):
-					sw_startiter, sw_numiter = GetIterVars(startiter, numiter, i, cycle)
-					CSHIO(self, beta, sw_startiter, sw_numiter, cs_p, cs_epsilon, cs_epsilon_min, cs_d, cs_eta, cs_relax)
-					if self.ancestor.GetPage(0).citer_flow[1] == 2:
-						break
-					UpdateSupport(self)
-					UpdateVisualSupport(self)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadShrinkWrap, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_CSHIO(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		beta = float(pipelineitem.beta.value.GetValue())
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		cs_p = float(pipelineitem.cs_p.value.GetValue())
-		cs_epsilon = float(pipelineitem.cs_epsilon.value.GetValue())
-		cs_epsilon_min = float(pipelineitem.cs_epsilon_min.value.GetValue())
-		cs_d = float(pipelineitem.cs_d.value.GetValue())
-		cs_eta = float(pipelineitem.cs_eta.value.GetValue())
-		if pipelineitem.chkbox_relax.GetValue() == True:
-			relax = 1
-		else:
-			relax = 0
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
+			from ..lib.prfftw import wrap
+			self.threshold = threshold
+			self.rangereplace = rangereplace
+			self.convolve = convolve
+			self.medianfilter = medianfilter
+			self.wrap = wrap
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.startiter = int(self.pipelineitem.start_iter)
+			self.numiter = int(self.pipelineitem.niter.value.GetValue())
+			self.cycle = int(self.pipelineitem.cycle.value.GetValue())
+			self.phasemax = float(self.pipelineitem.phasemax.value.GetValue())
+			self.phasemin = float(self.pipelineitem.phasemin.value.GetValue())
+			self.cs_p = float(self.pipelineitem.cs_p.value.GetValue())
+			self.cs_epsilon = float(self.pipelineitem.cs_epsilon.value.GetValue())
+			self.cs_epsilon_min = float(self.pipelineitem.cs_epsilon_min.value.GetValue())
+			self.cs_d = float(self.pipelineitem.cs_d.value.GetValue())
+			self.cs_eta = float(self.pipelineitem.cs_eta.value.GetValue())
+			if self.pipelineitem.chkbox_relax.GetValue() == True:
+				self.cs_relax = 1
 			else:
-				PrepareVisualisation(self,pipelineitem)
-		def threadCSHIO(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting CSHIO Algorithm...")
-			self.thread_register.put(1)
-			CSHIO(self, beta, startiter, numiter, cs_p, cs_epsilon, cs_epsilon_min, cs_d, cs_eta, relax)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadCSHIO, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-		return
-def Sequence_PhasePC(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		expdata_path = pipelineitem.exp_amps.objectpath.GetValue()
-		try:
-			self.expdata = LoadArray(self, expdata_path)
-			if pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
-				numpy.sqrt(self.expdata, self.expdata)
-			self.expdata[:] = WrapArray(self.expdata).copy()
-		except:
-			msg = "Could not load array from: \n"+ expdata_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		support_path = pipelineitem.support.objectpath.GetValue()
-		if support_path == "":
-			try:
-				self.support
-			except AttributeError:
-				msg = "No existing Support array found."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		else:
-			try:
-				self.support = LoadArray(self, support_path)
-			except:
-				msg = "Could not load array from: \n"+ support_path + "\nPlease check the path."
-				dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-				dlg.ShowModal()
-				dlg.Destroy()
-				self.pipeline_started = False
-				return
-		mask_path = pipelineitem.mask.objectpath.GetValue()
-		try:
-			self.mask = LoadArray(self, mask_path)
-			self.mask[:] = WrapArray(self.mask).copy()
-		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
-		try:
-			from ..lib.prfftw import lorentzftfill
-			if self.psf is None:
-				self.psf = numpy.array( self.seqdata, copy=True, dtype=numpy.cdouble)
-				lorentzftfill(self.psf,gammaHWHM)
-		except MemoryError:
-			msg = "Could not load PSF array. Insufficient memory."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			return
-		if (not (self.expdata.shape == self.support.shape and self.expdata.shape == self.mask.shape and self.expdata.shape == self.psf.shape)) == True:
-			msg = "Array dimensions are inconsistent."
-			dlg = wx.MessageDialog(self, msg, "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.seqdata = None
-			try:
-				self.visual_amp_real = None
-			except:
-				pass
-			try:
-				self.visual_amp_recip = None
-			except:
-				pass
-			try:
-				self.visual_amp_support = None
-			except:
-				pass
-			return
-		startiter = int(pipelineitem.start_iter)
-		if startiter == 0 and (self.visual_amp_real is not None or self.visual_support is not None or self.visual_amp_recip is not None):
-			if self.expdata.shape[2] == 1:
-				PrepareVisualisation2D(self,pipelineitem)
+				self.cs_relax = 0
+			self.gc_phasemax = float(self.pipelineitem.gc_phasemax.value.GetValue())
+			self.gc_phasemin = float(self.pipelineitem.gc_phasemin.value.GetValue())
+			self.qx = float(self.pipelineitem.qx.value.GetValue())
+			self.qy = float(self.pipelineitem.qy.value.GetValue())
+			self.qz = float(self.pipelineitem.qz.value.GetValue())
+			self.sigma = float(self.pipelineitem.sigma.value.GetValue())
+			self.frac = float(self.pipelineitem.frac.value.GetValue())
+			if self.pipelineitem.chkbox_reweight.GetValue() == True:
+				self.reweightiter = int(self.pipelineitem.reweightiter.value.GetValue())
 			else:
-				PrepareVisualisation(self,pipelineitem)
-def Sequence_HIOMaskPC(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		beta = float(pipelineitem.beta.value.GetValue())
-		niterrlpre = int(pipelineitem.niterrlpre.value.GetValue())
-		niterrl = int(pipelineitem.niterrl.value.GetValue())
-		niterrlinterval = int(pipelineitem.niterrlinterval.value.GetValue())
-		accel = int(pipelineitem.accel.value.GetValue())
-		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
-		zex =  int(pipelineitem.zedims[0].value.GetValue())
-		zey =  int(pipelineitem.zedims[1].value.GetValue())
-		zez =  int(pipelineitem.zedims[2].value.GetValue())
-		if pipelineitem.chkbox_reset_gamma.GetValue() == True:
-			reset_gamma = 1
+				self.reweightiter = -1
+			self.numsoiter = int(self.pipelineitem.nsoiter.value.GetValue())
+			self.dtaumax = float(self.pipelineitem.dtaumax.value.GetValue())
+			self.dtaumin = float(self.pipelineitem.dtaumin.value.GetValue())
+			self.psiexitratio = float(self.pipelineitem.psiexitratio.value.GetValue())
+			self.psiexiterror = float(self.pipelineitem.psiexiterror.value.GetValue())
+			self.psiresetratio = float(self.pipelineitem.psiresetratio.value.GetValue())
+			self.taumax = float(self.pipelineitem.taumax.value.GetValue())
+			self.alpha = 1.0
+			self.RSConst =  self.pipelineitem.rbrs.GetStringSelection()
+			if self.LoadTmp():
+				self.parent.pipeline_started = False
+				return
+			self.StartPhasing()
+	def LoadTmp(self):
+		try:
+			from ..lib.prfftw import gaussian_fill
+			self.parent.temparray = NewArray(self, *self.parent.support.shape)
+			self.parent.temparray2 = NewArray(self, *self.parent.support.shape)
+			gaussian_fill(self.parent.temparray, self.sigma)
+			self.wrap(self.parent.temparray, 1)
+		except:
+			msg = "Insufficient memory for temporary arrays."
+			self.MsgDlg(msg)
+			return True
 		else:
-			reset_gamma = 0
-		def threadHIOMaskPC(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting HIO Mask PC Algorithm...")
-			self.thread_register.put(1)
-			HIOMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadHIOMaskPC, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-def Sequence_ERMaskPC(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		niterrlpre = int(pipelineitem.niterrlpre.value.GetValue())
-		niterrl = int(pipelineitem.niterrl.value.GetValue())
-		niterrlinterval = int(pipelineitem.niterrlinterval.value.GetValue())
-		accel = int(pipelineitem.accel.value.GetValue())
-		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
-		zex =  int(pipelineitem.zedims[0].value.GetValue())
-		zey =  int(pipelineitem.zedims[1].value.GetValue())
-		zez =  int(pipelineitem.zedims[2].value.GetValue())
-		if pipelineitem.chkbox_reset_gamma.GetValue() == True:
-			reset_gamma = 1
-		else:
-			reset_gamma = 0
-		def threadERMaskPC(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting ER Mask PC Algorithm...")
-			self.thread_register.put(1)
-			ERMaskPC(self, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadERMaskPC, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-def Sequence_HPRMaskPC(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		beta = float(pipelineitem.beta.value.GetValue())
-		niterrlpre = int(pipelineitem.niterrlpre.value.GetValue())
-		niterrl = int(pipelineitem.niterrl.value.GetValue())
-		niterrlinterval = int(pipelineitem.niterrlinterval.value.GetValue())
-		accel = int(pipelineitem.accel.value.GetValue())
-		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
-		zex =  int(pipelineitem.zedims[0].value.GetValue())
-		zey =  int(pipelineitem.zedims[1].value.GetValue())
-		zez =  int(pipelineitem.zedims[2].value.GetValue())
-		if pipelineitem.chkbox_reset_gamma.GetValue() == True:
-			reset_gamma = 1
-		else:
-			reset_gamma = 0
-		def threadHPRMaskPC(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting HPR Mask PC Algorithm...")
-			self.thread_register.put(1)
-			HPRMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadHPRMaskPC, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
-def Sequence_RAARMaskPC(\
-	self,
-	pipelineitem
-	):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 2: return;
-		startiter = int(pipelineitem.start_iter)
-		numiter = int(pipelineitem.niter.value.GetValue())
-		beta = float(pipelineitem.beta.value.GetValue())
-		niterrlpre = int(pipelineitem.niterrlpre.value.GetValue())
-		niterrl = int(pipelineitem.niterrl.value.GetValue())
-		niterrlinterval = int(pipelineitem.niterrlinterval.value.GetValue())
-		accel = int(pipelineitem.accel.value.GetValue())
-		gammaHWHM = float(pipelineitem.gammaHWHM.value.GetValue())
-		zex =  int(pipelineitem.zedims[0].value.GetValue())
-		zey =  int(pipelineitem.zedims[1].value.GetValue())
-		zez =  int(pipelineitem.zedims[2].value.GetValue())
-		if pipelineitem.chkbox_reset_gamma.GetValue() == True:
-			reset_gamma = 1
-		else:
-			reset_gamma = 0
-		def threadRAARMaskPC(self):
-			self.ancestor.GetPage(0).queue_info.put("Starting RAAR Mask PC Algorithm...")
-			self.thread_register.put(1)
-			RAARMaskPC(self, beta, startiter, numiter, niterrlpre, niterrl, niterrlinterval, gammaHWHM, zex, zey, zez, reset_gamma, accel)
-			self.thread_register.get()
-			return
-		self.thread = threading.Thread(target=threadRAARMaskPC, args=(self,))
-		self.thread.daemon = True
-		self.thread.start()
+			return False
+	def UpdateSupport(self):
+		if self.parent.ancestor.GetPage(0).citer_flow[4] > 0:
+			self.parent.ancestor.GetPage(0).queue_info.put("Updating support ...")
+			self.parent.support[:] = numpy.abs(self.parent.seqdata).copy()
+			maxvalue = numpy.abs(self.parent.support).max()
+			self.threshold(self.parent.support, (self.frac*maxvalue), maxvalue, 0.0)
+			self.medianfilter(self.parent.support, self.parent.temparray2, 3,3,3, 0.0)
+			self.wrap(self.parent.support, 1)
+			self.convolve(self.parent.support, self.parent.temparray)
+			self.wrap(self.parent.support, -1)
+			self.rangereplace(self.parent.support, (self.frac*maxvalue), sys.float_info.max, 0.0, 1.0)
+			self.parent.visual_support[:] = numpy.abs(self.parent.support)
+			self.parent.ancestor.GetPage(0).queue_info.put("... done.")
+	def UpdateVisualSupport(self):
+			if self.parent.ancestor.GetPage(0).citer_flow[4] > 0:
+				wx.CallAfter(self.parent.ancestor.GetPage(1).UpdateSupport,)
+	def GetIterVars(self, fstartiter, fnumiter, ii, fcycle):
+			fsw_startiter = fstartiter + (ii * fcycle)
+			if  fnumiter <  ((ii+1) * fcycle):
+				fsw_numiter =  fnumiter - (ii * fcycle)
+			else:
+				fsw_numiter = fcycle
+			return fsw_startiter, fsw_numiter
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting shrink wrap algorithm using "+self.RSConst +"..." )
+		self.parent.thread_register.put(1)
+		IterLoops = (self.numiter + self.cycle - 1)//self.cycle
+		if self.RSConst == 'HIO':
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				HIO(self.parent, self.beta, sw_startiter, sw_numiter)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		if self.RSConst == 'PCHIO':
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				PCHIO(self.parent, self.beta, sw_startiter, sw_numiter, self.phasemax, self.phasemin)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		if self.RSConst == 'PGCHIO':
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				PGCHIO(self.parent, self.beta, sw_startiter, sw_numiter, self.gc_phasemax, self.gc_phasemin, self.qx, self.qy, self.qz)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		if self.RSConst == 'HIOMask':
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				HIOMask(self.parent, self.beta, sw_startiter, sw_numiter, 0)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		if self.RSConst == 'HIOPlus':
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				HIOPlus(self.parent, self.beta, sw_startiter, sw_numiter)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		if self.RSConst == 'ER':
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				ER(self.parent, sw_startiter, sw_numiter)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		if self.RSConst == 'HPR':
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				HPR(self.parent, self.beta, sw_startiter, sw_numiter,0)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		if self.RSConst == 'RAAR':
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				RAAR(self.parent, self.beta, sw_startiter, sw_numiter,0)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		if self.RSConst == 'CSHIO':
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				CSHIO(self.parent, self.beta, sw_startiter, sw_numiter, self.cs_p, self.cs_epsilon, self.cs_epsilon_min, self.cs_d, self.cs_eta, self.cs_relax)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		if self.RSConst == 'SO2D':
+			alpha1,beta1 = self.alpha,self.beta
+			for i in range( IterLoops ):
+				sw_startiter, sw_numiter = self.GetIterVars(self.startiter, self.numiter, i, self.cycle)
+				alpha1,beta1 = SO2D(self.parent, alpha1, beta1, sw_startiter, sw_numiter, self.numsoiter, self.reweightiter, self.dtaumax, self.dtaumin, self.psiexitratio, self.psiexiterror, self.psiresetratio, self.taumax)
+				if self.parent.ancestor.GetPage(0).citer_flow[1] == 2:
+					break
+				self.UpdateSupport()
+				self.UpdateVisualSupport()
+		self.parent.thread_register.get()
+class Sequence_SO2D(SequenceBaseMask):
+	def __init__(self, parent, pipelineitem):
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
+		if parent.pipeline_started == True:
+			if parent.citer_flow[1] == 2: return;
+			self.beta = float(self.pipelineitem.beta.value.GetValue())
+			self.startiter = int(self.pipelineitem.start_iter)
+			self.numiter = int(self.pipelineitem.niter.value.GetValue())
+			self.numsoiter = int(self.pipelineitem.nsoiter.value.GetValue())
+			if self.pipelineitem.chkbox_reweight.GetValue() == True:
+				self.reweightiter = int(self.pipelineitem.reweightiter.value.GetValue())
+			else:
+				self.reweightiter = -1
+			self.dtaumax = float(self.pipelineitem.dtaumax.value.GetValue())
+			self.dtaumin = float(self.pipelineitem.dtaumin.value.GetValue())
+			self.psiexitratio = float(self.pipelineitem.psiexitratio.value.GetValue())
+			self.psiexiterror = float(self.pipelineitem.psiexiterror.value.GetValue())
+			self.psiresetratio = float(self.pipelineitem.psiresetratio.value.GetValue())
+			self.taumax = float(self.pipelineitem.taumax.value.GetValue())
+			self.alpha = 1.0
+			self.StartPhasing()
+	def ThreadAlg(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Starting SO2D Algorithm...")
+		self.parent.thread_register.put(1)
+		SO2D(self.parent, self.alpha, self.beta, self.startiter, self.numiter, self.numsoiter, self.reweightiter, self.dtaumax, self.dtaumin, self.psiexitratio, self.psiexiterror, self.psiresetratio, self.taumax)
+		self.parent.thread_register.get()
