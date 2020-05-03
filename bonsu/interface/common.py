@@ -492,7 +492,7 @@ class StaticTextNew(wx.StaticText):
 		else:
 			self.SetToolTip(string)
 class TextCtrlNew(wx.TextCtrl):
-	def __init__(self, parent, id=wx.ID_ANY, value="", style=wx.ALIGN_LEFT, size=(-1,-1)):
+	def __init__(self, parent, id=wx.ID_ANY, value="", style=wx.ALIGN_LEFT|wx.TE_PROCESS_ENTER, size=(-1,-1)):
 		wx.TextCtrl.__init__(self, parent, id, value=value, style=style, size=size)
 	def SetToolTipNew(self, string):
 		if IsNotWX4():
@@ -865,6 +865,8 @@ class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ListCtrlAutoWidthMixin):
 		bmpchk = getpipelineok24Bitmap()
 		bmpunchk = getpipelineignore24Bitmap()
 		CheckListCtrlMixin.__init__(self,check_image=bmpchk,uncheck_image=bmpunchk, imgsz=bmpsize)
+	def CheckItem(self, idx, check=True):
+		CheckListCtrlMixin.CheckItem(self, idx, check)
 class CustomAboutDialog(wx.Dialog):
 	def __init__(self, parent, info):
 		wx.Dialog.__init__(self, parent, title="About Bonsu", size=(460,300))

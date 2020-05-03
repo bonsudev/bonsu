@@ -14,6 +14,11 @@ doi:10.1107/S0021889812026751
 HISTORY
 ============
 
+Version 3.2.1
+
+	+ Compatibility with wxPython 4.1.0
+	* Minor interface improvements and bug fixes.
+
 Version 3.2.0
 
 	+ Custom algorithm design interface.

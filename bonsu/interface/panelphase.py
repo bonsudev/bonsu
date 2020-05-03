@@ -73,7 +73,6 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
 		self.splitter = wx.SplitterWindow(self, style=wx.SP_NOBORDER | wx.SP_NO_XP_THEME)
-		self.splitter.SetSashSize(10)
 		self.splitter.SetMinimumPaneSize(400)
 		self.panel1 = wx.Panel(self.splitter,  style=wx.NO_BORDER)
 		self.panel2 = wx.Panel(self.splitter,  style=wx.NO_BORDER)

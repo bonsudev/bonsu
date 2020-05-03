@@ -143,7 +143,8 @@ void Hfit
 	double Htmp[2][2] = {{0.0}}; 
 	double mintaul = 0.0;
 	double r = 0.0;
-	int i,j,k, imin;
+	int i,j,k;
+	int imin = 0;
 	
 	
 	for( i=0; i<niter; i++)
