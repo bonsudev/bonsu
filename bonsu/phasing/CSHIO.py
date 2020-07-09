@@ -36,6 +36,7 @@ class CSHIO(PhaseAbstract):
 		self.cs_d = 2.0
 		self.cs_eta = 100.0
 		self.relax = 0
+		self.__narrays__ = 7
 	def SetPnorm(self, p):
 		"""
 		Set p-norm of the Lebesgue space.

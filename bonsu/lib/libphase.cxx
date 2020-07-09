@@ -254,7 +254,7 @@ void Norm2array
 	*norm2 = sqrt( *norm2 );
 }
 
-void FFTPlan
+int FFTPlan
 (
 	fftw_plan* torecip,
 	fftw_plan* toreal,
@@ -269,7 +269,41 @@ void FFTPlan
 	(fftw_complex*) data, (fftw_complex*) data, -1, FFTW_MEASURE);
 	if (torecip == NULL || toreal == NULL)
 	{
-	printf("FFTWPlan: could not create plan");
+	return 1;
+	}
+	else
+	{
+	return 0;
+	}
+}
+
+int FFTPlanPair
+(
+	fftw_plan* torecip,
+	fftw_plan* toreal,
+	double* data1,
+	double* data2,
+	int32_t* nn,
+	int32_t ndim
+)
+{
+	int  dist = (((fftw_complex*) data2) - ((fftw_complex*) data1));
+	*torecip = fftw_plan_many_dft(ndim, (int32_t*) nn, 2,
+		(fftw_complex*) data1, NULL, 1, dist,
+		(fftw_complex*) data1, NULL, 1, dist,
+		+1, FFTW_MEASURE);
+	*toreal = fftw_plan_many_dft(ndim, (int32_t*) nn, 2,
+		(fftw_complex*) data1, NULL, 1, dist,
+		(fftw_complex*) data1, NULL, 1, dist,
+		-1, FFTW_MEASURE);
+	
+	if (torecip == NULL || toreal == NULL)
+	{
+	return 1;
+	}
+	else
+	{
+	return 0;
 	}
 }
 
@@ -289,6 +323,28 @@ void FFTStride
 	{
 		data[2*i] *= inv_sqrt_n;
 		data[2*i+1] *= inv_sqrt_n;
+	}
+}
+
+void FFTStridePair
+(
+	double* data1,
+	double* data2,
+	int32_t* nn,
+	fftw_plan* plan
+)
+{
+	double inv_sqrt_n;
+	int64_t i;
+	int64_t len = (int64_t) nn[0] * nn[1] * nn[2];
+	fftw_execute( *plan );
+	inv_sqrt_n = 1.0 / sqrt((double) len);
+	for(i=0; i<len; i++)
+	{
+		data1[2*i] *= inv_sqrt_n;
+		data1[2*i+1] *= inv_sqrt_n;
+		data2[2*i] *= inv_sqrt_n;
+		data2[2*i+1] *= inv_sqrt_n;
 	}
 }
 

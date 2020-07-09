@@ -84,7 +84,7 @@ def OnClickStartAction(self, event):
 					try:
 						tmp_npy_array = LoadArray(self, tmp_npy_array_path)
 					except:
-						dlg = wx.MessageDialog(self, "Could not load array for sequence."+os.linesep+"Please check the input fields.", "Pipeline Message", wx.OK)
+						dlg = wx.MessageDialog(self, "Could not load array for sequence."+os.linesep+"Please check the log.", "Pipeline Message", wx.OK)
 						dlg.ShowModal()
 						dlg.Destroy()
 						clean_init = 1

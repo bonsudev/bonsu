@@ -39,6 +39,7 @@ def GetVirtualMemory():
 	WINDOWS = platform.startswith("win")
 	LINUX = platform.startswith("linux")
 	MACOS = platform.startswith("darwin")
+	AIX = platform.startswith("aix")
 	if WINDOWS:
 		stat = MemoryStatusEx()
 		ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))

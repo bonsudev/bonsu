@@ -148,6 +148,8 @@ int convolve2(double* indata1, double* indata2, int32_t ndim, int32_t* dims);
 
 int convolve_nomem2(double* indata1, double* indata2, int32_t ndim, int32_t* dims, double* data1, double* data2, fftw_plan* torecip, fftw_plan* toreal);
 
+int convolve_nomem3(double* indata1, double* indata2, int32_t ndim, int32_t* dims, double* data1, double* data2, fftw_plan* torecip, fftw_plan* toreal);
+
 int convolve(double* indata1, double* indata2, int32_t ndim, int32_t* dims);
 
 void convolve_nomem(double* data1, double* data2, int32_t ndim, int32_t* nn, fftw_plan* torecip, fftw_plan* toreal);
@@ -310,9 +312,13 @@ void ConstantArray(double* data, int32_t* nn, double real, double imag);
  
 void Norm2array(double* data, int32_t* nn, double* norm2);
  
-void FFTPlan(fftw_plan* torecip, fftw_plan* toreal, double* data, int32_t* nn, int32_t ndim);
+int FFTPlan(fftw_plan* torecip, fftw_plan* toreal, double* data, int32_t* nn, int32_t ndim);
+
+int FFTPlanPair(fftw_plan* torecip, fftw_plan* toreal, double* data1, double* data2, int32_t* nn, int32_t ndim);
  
 void FFTStride(double* data, int32_t* nn, fftw_plan* plan);
+
+void FFTStridePair(double* data1, double* data2, int32_t* nn, fftw_plan* plan);
  
 void SumOfSquares(double* data, int32_t* nn, double* sos);
  

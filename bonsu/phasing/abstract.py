@@ -23,6 +23,8 @@ import wx
 from math import sqrt
 from time import sleep
 from ..operations.loadarray import NewArray
+from ..operations.loadarray import _NewArrayPair, NewArrayPair
+from ..operations.memory import GetVirtualMemory
 from ..lib.prfftw import fftw_create_plan
 from ..lib.prfftw import fftw_destroy_plan
 from ..lib.prfftw import fftw_stride
@@ -45,6 +47,7 @@ class PhaseAbstract():
 		self.startiter = 0
 		self.numiter = 0
 		self.nthreads = 1
+		self.__narrays__ = 5
 		if self.parent != None:
 			self.seqdata = parent.seqdata
 			self.expdata = parent.expdata
@@ -126,20 +129,42 @@ class PhaseAbstract():
 		"""
 		Prepare algorithm.
 		"""
+		if self.MemoryIsShort():
+			return True
 		if self.parent != None:
 			self.rho_m1 = NewArray(self.parent, *self.seqdata.shape)
 		else:
 			self.rho_m1 = numpy.empty_like(self.seqdata)
 			self.SetResidual()
 		self.SetDimensions()
+		return False
+	def PrepareCustom(self):
+		return self.Prepare2()
 	def Prepare2(self):
 		"""
 		Prepare algorithm using FFTW python interface.
 		"""
-		self.Prepare()
+		if self.Prepare():
+			return True
 		self.SetSOS()
 		if self.plan == None:
 			self.NewPlan()
+		return False
+	def MemoryIsShort(self):
+		bytes1 = self.seqdata.size*self.seqdata.dtype.itemsize
+		mbytes = bytes1 * self.__narrays__
+		mavailbytes = GetVirtualMemory()
+		mmsg = "Insufficient memory. Halting. %d bytes required. %d bytes available."%(mbytes,mavailbytes)
+		if mbytes > mavailbytes:
+			if self.parent != None:
+				self.parent.ancestor.GetPage(0).queue_info.put(mmsg)
+				self.parent.ancestor.GetPage(0).OnClickStop(None)
+			else:
+				self.citer_flow[1] = 2
+				print(mmsg)
+			return True
+		else:
+			return False
 	def SetPlan(self, plan):
 		self.plan = plan
 	def NewPlan(self, flag=FFTW_MEASURE):
@@ -293,10 +318,11 @@ class PhaseAbstract():
 		"""
 		Start the reconstruction process.
 		"""
-		if self.plan == None:
-			self.Algorithm()
-		else:
-			self.Phase()
+		if self.citer_flow[1] == 0:
+			if self.plan == None:
+				self.Algorithm()
+			else:
+				self.Phase()
 	def Stop(self):
 		"""
 		Stop the reconstruction process.
@@ -326,6 +352,7 @@ class PhaseAbstractPC(PhaseAbstract):
 		self.ze = [0,0,0]
 		self.reset_gamma = 0
 		self.accel = 1
+		self.__narrays__ = 14
 	def SetResidualRL(self):
 		self.residualRL = numpy.zeros(self.numiter, dtype=numpy.double)
 	def SetPSF(self, psf):
@@ -409,13 +436,15 @@ class PhaseAbstractPC(PhaseAbstract):
 	def SetAccel(self, accel):
 		self.accel = accel
 	def Prepare(self):
+		if self.MemoryIsShort():
+			return
 		self.niterrlpretmp = self.niterrlpre
 		self.nn=numpy.asarray( self.seqdata.shape, numpy.int32 )
 		self.ndim=int(self.seqdata.ndim)
 		self.nn2 = numpy.asarray( self.seqdata.shape, numpy.int32 )
-		self.nn2[0] = self.nn[0] + 2*(self.nn[0]//2)
-		self.nn2[1] = self.nn[1] + 2*(self.nn[1]//2)
-		self.nn2[2] = self.nn[2] + 2*(self.nn[2]//2)
+		self.nn2[0] = self.nn[0] + 2*(self.nn[0]//8)
+		self.nn2[1] = self.nn[1] + 2*(self.nn[1]//8)
+		self.nn2[2] = self.nn[2] + 2*(self.nn[2]//8)
 		if self.nn[0] == 1: self.nn2[0] = self.nn[0];
 		if self.nn[1] == 1: self.nn2[1] = self.nn[1];
 		if self.nn[2] == 1: self.nn2[2] = self.nn[2];
@@ -426,8 +455,7 @@ class PhaseAbstractPC(PhaseAbstract):
 			self.pca_Idm_iter = NewArray(self.parent, *self.seqdata.shape)
 			self.pca_Idmdiv_iter = NewArray(self.parent, *self.seqdata.shape)
 			self.pca_IdmdivId_iter = NewArray(self.parent, *self.seqdata.shape)
-			self.tmpdata1 = NewArray(self.parent, self.nn2[0],self.nn2[1],self.nn2[2])
-			self.tmpdata2 = NewArray(self.parent, self.nn2[0],self.nn2[1],self.nn2[2])
+			self.tmpdata1,self.tmpdata2 = NewArrayPair(self.parent, self.nn2[0],self.nn2[1],self.nn2[2])
 			self.updatelog2 = self._updatelog2a
 		else:
 			self.rho_m1 = numpy.empty_like(self.seqdata)
@@ -436,8 +464,7 @@ class PhaseAbstractPC(PhaseAbstract):
 			self.pca_Idm_iter = numpy.empty_like(self.seqdata)
 			self.pca_Idmdiv_iter = numpy.empty_like(self.seqdata)
 			self.pca_IdmdivId_iter = numpy.empty_like(self.seqdata)
-			self.tmpdata1 = numpy.empty(self.nn2, dtype=numpy.cdouble, order='C')
-			self.tmpdata2 = numpy.empty(self.nn2, dtype=numpy.cdouble, order='C')
+			self.tmpdata1,self.tmpdata2 = _NewArrayPair(self.nn2[0],self.nn2[1],self.nn2[2])
 			self.updatelog2 = self._updatelog2b
 			self.SetResidual()
 			self.SetResidualRL()

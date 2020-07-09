@@ -1918,6 +1918,99 @@ PyObject* prfftw_gaussian_filter(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+int convolve_nomem3(double* indata1, double* indata2, int32_t ndim, int32_t* dims, double* data1, double* data2, fftw_plan* torecip, fftw_plan* toreal)
+{
+	int iib, ii, i, j, k;
+	int len;
+	double val1[2] = {0.0,0.0};
+	double val2[2] = {0.0,0.0};
+	int32_t nn[3] = {dims[0], dims[1], dims[2]};
+	int32_t nnh[3] = {(dims[0] / 8), (dims[1] / 8), (dims[2] / 8)};
+	int32_t nn2[3] = {0,0,0};
+	nn2[0] = dims[0] + 2*(dims[0]/8);
+	nn2[1] = dims[1] + 2*(dims[1]/8);
+	nn2[2] = dims[2] + 2*(dims[2]/8);
+	if( dims[0] == 1)
+	{
+		nn2[0] = dims[0];
+	}
+	if( dims[1] == 1)
+	{
+		nn2[1] = dims[1];
+	}
+	if( dims[2] == 1)
+	{
+		nn2[2] = dims[2];
+	}
+	len = nn2[0] * nn2[1] * nn2[2];
+	for(i=0;i<nn2[0]; i++)
+	{
+		for(j=0;j<nn2[1]; j++)
+		{
+			for(k=0;k<nn2[2]; k++)
+			{
+				iib = (k+nn2[2]*(j+nn2[1]*i));
+				data1[2*iib] = 0.0;
+				data1[2*iib+1] = 0.0;
+				data2[2*iib] = 0.0;
+				data2[2*iib+1] = 0.0;
+			}
+		}
+	}
+	for(i=0;i<nn[0]; i++)
+	{
+		for(j=0;j<nn[1]; j++)
+		{
+			for(k=0;k<nn[2]; k++)
+			{
+				ii = (k+nn[2]*(j+nn[1]*i));
+				iib = ((k+nnh[2])+nn2[2]*((j+nnh[1])+nn2[1]*(i+nnh[0])));
+				data1[2*iib] = indata1[2*ii];
+				data1[2*iib+1] = indata1[2*ii+1];
+				data2[2*iib] = indata2[2*ii];
+				data2[2*iib+1] = indata2[2*ii+1];
+			}
+		}
+	}
+	wrap_array(data1, nn2, 1);
+	wrap_array(data2, nn2, 1);
+	FFTStridePair(data1, data2, nn2, torecip);
+	for(i=0;i<nn2[0]; i++)
+	{
+		for(j=0;j<nn2[1]; j++)
+		{
+			for(k=0;k<nn2[2]; k++)
+			{
+				iib = (k+nn2[2]*(j+nn2[1]*i));
+				val1[0] = data1[2*iib];
+				val1[1] = data1[2*iib+1];
+				val2[0] = data2[2*iib];
+				val2[1] = data2[2*iib+1];
+				data1[2*iib] = (val1[0]*val2[0] - val1[1]*val2[1])*sqrt((double) len);
+				data1[2*iib+1] = (val1[0]*val2[1] + val1[1]*val2[0])*sqrt((double) len);
+			}
+		}
+	}
+	FFTStridePair(data1, data2, nn2, toreal);
+	wrap_array(data1, nn2, -1);
+	wrap_array(data2, nn2, -1);
+	for(i=0;i<nn[0]; i++)
+	{
+		for(j=0;j<nn[1]; j++)
+		{
+			for(k=0;k<nn[2]; k++)
+			{
+				ii = (k+nn[2]*(j+nn[1]*i));
+				iib = ((k+nnh[2])+nn2[2]*((j+nnh[1])+nn2[1]*(i+nnh[0])));
+				indata1[2*ii] = data1[2*iib];
+				indata1[2*ii+1] = data1[2*iib+1];
+			}
+		}
+	}
+	return 0;
+}
+
+
 int convolve_nomem2(double* indata1, double* indata2, int32_t ndim, int32_t* dims, double* data1, double* data2, fftw_plan* torecip, fftw_plan* toreal)
 {
 	int iib, ii, i, j, k;

@@ -37,6 +37,7 @@ class SO2D(PhaseAbstract):
 		self.psiexiterror = 0.01
 		self.psiresetratio = 0.05
 		self.taumax = 2.5
+		self.__narrays__ = 7
 	def _updateloga(self):
 		try:
 			n = self.citer_flow[0]

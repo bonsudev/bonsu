@@ -27,6 +27,12 @@ from sys import exec_prefix
 from distutils.version import StrictVersion
 from distutils.file_util import copy_file
 import numpy
+# Change compiler if needed
+# os.environ["CC"] = "icc"
+# Change fftw3 path if needed
+# fftw_include_path = ''
+from numpy.distutils.system_info import get_info
+fftw_include_path = get_info('fftw3')['include_dirs'][0]
 DEBUG = True
 args = argv[1:]
 if args[0].startswith('bdist_wheel'):
@@ -99,7 +105,7 @@ else:
 	data_files=[]
 	modprfftw_lib = ['fftw3']
 modprfftw = Extension('prfftw',
-					include_dirs=['include', numpy.get_include(), os.path.join(numpy.get_include(), 'numpy')], # + get_info('fftw3')['include_dirs'],
+					include_dirs=['include', numpy.get_include(), os.path.join(numpy.get_include(), 'numpy'), fftw_include_path],
 					libraries=modprfftw_lib,
 					extra_compile_args = [debug_compile_args],
 					sources = ['bonsu/lib/prfftwmodule.cxx', 'bonsu/lib/prfftwhiomask.cxx', 'bonsu/lib/prfftwhio.cxx', 'bonsu/lib/libphase.cxx',

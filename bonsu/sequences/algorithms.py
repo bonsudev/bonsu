@@ -546,7 +546,7 @@ class SequenceBase():
 				numpy.sqrt(self.parent.expdata, self.parent.expdata)
 			self.parent.expdata[:] = WrapArray(self.parent.expdata).copy()
 		except:
-			msg = "Could not load array from: \n"+ self.expdata_path + "\nPlease check the path."
+			msg = "Could not load array from: \n"+ self.expdata_path + "\nPlease check the log."
 			self.MsgDlg(msg)
 			return True
 		else:
@@ -563,7 +563,7 @@ class SequenceBase():
 			try:
 				self.parent.support = LoadArray(self.parent, self.support_path)
 			except:
-				msg = "Could not load array from: \n"+ self.support_path + "\nPlease check the path."
+				msg = "Could not load array from: \n"+ self.support_path + "\nPlease check the log."
 				self.MsgDlg(msg)
 				return True
 			else:
@@ -636,7 +636,7 @@ class SequenceBaseMask(SequenceBase):
 			self.parent.mask = LoadArray(self.parent, self.mask_path)
 			self.parent.mask[:] = WrapArray(self.parent.mask).copy()
 		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the path."
+			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the log."
 			self.MsgDlg(msg)
 			return True
 		else:

@@ -45,6 +45,18 @@ def ArTo3DNpy(array):
 			return array
 	else:
 		raise TypeError
+def ByteAlignedArray(x, y, z, alignment=32, dtype=numpy.cdouble, order='C', type=0):
+	size = x*y*z
+	pad = alignment // numpy.dtype(dtype).itemsize
+	if type == 0:
+		buffer = numpy.zeros(size + pad, dtype=dtype, order=order)
+	else:
+		buffer = numpy.ones(size + pad, dtype=dtype, order=order)
+	offset = (-buffer.ctypes.data % alignment) // numpy.dtype(dtype).itemsize
+	ar_align = buffer[offset:offset+size].reshape(x,y,z)
+	assert (ar_align.ctypes.data % alignment) == 0
+	assert ar_align.flags['C_CONTIGUOUS'] == True
+	return ar_align
 def NameIsMem(name):
 	if name == 'memorysequence' or name == 'memoryprivate':
 		return True
@@ -61,17 +73,43 @@ def NameIsMem(name):
 def NewArray(self,x,y,z, type=0, val=0):
 	try:
 		if type == 0:
-			array = numpy.zeros((x,y,z), dtype=numpy.cdouble, order='C')
+			array = ByteAlignedArray(x,y,z)
 		elif type == 1:
 			if val == 1:
-				array = numpy.ones((x,y,z), dtype=numpy.double, order='C')
+				array = ByteAlignedArray(x,y,z, dtype=numpy.double, type=1)
 			else:
-				array = numpy.zeros((x,y,z), dtype=numpy.double, order='C')
+				array = ByteAlignedArray(x,y,z, dtype=numpy.double)
 	except MemoryError:
 		self.ancestor.GetPage(0).queue_info.put("Could not create array. Insufficient memory.")
 		raise MemoryError
 	else:
 		return array
+def _NewArrayPair(x,y,z, type=0, alignment=32, order='C'):
+	size = x*y*z
+	size2 = size*2
+	if type == 0:
+		dtype=numpy.cdouble
+		pad = alignment // numpy.dtype(dtype).itemsize
+		buffer = numpy.empty(size2 + pad, dtype=dtype, order=order)
+		offset = (-buffer.ctypes.data % alignment) // numpy.dtype(dtype).itemsize
+		ar_align1 = buffer[offset:offset+size].reshape(x,y,z)
+		ar_align2 = buffer[offset+size:offset+size2].reshape(x,y,z)
+	elif type == 1:
+		dtype=numpy.double
+		pad = alignment // numpy.dtype(dtype).itemsize
+		buffer = numpy.empty(size2 + pad, dtype=dtype, order=order)
+		offset = (-buffer.ctypes.data % alignment) // numpy.dtype(dtype).itemsize
+		ar_align1 = buffer[offset:offset+size].reshape(x,y,z)
+		ar_align2 = buffer[offset+size:offset+size2].reshape(x,y,z)
+	return ar_align1,ar_align2
+def NewArrayPair(self,x,y,z, type=0, alignment=32, order='C'):
+	try:
+		ar_align1,ar_align2 = _NewArrayPair(x,y,z, type=type, alignment=alignment, order=order)
+	except MemoryError:
+		self.ancestor.GetPage(0).queue_info.put("Could not create array. Insufficient memory.")
+		raise MemoryError
+	else:
+		return ar_align1,ar_align2
 def LoadArray(self, filename):
 	if NameIsMem(filename):
 		if filename in self.memory:
@@ -85,26 +123,36 @@ def LoadArray(self, filename):
 			numpy.lib.npyio.format.read_magic(f)
 			head = numpy.lib.npyio.format.read_array_header_1_0(f)
 			f.close()
-			shape = head[0]
-			dt = numpy.dtype(numpy.complex128)
-			memsize = dt.itemsize
-			for i in shape:
-				memsize *= i
-			totalmem = GetVirtualMemory()
-			if 2*memsize > totalmem and self.citer_flow[10] == 0:
-				raise MemoryError
 		except:
-			self.ancestor.GetPage(0).queue_info.put("Could not load array. Array is greater than half of the total memory. You can remove this restriction in the main menu.")
-			raise MemoryError
+			self.ancestor.GetPage(0).queue_info.put("Could not load array. Please check the input fields.")
+			self.ancestor.GetPage(4).UpdateLog(None)
+			raise IOError
 		else:
 			try:
-				array = numpy.array(numpy.load(filename), dtype=numpy.cdouble, copy=True, order='C')
+				shape = head[0]
+				dt = numpy.dtype(numpy.complex128)
+				memsize = dt.itemsize
+				for i in shape:
+					memsize *= i
+				totalmem = GetVirtualMemory()
+				if 2*memsize > totalmem and self.citer_flow[10] == 0:
+					self.ancestor.GetPage(0).queue_info.put("Array is greater than half of the total memory. You can remove this restriction in the main menu.")
+					self.ancestor.GetPage(4).UpdateLog(None)
+					raise MemoryError
 			except MemoryError:
-				self.ancestor.GetPage(0).queue_info.put("Could not load array. Insufficient memory.")
 				raise MemoryError
 			else:
-				array = ArTo3DNpy(array)
-				return array
+				try:
+					x,y,z = shape
+					array = ByteAlignedArray(x,y,z)
+					numpy.copyto(array, numpy.load(filename))
+				except MemoryError:
+					self.ancestor.GetPage(0).queue_info.put("Could not load array. Insufficient memory.")
+					self.ancestor.GetPage(4).UpdateLog(None)
+					raise MemoryError
+				else:
+					array = ArTo3DNpy(array)
+					return array
 def LoadCoordsArray(self, filename):
 	if filename == 'memorycoords':
 		if numpy.any(self.coordarray):

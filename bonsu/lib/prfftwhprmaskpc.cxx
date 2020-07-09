@@ -119,7 +119,7 @@ void HPRMaskPC
 	fftw_plan toreal_tmp;
 	
 	Py_BLOCK_THREADS;
-	FFTPlan( &torecip_tmp, &toreal_tmp, tmpdata1, nn2, ndim );
+	FFTPlanPair( &torecip_tmp, &toreal_tmp, tmpdata1, tmpdata2, nn2, ndim );
 	Py_UNBLOCK_THREADS;
 	
 	
@@ -168,7 +168,7 @@ void HPRMaskPC
 				
 				wrap_array(pca_Idm_iter, nn, -1);
 				wrap_array(pca_gamma_ft, nn, -1);
-				convolve_nomem2(pca_Idm_iter, pca_gamma_ft, ndim, nn, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp);
+				convolve_nomem3(pca_Idm_iter, pca_gamma_ft, ndim, nn, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp);
 				wrap_array(pca_Idm_iter, nn, 1);
 				wrap_array(pca_gamma_ft, nn, 1);
 				
@@ -178,7 +178,7 @@ void HPRMaskPC
 				
 				wrap_array(pca_IdmdivId_iter, nn, -1);
 				wrap_array(pca_Idmdiv_iter, nn, -1);
-				convolve_nomem2(pca_IdmdivId_iter, pca_Idmdiv_iter, ndim, nn, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp);
+				convolve_nomem3(pca_IdmdivId_iter, pca_Idmdiv_iter, ndim, nn, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp);
 				wrap_array(pca_IdmdivId_iter, nn, 1);
 				wrap_array(pca_Idmdiv_iter, nn, 1);
 				
@@ -233,7 +233,7 @@ void HPRMaskPC
 			CopySquare(seqdata, pca_inten, nn);
 			wrap_array(pca_inten, nn, -1);
 			wrap_array(pca_gamma_ft, nn, -1);
-			convolve_nomem2(pca_inten, pca_gamma_ft, ndim, nn, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp);
+			convolve_nomem3(pca_inten, pca_gamma_ft, ndim, nn, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp);
 			wrap_array(pca_inten, nn, 1);
 			wrap_array(pca_gamma_ft, nn, 1);
 			MaskedSetPCAmplitudes(seqdata, expdata, pca_inten, mask, nn);
