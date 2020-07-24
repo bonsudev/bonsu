@@ -4,7 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Scripting with Bonsu &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.2 documentation</title>
+    <title>Scripting with Bonsu &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -31,7 +31,7 @@
         <li class="right" >
           <a href="libref-operations.html" title="Library Reference - Phasing Operations"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -128,6 +128,51 @@
 </pre></div>
 </div>
 </div>
+<div class="section" id="custom-algorithms">
+<h2>Custom Algorithms<a class="headerlink" href="#custom-algorithms" title="Permalink to this headline">¶</a></h2>
+<p>Bonsu provides tools to build custom projection algorithms.  To build a custom algorithm, create a script that imports an abstract algorithm class and subclasses the <code class="docutils literal notranslate"><span class="pre">DoIter</span></code> and <code class="docutils literal notranslate"><span class="pre">RSCons</span></code> methods.  <code class="docutils literal notranslate"><span class="pre">DoIter</span></code> is called at each iteration of the algorithm.  It will apply the real-space and Fourier-space constraints.  <code class="docutils literal notranslate"><span class="pre">RSCons</span></code> is a method called by <code class="docutils literal notranslate"><span class="pre">DoIter</span></code> to apply the real-space constraint.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bonsu.phasing.abstract</span> <span class="kn">import</span> <span class="n">PhaseAbstract</span>
+
+<span class="k">class</span> <span class="nc">MyAlgorithm</span><span class="p">(</span><span class="n">PhaseAbstract</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        My custom HIO algorithms</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">DoIter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rho_m1</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[:]</span>
+                <span class="n">fftw_stride</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="p">,</span><span class="n">FFTW_TORECIP</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">SetRes</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">SetAmplitudes</span><span class="p">()</span>
+                <span class="n">fftw_stride</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="p">,</span><span class="n">FFTW_TOREAL</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">citer_flow</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">res</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">sos</span>
+                <span class="n">amp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">)</span>
+                <span class="n">sos1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">amp</span><span class="o">*</span><span class="n">amp</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">RSCons</span><span class="p">()</span>
+                <span class="n">amp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">)</span>
+                <span class="n">sos2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">amp</span><span class="o">*</span><span class="n">amp</span><span class="p">)</span>
+                <span class="n">norm</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">sos1</span><span class="o">/</span><span class="n">sos2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">norm</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[:]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">citer_flow</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">def</span> <span class="nf">RSCons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">realsupport</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">)</span>
+                <span class="n">nosupport</span> <span class="o">=</span> <span class="n">realsupport</span> <span class="o">&lt;</span> <span class="mf">0.5</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[</span><span class="n">nosupport</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho_m1</span><span class="p">[</span><span class="n">nosupport</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[</span><span class="n">nosupport</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span>
+</pre></div>
+</div>
+<p>The custom algorithm is then instantiated as before:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">myalg</span> <span class="o">=</span> <span class="n">MyAlgorithm</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Initialisation of parameters proceeds as before.  To begin reconstruction prepare the algorithm as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">myalg</span><span class="o">.</span><span class="n">PrepareCustom</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Execution then follows as before:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">myalg</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="class-reference">
 <h2>Class Reference<a class="headerlink" href="#class-reference" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="module-bonsu.phasing.abstract">
@@ -144,8 +189,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="bonsu.phasing.abstract.PhaseAbstract.Prepare2">
-<code class="sig-name descname">Prepare2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.Prepare2" title="Permalink to this definition">¶</a></dt>
+<dt id="bonsu.phasing.abstract.PhaseAbstract.PrepareCustom">
+<code class="sig-name descname">PrepareCustom</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.PrepareCustom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prepare algorithm using FFTW python interface.</p>
 </dd></dl>
 
@@ -946,6 +991,7 @@ A negative value implies no reweighting.</p>
   <ul>
 <li><a class="reference internal" href="#">Scripting with Bonsu</a><ul>
 <li><a class="reference internal" href="#core-concepts">Core concepts</a></li>
+<li><a class="reference internal" href="#custom-algorithms">Custom Algorithms</a></li>
 <li><a class="reference internal" href="#class-reference">Class Reference</a><ul>
 <li><a class="reference internal" href="#module-bonsu.phasing.abstract">Abstract Classes</a></li>
 <li><a class="reference internal" href="#module-bonsu.phasing.HIO">Hybrid Input-Output Classes</a></li>
@@ -989,7 +1035,7 @@ A negative value implies no reweighting.</p>
         <li class="right" >
           <a href="libref-operations.html" title="Library Reference - Phasing Operations"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

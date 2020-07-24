@@ -14,6 +14,11 @@ doi:10.1107/S0021889812026751
 HISTORY
 ============
 
+Version 3.3.0
+
+	+ Posix threading and SIMD AVX2 support.
+	* Bug fixes.
+
 Version 3.2.2
 
 	+ Memory management improvements.

@@ -974,6 +974,8 @@ void SO2D
 	
 	fftw_init_threads();
 	fftw_plan_with_nthreads(citer_flow[7]);
+	
+	npthread = citer_flow[7];
 
 	fftw_plan torecip;
 	fftw_plan toreal;

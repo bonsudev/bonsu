@@ -27,58 +27,6 @@
 #include <Python.h>
 #include "prfftwmodule.h"
 
-void RS_PGCHIO
-(
-   double* seqdata,
-   double* rho_m1,
-   double* support,
-   double* tmpdata,
-   int32_t* nn,
-   double beta,
-   double phasemax,
-   double phasemin,
-   double qx,
-   double qy,
-   double qz
-)
-{
-    int64_t i;
-    int64_t ix1;
-    int64_t iy1;
-    int64_t iz1;
-	int32_t ix, iy, iz;
-	int32_t x1, y1, z1;
-	if (qx > 0) {x1 = 1;} else {x1 = -1;}
-	if (qy > 0) {y1 = 1;} else {y1 = -1;}
-	if (qz > 0) {z1 = 1;} else {z1 = -1;}
-	double phase, phaseq; /* in Q vector direction */
-	
-	CopyArray(seqdata, tmpdata, nn);
-	for(iz=0; iz<nn[2]; iz++)
-	{
-		for(iy=0; iy<nn[1]; iy++)
-		{
-			for(ix=0; ix<nn[0]; ix++)
-			{
-				i=((iz)+(nn[2])*((iy)+(nn[1])*(ix)));
-				ix1=((iz)+(nn[2])*((iy)+(nn[1])*(modclip(ix+x1, nn[0] - 1))));
-				iy1=((iz)+(nn[2])*((modclip(iy+y1, nn[1] - 1))+(nn[1])*ix));
-				iz1=((modclip(iz+z1, nn[2] - 1))+(nn[2])*((iy)+(nn[1])*(ix)));
-				phase = atan2(tmpdata[2*i+1], tmpdata[2*i]);
-				/* phase difference in direction of q*/
-				phaseq  = fabs( qx * (phase - atan2(tmpdata[2*ix1+1], tmpdata[2*ix1]) ) +
-								qy * (phase - atan2(tmpdata[2*iy1+1], tmpdata[2*iy1]) ) +
-								qz * (phase - atan2(tmpdata[2*iz1+1], tmpdata[2*iz1]) ) );
-				if ( support[2*i] < 1e-6 || phaseq > phasemax || phaseq < phasemin)
-				{
-					seqdata[2*i] = rho_m1[2*i] - beta*seqdata[2*i];
-					seqdata[2*i+1] = rho_m1[2*i+1] - beta*seqdata[2*i+1];
-				}
-
-			}
-		}
-	}
-}
 
 void PGCHIO
 (
@@ -113,6 +61,8 @@ void PGCHIO
 
 	fftw_init_threads();
 	fftw_plan_with_nthreads(citer_flow[7]);
+	
+	npthread = citer_flow[7];
 
 	fftw_plan torecip;
 	fftw_plan toreal;

@@ -139,11 +139,11 @@ class PhaseAbstract():
 		self.SetDimensions()
 		return False
 	def PrepareCustom(self):
-		return self.Prepare2()
-	def Prepare2(self):
 		"""
 		Prepare algorithm using FFTW python interface.
 		"""
+		return self.Prepare2()
+	def Prepare2(self):
 		if self.Prepare():
 			return True
 		self.SetSOS()

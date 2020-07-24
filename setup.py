@@ -53,6 +53,11 @@ f2_bonsu.writelines(lines)
 f1_bonsu.close()
 f2_bonsu.close()
 from bonsu.interface.bonsu import __version__
+sourcelist = ['bonsu/lib/prfftwmodule.cxx', 'bonsu/lib/prfftwhiomask.cxx', 'bonsu/lib/prfftwhio.cxx',
+										'bonsu/lib/prfftwhioplus.cxx', 'bonsu/lib/prfftwpchiomask.cxx', 'bonsu/lib/prfftwpgchiomask.cxx','bonsu/lib/prfftwer.cxx',
+										'bonsu/lib/prfftwermask.cxx','bonsu/lib/prfftwpoermask.cxx','bonsu/lib/prfftwraar.cxx','bonsu/lib/prfftwhpr.cxx',
+										'bonsu/lib/prfftwermaskpc.cxx','bonsu/lib/prfftwhprmaskpc.cxx','bonsu/lib/prfftwraarmaskpc.cxx','bonsu/lib/prfftwso2d.cxx',
+										'bonsu/lib/prfftwcshio.cxx','bonsu/lib/prfftwhiomaskpc.cxx','bonsu/lib/median.cxx', 'bonsu/lib/blanklinereplace.cxx' ]
 if 'sdist' == args[0]:
 	package_data_dict={'bonsu.licence': ['gpl.txt'], 'bonsu.interface': ['cms.npy'], 'bonsu.image': ['bonsu.ico'], 'bonsu.lib':['prfftwmodule.h'], 'bonsu.macos':['*'], 'bonsu.docs': ['*.*', '_images/*.*', '_images/math/*.*', '_static/*.*']}
 else:
@@ -79,9 +84,19 @@ if platform.startswith('linux'):
 	iconfolder='share/icons/hicolor/48x48/apps'
 	data_files=[('share/applications', ['bonsu/image/bonsu.desktop']), (iconfolder, ['bonsu/image/bonsu.png']), (iconfolder, ['bonsu/image/bonsu.xpm'])]
 	modprfftw_lib = ['fftw3', 'fftw3_threads']
+	sourcelist.append('bonsu/lib/libphase-pthread.cxx')
+	sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
+	if 'sdist' == args[0]:
+		sourcelist.append('bonsu/lib/libphase.cxx')
+		sourcelist.append('bonsu/lib/prfftwrs.cxx')
 elif platform.startswith('win'):
 	data_files=[]
 	modprfftw_lib = ['fftw3']
+	sourcelist.append('bonsu/lib/libphase.cxx')
+	sourcelist.append('bonsu/lib/prfftwrs.cxx')
+	if 'sdist' == args[0]:
+		sourcelist.append('bonsu/lib/libphase-pthread.cxx')
+		sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
 elif platform.startswith('darwin'):
 	if not args[0].startswith('bdist'):
 		binstr = executable
@@ -101,18 +116,24 @@ elif platform.startswith('darwin'):
 	else:
 		data_files=[]
 	modprfftw_lib = ['fftw3', 'fftw3_threads']
+	sourcelist.append('bonsu/lib/libphase.cxx')
+	sourcelist.append('bonsu/lib/prfftwrs.cxx')
+	if 'sdist' == args[0]:
+		sourcelist.append('bonsu/lib/libphase-pthread.cxx')
+		sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
 else:
 	data_files=[]
 	modprfftw_lib = ['fftw3']
+	sourcelist.append('bonsu/lib/libphase.cxx')
+	sourcelist.append('bonsu/lib/prfftwrs.cxx')
+	if 'sdist' == args[0]:
+		sourcelist.append('bonsu/lib/libphase-pthread.cxx')
+		sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
 modprfftw = Extension('prfftw',
 					include_dirs=['include', numpy.get_include(), os.path.join(numpy.get_include(), 'numpy'), fftw_include_path],
 					libraries=modprfftw_lib,
 					extra_compile_args = [debug_compile_args],
-					sources = ['bonsu/lib/prfftwmodule.cxx', 'bonsu/lib/prfftwhiomask.cxx', 'bonsu/lib/prfftwhio.cxx', 'bonsu/lib/libphase.cxx',
-										'bonsu/lib/prfftwhioplus.cxx', 'bonsu/lib/prfftwpchiomask.cxx', 'bonsu/lib/prfftwpgchiomask.cxx','bonsu/lib/prfftwer.cxx',
-										'bonsu/lib/prfftwermask.cxx','bonsu/lib/prfftwpoermask.cxx','bonsu/lib/prfftwraar.cxx','bonsu/lib/prfftwhpr.cxx',
-										'bonsu/lib/prfftwermaskpc.cxx','bonsu/lib/prfftwhprmaskpc.cxx','bonsu/lib/prfftwraarmaskpc.cxx','bonsu/lib/prfftwso2d.cxx',
-										'bonsu/lib/prfftwcshio.cxx','bonsu/lib/prfftwhiomaskpc.cxx','bonsu/lib/median.cxx', 'bonsu/lib/blanklinereplace.cxx' ])
+					sources = sourcelist)
 setup\
 (
 	name='Bonsu',

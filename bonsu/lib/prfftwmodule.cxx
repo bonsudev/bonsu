@@ -26,6 +26,7 @@
 #define NPY_NO_DEPRECATED_API NPY_1_10_API_VERSION
 #include "prfftwmodule.h"
 
+int npthread = 1;
 
 PyObject* prfftw_fft_stride(PyObject *self, PyObject *args)
 {
@@ -114,165 +115,6 @@ PyObject* prfftw_createplan(PyObject *self, PyObject *args)
 	if (plan->torecip == NULL || plan->toreal == NULL){return NULL;};
     PyObject *pyplan = PyCapsule_New(plan, "prfftw.plan", NULL);
     return pyplan;
-}
-
-
-int wrap_array(double* indata, int32_t* nn, int drctn)
-{
-	int ii, i, j, k;
-	int iish;
-	int len = nn[0] * nn[1] * nn[2];
-	int splt[3] = {0,0,0};
-	double* data = (double*) malloc( 2*len * sizeof(double));
-	if (!data)
-	{
-		free(data);
-		return 1;
-	}
-	for(ii=0; ii<len; ii++)
-	{
-		data[2*ii] = indata[2*ii];
-		data[2*ii+1] = indata[2*ii+1];
-	}
-	
-	if( (nn[0] > 1) && (nn[0] % 2  > 0) && (drctn < 0) )
-	{
-		splt[0] = nn[0]/2 +1;
-	}
-	else
-	{
-		splt[0] = nn[0]/2;
-	}
-	if( (nn[1] > 1) && (nn[1] % 2  > 0) && (drctn < 0) )
-	{
-		splt[1] = nn[1]/2 +1;
-	}
-	else
-	{
-		splt[1] = nn[1]/2;
-	}
-	if( (nn[2] > 1) && (nn[2] % 2  > 0) && (drctn < 0) )
-	{
-		splt[2] = nn[2]/2 +1;
-	}
-	else
-	{
-		splt[2] = nn[2]/2;
-	}
-	/* 1 - 8 */
-	for(i=0; i<splt[0]; i++)
-	{
-		for(j=0; j<splt[1]; j++)
-		{
-			for(k=0; k<splt[2]; k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iish = ((nn[2] - splt[2] + k)+nn[2]*((nn[1] - splt[1] + j)+nn[1]*(nn[0] - splt[0] + i)));
-				indata[2*iish] = data[2*ii];
-				indata[2*iish+1] = data[2*ii+1];
-			}
-		}
-	}
-	/* 8 - 1 */
-	for(i=splt[0]; i<(nn[0]); i++)
-	{
-		for(j=splt[1]; j<(nn[1]); j++)
-		{
-			for(k=splt[2]; k<(nn[2]); k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iish = ((k - splt[2])+nn[2]*((j - splt[1])+nn[1]*(i - splt[0])));
-				indata[2*iish] = data[2*ii];
-				indata[2*iish+1] = data[2*ii+1];
-			}
-		}
-	}
-	/* 2 - 7 */
-	for(i=splt[0]; i<(nn[0]); i++)
-	{
-		for(j=0; j<(splt[1]); j++)
-		{
-			for(k=0; k<(splt[2]); k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iish = ((nn[2] - splt[2] + k)+nn[2]*((nn[1] - splt[1] + j)+nn[1]*(i - splt[0])));
-				indata[2*iish] = data[2*ii];
-				indata[2*iish+1] = data[2*ii+1];
-			}
-		}
-	}
-	/* 7 - 2 */
-	for(i=0; i<(splt[0]); i++)
-	{
-		for(j=splt[1]; j<(nn[1]); j++)
-		{
-			for(k=splt[2]; k<(nn[2]); k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iish = ((k - splt[2])+nn[2]*((j - splt[1])+nn[1]*(nn[0] - splt[0] + i)));
-				indata[2*iish] = data[2*ii];
-				indata[2*iish+1] = data[2*ii+1];
-			}
-		}
-	}
-	/* 3 - 6 */
-	for(i=0; i<(splt[0]); i++)
-	{
-		for(j=splt[1]; j<(nn[1]); j++)
-		{
-			for(k=0; k<(splt[2]); k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iish = ((nn[2] - splt[2] + k)+nn[2]*((j - splt[1])+nn[1]*(nn[0] - splt[0] + i)));
-				indata[2*iish] = data[2*ii];
-				indata[2*iish+1] = data[2*ii+1];
-			}
-		}
-	}
-	/* 6 - 3 */
-	for(i=splt[0]; i<(nn[0]); i++)
-	{
-		for(j=0; j<(splt[1]); j++)
-		{
-			for(k=splt[2]; k<(nn[2]); k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iish = ((k - splt[2])+nn[2]*((nn[1] - splt[1] + j)+nn[1]*(i - splt[0])));
-				indata[2*iish] = data[2*ii];
-				indata[2*iish+1] = data[2*ii+1];
-			}
-		}
-	}
-	/* 4 - 5 */
-	for(i=splt[0]; i<(nn[0]); i++)
-	{
-		for(j=splt[1]; j<(nn[1]); j++)
-		{
-			for(k=0; k<(splt[2]); k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iish = ((nn[2] - splt[2] + k)+nn[2]*((j - splt[1])+nn[1]*(i - splt[0])));
-				indata[2*iish] = data[2*ii];
-				indata[2*iish+1] = data[2*ii+1];
-			}
-		}
-	}
-	/* 5 - 4 */
-	for(i=0; i<(splt[0]); i++)
-	{
-		for(j=0; j<(splt[1]); j++)
-		{
-			for(k=splt[2]; k<(nn[2]); k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iish = ((k - splt[2])+nn[2]*((nn[1] - splt[1] + j)+nn[1]*(nn[0] - splt[0] + i)));
-				indata[2*iish] = data[2*ii];
-				indata[2*iish+1] = data[2*ii+1];
-			}
-		}
-	}
-	free(data);
-	return 0;
 }
 
 PyObject* prfftw_wrap(PyObject *self, PyObject *args)
@@ -1780,6 +1622,8 @@ PyObject* prfftw_rangereplace(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+extern void idx2ijk(int64_t idx, int32_t* i, int32_t* j, int32_t* k, int32_t* dims);
+
 void gaussian_fill(PyArrayObject* arg1, double sigma)
 {
 	int i,j,k,ii;
@@ -1916,98 +1760,6 @@ PyObject* prfftw_gaussian_filter(PyObject *self, PyObject *args)
 	fftw_cleanup();
 	Py_INCREF(Py_None);
 	return Py_None;
-}
-
-int convolve_nomem3(double* indata1, double* indata2, int32_t ndim, int32_t* dims, double* data1, double* data2, fftw_plan* torecip, fftw_plan* toreal)
-{
-	int iib, ii, i, j, k;
-	int len;
-	double val1[2] = {0.0,0.0};
-	double val2[2] = {0.0,0.0};
-	int32_t nn[3] = {dims[0], dims[1], dims[2]};
-	int32_t nnh[3] = {(dims[0] / 8), (dims[1] / 8), (dims[2] / 8)};
-	int32_t nn2[3] = {0,0,0};
-	nn2[0] = dims[0] + 2*(dims[0]/8);
-	nn2[1] = dims[1] + 2*(dims[1]/8);
-	nn2[2] = dims[2] + 2*(dims[2]/8);
-	if( dims[0] == 1)
-	{
-		nn2[0] = dims[0];
-	}
-	if( dims[1] == 1)
-	{
-		nn2[1] = dims[1];
-	}
-	if( dims[2] == 1)
-	{
-		nn2[2] = dims[2];
-	}
-	len = nn2[0] * nn2[1] * nn2[2];
-	for(i=0;i<nn2[0]; i++)
-	{
-		for(j=0;j<nn2[1]; j++)
-		{
-			for(k=0;k<nn2[2]; k++)
-			{
-				iib = (k+nn2[2]*(j+nn2[1]*i));
-				data1[2*iib] = 0.0;
-				data1[2*iib+1] = 0.0;
-				data2[2*iib] = 0.0;
-				data2[2*iib+1] = 0.0;
-			}
-		}
-	}
-	for(i=0;i<nn[0]; i++)
-	{
-		for(j=0;j<nn[1]; j++)
-		{
-			for(k=0;k<nn[2]; k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iib = ((k+nnh[2])+nn2[2]*((j+nnh[1])+nn2[1]*(i+nnh[0])));
-				data1[2*iib] = indata1[2*ii];
-				data1[2*iib+1] = indata1[2*ii+1];
-				data2[2*iib] = indata2[2*ii];
-				data2[2*iib+1] = indata2[2*ii+1];
-			}
-		}
-	}
-	wrap_array(data1, nn2, 1);
-	wrap_array(data2, nn2, 1);
-	FFTStridePair(data1, data2, nn2, torecip);
-	for(i=0;i<nn2[0]; i++)
-	{
-		for(j=0;j<nn2[1]; j++)
-		{
-			for(k=0;k<nn2[2]; k++)
-			{
-				iib = (k+nn2[2]*(j+nn2[1]*i));
-				val1[0] = data1[2*iib];
-				val1[1] = data1[2*iib+1];
-				val2[0] = data2[2*iib];
-				val2[1] = data2[2*iib+1];
-				data1[2*iib] = (val1[0]*val2[0] - val1[1]*val2[1])*sqrt((double) len);
-				data1[2*iib+1] = (val1[0]*val2[1] + val1[1]*val2[0])*sqrt((double) len);
-			}
-		}
-	}
-	FFTStridePair(data1, data2, nn2, toreal);
-	wrap_array(data1, nn2, -1);
-	wrap_array(data2, nn2, -1);
-	for(i=0;i<nn[0]; i++)
-	{
-		for(j=0;j<nn[1]; j++)
-		{
-			for(k=0;k<nn[2]; k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iib = ((k+nnh[2])+nn2[2]*((j+nnh[1])+nn2[1]*(i+nnh[0])));
-				indata1[2*ii] = data1[2*iib];
-				indata1[2*ii+1] = data1[2*iib+1];
-			}
-		}
-	}
-	return 0;
 }
 
 
@@ -2322,79 +2074,6 @@ PyObject* prfftw_fft(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-void conj_reflect(double* data, int32_t* nn)
-{
-	int ii, iir, i, j, k;
-	double val1[2] = {0.0,0.0};
-	double val2[2] = {0.0,0.0};
-	for(i=0; i<(nn[0]/2); i++)
-	{
-		for(j=0; j<nn[1]; j++)
-		{
-			for(k=0; k<nn[2]; k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iir = ((nn[2] - k - 1)+nn[2]*((nn[1] - j - 1)+nn[1]*(nn[0] - i - 1)));
-				val1[0] = data[2*ii];
-				val1[1] = data[2*ii+1];
-				val2[0] = data[2*iir];
-				val2[1] = data[2*iir+1];
-				data[2*ii] = val2[0];
-				data[2*ii+1] = -val2[1];
-				data[2*iir] = val1[0];
-				data[2*iir+1] = -val1[1];
-			}
-		}
-	}
-	if ((nn[0] % 2)==1)
-	{
-		i=(nn[0]/2);
-		for(j=0; j<(nn[1]/2); j++)
-		{
-			for(k=0; k<nn[2]; k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iir = ((nn[2] - k - 1)+nn[2]*((nn[1] - j - 1)+nn[1]*(nn[0] - i - 1)));
-				val1[0] = data[2*ii];
-				val1[1] = data[2*ii+1];
-				val2[0] = data[2*iir];
-				val2[1] = data[2*iir+1];
-				data[2*ii] = val2[0];
-				data[2*ii+1] = -val2[1];
-				data[2*iir] = val1[0];
-				data[2*iir+1] = -val1[1];
-			}
-		}
-	}
-	if ((nn[0] % 2)==1 && (nn[1] % 2)==1)
-	{
-		i=(nn[0]/2);
-		j=(nn[1]/2);
-		{
-			for(k=0; k<(nn[2]/2); k++)
-			{
-				ii = (k+nn[2]*(j+nn[1]*i));
-				iir = ((nn[2] - k - 1)+nn[2]*((nn[1] - j - 1)+nn[1]*(nn[0] - i - 1)));
-				val1[0] = data[2*ii];
-				val1[1] = data[2*ii+1];
-				val2[0] = data[2*iir];
-				val2[1] = data[2*iir+1];
-				data[2*ii] = val2[0];
-				data[2*ii+1] = -val2[1];
-				data[2*iir] = val1[0];
-				data[2*iir+1] = -val1[1];
-			}
-		}
-	}
-	if ((nn[0] % 2)==1 && (nn[1] % 2)==1 && (nn[2] % 2)==1)
-	{
-		i=(nn[0]/2);
-		j=(nn[1]/2);
-		k=(nn[2]/2);
-		ii = (k+nn[2]*(j+nn[1]*i));
-		data[2*ii+1] = -data[2*ii+1];
-	}
-}
 
 PyObject* prfftw_conj_reflect(PyObject *self, PyObject *args)
 {

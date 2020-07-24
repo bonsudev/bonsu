@@ -27,26 +27,6 @@
 #include <Python.h>
 #include "prfftwmodule.h"
 
-void RS_ER
-(
-   double* seqdata,
-   double* rho_m1,
-   double* support,
-   int32_t* nn
-)
-{
-	int64_t len =  (int64_t) nn[0] * nn[1] * nn[2];
-    int64_t i;
-
-    for(i=0; i<len; i++)
-	{
-		if ( support[2*i] < 1e-6 )
-		{
-			seqdata[2*i] = 0.0;
-			seqdata[2*i+1] = 0.0;
-		}
-	}
-}
 
 void ER
 (
@@ -73,6 +53,8 @@ void ER
 
 	fftw_init_threads();
 	fftw_plan_with_nthreads(citer_flow[7]);
+	
+	npthread = citer_flow[7];
 
 	fftw_plan torecip;
 	fftw_plan toreal;

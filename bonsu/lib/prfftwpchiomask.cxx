@@ -27,30 +27,6 @@
 #include <Python.h>
 #include "prfftwmodule.h"
 
-void RS_PCHIO
-(
-   double* seqdata,
-   double* rho_m1,
-   double* support,
-   int32_t* nn,
-   double beta,
-   double phasemax,
-   double phasemin
-)
-{
-	int64_t len = (int64_t) nn[0] * nn[1] * nn[2];
-    int64_t i;
-	double phase;
-    for(i=0; i<len; i++)
-	{
-		phase = atan2(seqdata[2*i+1], seqdata[2*i]);
-		if ( support[2*i] < 1e-6 || phase > phasemax || phase < phasemin )
-		{
-			seqdata[2*i] = rho_m1[2*i] - beta*seqdata[2*i];
-			seqdata[2*i+1] = rho_m1[2*i+1] - beta*seqdata[2*i+1];
-		}
-	}
-}
 
 void PCHIO
 (
@@ -81,6 +57,8 @@ void PCHIO
 
 	fftw_init_threads();
 	fftw_plan_with_nthreads(citer_flow[7]);
+	
+	npthread = citer_flow[7];
 
 	fftw_plan torecip;
 	fftw_plan toreal;

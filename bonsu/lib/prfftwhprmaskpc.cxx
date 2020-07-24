@@ -77,6 +77,8 @@ void HPRMaskPC
 
 	fftw_init_threads();
 	fftw_plan_with_nthreads(citer_flow[7]);
+	
+	npthread = citer_flow[7];
 
 	fftw_plan torecip;
 	fftw_plan toreal;
@@ -150,7 +152,7 @@ void HPRMaskPC
 				lorentz_ft_fill(pca_gamma_ft, nn, gammaHWHM);
 				SumArray(pca_gamma_ft, nn, &gamma_sum);
 				ScaleArray(pca_gamma_ft, nn, (1.0/gamma_sum));
-				wrap_array(pca_gamma_ft, nn, 1);
+				wrap_array_nomem(pca_gamma_ft, tmpdata1, nn, 1);
 			}
 			
 			citer_flow[8] = 0;
@@ -166,21 +168,21 @@ void HPRMaskPC
 				CopyArray(pca_Idm_iter, pca_IdmdivId_iter, nn);
 				conj_reflect(pca_IdmdivId_iter, nn);
 				
-				wrap_array(pca_Idm_iter, nn, -1);
-				wrap_array(pca_gamma_ft, nn, -1);
+				wrap_array_nomem(pca_Idm_iter, tmpdata1, nn, -1);
+				wrap_array_nomem(pca_gamma_ft, tmpdata1, nn, -1);
 				convolve_nomem3(pca_Idm_iter, pca_gamma_ft, ndim, nn, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp);
-				wrap_array(pca_Idm_iter, nn, 1);
-				wrap_array(pca_gamma_ft, nn, 1);
+				wrap_array_nomem(pca_Idm_iter, tmpdata1, nn, 1);
+				wrap_array_nomem(pca_gamma_ft, tmpdata1, nn, 1);
 				
 				
 				
 				divide_I_Id_iter(expdata, pca_Idm_iter, mask, pca_Idmdiv_iter, nn);
 				
-				wrap_array(pca_IdmdivId_iter, nn, -1);
-				wrap_array(pca_Idmdiv_iter, nn, -1);
+				wrap_array_nomem(pca_IdmdivId_iter, tmpdata1, nn, -1);
+				wrap_array_nomem(pca_Idmdiv_iter, tmpdata1, nn, -1);
 				convolve_nomem3(pca_IdmdivId_iter, pca_Idmdiv_iter, ndim, nn, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp);
-				wrap_array(pca_IdmdivId_iter, nn, 1);
-				wrap_array(pca_Idmdiv_iter, nn, 1);
+				wrap_array_nomem(pca_IdmdivId_iter, tmpdata1, nn, 1);
+				wrap_array_nomem(pca_Idmdiv_iter, tmpdata1, nn, 1);
 				
 				
 				
@@ -231,11 +233,11 @@ void HPRMaskPC
 		if( (iter - startiter) > startiterRL)
 		{
 			CopySquare(seqdata, pca_inten, nn);
-			wrap_array(pca_inten, nn, -1);
-			wrap_array(pca_gamma_ft, nn, -1);
+			wrap_array_nomem(pca_inten, tmpdata1, nn, -1);
+			wrap_array_nomem(pca_gamma_ft, tmpdata1, nn, -1);
 			convolve_nomem3(pca_inten, pca_gamma_ft, ndim, nn, tmpdata1, tmpdata2, &torecip_tmp, &toreal_tmp);
-			wrap_array(pca_inten, nn, 1);
-			wrap_array(pca_gamma_ft, nn, 1);
+			wrap_array_nomem(pca_inten, tmpdata1, nn, 1);
+			wrap_array_nomem(pca_gamma_ft, tmpdata1, nn, 1);
 			MaskedSetPCAmplitudes(seqdata, expdata, pca_inten, mask, nn);
 		}
 		else
@@ -275,7 +277,7 @@ void HPRMaskPC
 	}
 	
 	
-	wrap_array(pca_gamma_ft, nn, -1);
+	wrap_array_nomem(pca_gamma_ft, tmpdata1, nn, -1);
 	
 	fftw_destroy_plan( torecip_tmp );
 	fftw_destroy_plan( toreal_tmp );

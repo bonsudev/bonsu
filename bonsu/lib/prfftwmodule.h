@@ -44,6 +44,29 @@
 	#define PyString_FromString PyUnicode_FromFormat
 #endif
 
+extern int npthread;
+
+typedef struct _ThreadData{
+	uint32_t id;
+	int64_t idxstart;
+	int64_t idxend;
+	double* ar1;
+	double* ar2;
+	double* ar3;
+	double* ar4;
+	double* ar5;
+	double* ar6;
+	double* ar7;
+	int32_t* nn1;
+	int32_t* nn2;
+	int32_t* nn3;
+	int32_t* nn4;
+	int32_t* nn5;
+	int64_t* len;
+	int intvar1;
+	int intvar2;
+}ThreadData;
+
 PyObject* prfftw_hiomask(PyObject *self, PyObject *args);
 PyObject* prfftw_hio(PyObject *self, PyObject *args);
 PyObject* prfftw_hioplus(PyObject *self, PyObject *args);
@@ -154,9 +177,20 @@ int convolve(double* indata1, double* indata2, int32_t ndim, int32_t* dims);
 
 void convolve_nomem(double* data1, double* data2, int32_t ndim, int32_t* nn, fftw_plan* torecip, fftw_plan* toreal);
 
+inline void idx2ijk(int64_t idx, int* i, int* j, int* k, int32_t* dims)
+{
+	*k	= idx % dims[2];
+	*j	= ((idx - *k)/dims[2]) % dims[1];
+	*i	= ((idx - *k)/dims[2]) / dims[1];
+}
+
 void gaussian_fill(PyObject* arg1, double sigma);
 
 int wrap_array(double* indata, int32_t* nn, int drctn);
+
+int wrap_array_nomem(double* indata, double* tmpdata, int32_t* nn, int drctn);
+
+int wrap_array_nomem_tmppair(double* indata, double* tmpdata1, double* tmpdata2, int32_t* nn, int drctn);
 
 void MedianReplaceVoxel(double* data1, double* data2, int32_t* nn,int32_t k_x, int32_t k_y, int32_t k_z, double maxerr);
 int Compare (const void *X, const void *Y);
