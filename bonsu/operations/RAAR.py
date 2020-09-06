@@ -40,6 +40,7 @@ def RAAR\
 	raar.SetBeta(beta)
 	raar.Prepare()
 	raar.Start()
+	raar.CleanData()
 def RAARMaskPC\
 	(
 	parent,
@@ -68,3 +69,4 @@ def RAARMaskPC\
 	raar.SetBeta(beta)
 	raar.Prepare()
 	raar.Start()
+	raar.CleanData()

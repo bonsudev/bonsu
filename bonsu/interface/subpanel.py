@@ -27,6 +27,7 @@ from ..sequences.functions import *
 from ..sequences.algorithms import *
 from ..operations.loadarray import SaveArray
 from .common import *
+import threading
 if IsNotWX4():
 	from .plot import PlotCanvas, PolyLine, PolyMarker, PlotGraphics
 else:

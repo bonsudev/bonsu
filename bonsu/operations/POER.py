@@ -36,3 +36,4 @@ def POER\
 	er.SetNumiter(numiter)
 	er.Prepare()
 	er.Start()
+	er.CleanData()

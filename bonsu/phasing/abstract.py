@@ -228,6 +228,13 @@ class PhaseAbstract():
 		"""
 		self.nthreads = nthreads
 		self.citer_flow[7] = self.nthreads
+	def CleanData(self):
+		self.seqdata = None
+		self.expdata = None
+		self.support = None
+		self.mask = None
+		self.rho_m1 = None
+		self.rho_m2 = None
 	def SetSeqdata(self,seqdata):
 		"""
 		Set the reconstruction data array.
@@ -469,6 +476,20 @@ class PhaseAbstractPC(PhaseAbstract):
 			self.SetResidual()
 			self.SetResidualRL()
 		self.SetDimensions()
+	def CleanData(self):
+		self.seqdata = None
+		self.expdata = None
+		self.support = None
+		self.mask = None
+		self.rho_m1 = None
+		self.rho_m2 = None
+		self.pca_inten = None
+		self.pca_rho_m1_ft = None
+		self.pca_Idm_iter = None
+		self.pca_Idmdiv_iter = None
+		self.pca_IdmdivId_iter = None
+		self.tmpdata1 = None
+		self.tmpdata2 = None
 	def _updatelog2a(self):
 		try:
 			n = self.citer_flow[8]

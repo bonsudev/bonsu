@@ -32,6 +32,10 @@ def NewInstance(self):
 		panelphase.menu_place_holder.Show()
 		panelphase.memory = {}
 		panelvisual = self.GetChildren()[1].GetPage(1)
+		panelvisual.data = None
+		panelvisual.flat_data = None
+		panelvisual.flat_data2 = None
+		panelvisual.flat_data_phase = None
 		panelvisual.measure_data[0] = None
 		panelvisual.measure_data[1][0] = None
 		panelvisual.measure_data[1][1] = None
@@ -39,6 +43,10 @@ def NewInstance(self):
 		panelvisual.measure_data[3][0] = None
 		panelvisual.measure_data[3][1] = None
 		panelvisual.measure_data[3][2] = None
+		panelscript = self.GetChildren()[1].GetPage(3)
+		for k in panelscript.shell.interp.locals:
+			panelscript.shell.interp.locals[k] = None
+		panelscript.shell.interp.locals = {}
 		try:
 			panelphase.mainlist.DeleteAllItems()
 		except:
@@ -51,6 +59,14 @@ def NewInstance(self):
 			panelphase.seqdata = None
 		except:
 			print( "Could not delete sequence data" )
+		try:
+			panelphase.expdata = None
+		except:
+			print( "Could not delete experiment data" )
+		try:
+			panelphase.mask = None
+		except:
+			print( "Could not delete mask data" )
 		try:
 			panelphase.support= None
 		except:
@@ -88,6 +104,8 @@ def NewInstance(self):
 		except:
 			print( "Could not delete visual reciprocal data phase" )
 		panelphase.compile = 1
+		import gc
+		gc.collect()
 def SaveInstance(self):
 	file_ext = os.path.splitext(self.filename)[1]
 	if file_ext != ".fin":

@@ -2134,7 +2134,6 @@ PyObject* prfftw_blanklinereplace(PyObject *self, PyObject *args)
 
 
 
-
 static PyMethodDef prfftwMethods[] = {
 	{"fftw_stride",  prfftw_fft_stride, METH_VARARGS,
      "FFTW Stride."},

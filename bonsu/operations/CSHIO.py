@@ -50,3 +50,4 @@ def CSHIO\
 	cshio.SetRelax(relax)
 	cshio.Prepare()
 	cshio.Start()
+	cshio.CleanData()

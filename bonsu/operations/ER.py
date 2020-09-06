@@ -36,6 +36,7 @@ def ER\
 	er.SetNumiter(numiter)
 	er.Prepare()
 	er.Start()
+	er.CleanData()
 def ERMask\
 	(
 		parent,
@@ -49,6 +50,7 @@ def ERMask\
 	er.SetNumiter(numiter)
 	er.Prepare()
 	er.Start()
+	er.CleanData()
 def ERMaskPC\
 	(
 	parent,
@@ -75,3 +77,4 @@ def ERMaskPC\
 	er.SetAccel(accel)
 	er.Prepare()
 	er.Start()
+	er.CleanData()

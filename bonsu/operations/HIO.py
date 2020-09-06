@@ -38,6 +38,7 @@ def HIO\
 	hio.SetBeta(beta)
 	hio.Prepare()
 	hio.Start()
+	hio.CleanData()
 def HIOMask\
 	(
 		parent,
@@ -54,6 +55,7 @@ def HIOMask\
 	hio.SetBeta(beta)
 	hio.Prepare()
 	hio.Start()
+	hio.CleanData()
 def HIOPlus\
 	(
 		parent,
@@ -68,6 +70,7 @@ def HIOPlus\
 	hio.SetBeta(beta)
 	hio.Prepare()
 	hio.Start()
+	hio.CleanData()
 def PCHIO\
 	(
 		parent,
@@ -86,6 +89,7 @@ def PCHIO\
 	hio.SetBeta(beta)
 	hio.Prepare()
 	hio.Start()
+	hio.CleanData()
 def PGCHIO\
 	(
 		parent,
@@ -108,6 +112,7 @@ def PGCHIO\
 	hio.SetQ([qx,qy,qz])
 	hio.Prepare()
 	hio.Start()
+	hio.CleanData()
 def HIOMaskPC\
 	(
 	parent,
@@ -136,3 +141,4 @@ def HIOMaskPC\
 	hio.SetBeta(beta)
 	hio.Prepare()
 	hio.Start()
+	hio.CleanData()

@@ -53,4 +53,5 @@ def SO2D\
 	so2d.SetTaumax(taumax)
 	so2d.Prepare()
 	so2d.Start()
+	so2d.CleanData()
 	return so2d.epsilon[2],so2d.epsilon[3]

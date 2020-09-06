@@ -40,6 +40,7 @@ def HPR\
 	hpr.SetBeta(beta)
 	hpr.Prepare()
 	hpr.Start()
+	hpr.CleanData()
 def HPRMaskPC\
 	(
 	parent,
@@ -68,3 +69,4 @@ def HPRMaskPC\
 	hpr.SetBeta(beta)
 	hpr.Prepare()
 	hpr.Start()
+	hpr.CleanData()
