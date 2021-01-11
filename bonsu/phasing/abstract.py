@@ -235,6 +235,10 @@ class PhaseAbstract():
 		self.mask = None
 		self.rho_m1 = None
 		self.rho_m2 = None
+		self.visual_amp_real = None
+		self.visual_amp_recip = None
+		self.visual_phase_real = None
+		self.visual_phase_recip = None
 	def SetSeqdata(self,seqdata):
 		"""
 		Set the reconstruction data array.
@@ -490,6 +494,10 @@ class PhaseAbstractPC(PhaseAbstract):
 		self.pca_IdmdivId_iter = None
 		self.tmpdata1 = None
 		self.tmpdata2 = None
+		self.visual_amp_real = None
+		self.visual_amp_recip = None
+		self.visual_phase_real = None
+		self.visual_phase_recip = None
 	def _updatelog2a(self):
 		try:
 			n = self.citer_flow[8]

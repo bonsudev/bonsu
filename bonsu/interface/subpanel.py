@@ -291,6 +291,7 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 				f = h5py.File(os.path.join(cwd, self.fnames[self.fnamesidx]),'r')
 			except:
 				self.panelphase.ancestor.GetPage(0).queue_info.put("Could not load %s"%self.fnames[-1])
+				self.panelphase.ancestor.GetPage(4).UpdateLog(None)
 			else:
 				value = self.IterateKey("/,entry1,entry_identifier",f)[()]
 				if not numpy.isscalar(value):
@@ -366,6 +367,7 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 			d = self.GetMetaData()
 		except:
 			self.ancestor.GetPage(0).queue_info.put("Could not load record %s"%self.fnames[self.fnamesidx])
+			self.ancestor.GetPage(4).UpdateLog(None)
 		else:
 			self.txtcom_value.ChangeValue(d['command'])
 			self.txtnpoints_value.SetLabel(str(d['npoints']).strip('[]'))
@@ -392,10 +394,16 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 			self.spara_value.SetLabel("%g"%d['spara'])
 			self.sslits_value.SetLabel("(%g, %g)"%(d['sslitsx'],d['sslitsy']))
 			self.dslits_value.SetLabel("(%g, %g)"%(d['dslitsx'],d['dslitsy']))
-			self.expdate_value.SetLabel(d['starttime'].split('T')[0]+" "+d['starttime'].split('T')[1])
+			try:
+				self.expdate_value.SetLabel(str(numpy.char.mod('%s',d['starttime'].decode())).replace('T',' ').replace('Z',''))
+			except(UnicodeDecodeError, AttributeError):
+				self.expdate_value.SetLabel(d['starttime'].replace('T',' ').replace('Z',''))
 			self.expdurat_value.SetLabel("%d hours, %d mins, %d sec"%(d['timehours'],d['timemin'],d['timesec']))
 			self.xkeys = []
-			cmds = d['command'].split(' ')
+			try:
+				cmds = str(numpy.char.mod('%s',d['command'].decode())).split(' ')
+			except (UnicodeDecodeError, AttributeError):
+				cmds = d['command'].split(' ')
 			for word in cmds:
 				if word in self.motors:
 					self.xkeys.append(word)
@@ -455,6 +463,7 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 				imgarraysum = self.IterateKey("/,entry1,instrument,merlin,sum",f)[()]
 			except:
 				self.ancestor.GetPage(0).queue_info.put("Could not load image data from path")
+				self.ancestor.GetPage(4).UpdateLog(None)
 				f.close()
 				return
 		self.n = imgarraysum.ndim
@@ -766,6 +775,10 @@ class LoadNexusPlotDialog(wx.Dialog):
 			return
 		cwd = os.getcwd()
 		try:
+			path = path.decode()
+		except:
+			pass
+		try:
 			shortpath = '/'.join([cwd,path])
 			imageraw = self.parent.LoadImage(shortpath)
 		except:
@@ -774,7 +787,12 @@ class LoadNexusPlotDialog(wx.Dialog):
 			imageraw = self.parent.LoadImage(shortpath)
 		return imageraw
 	def RefreshImage(self, poss):
-		imageraw = self.GetImageData(poss)
+		try:
+			imageraw = self.GetImageData(poss)
+		except:
+			self.ancestor.GetPage(0).queue_info.put("Could not load image from path")
+			self.ancestor.GetPage(4).UpdateLog(None)
+			return
 		self.parent.panelvisual.flat_data[:] = (numpy.abs(imageraw)).transpose(2,1,0).flatten();
 		self.parent.panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(self.parent.panelvisual.flat_data)
 		points = self.parent.panelvisual.image_amp_real.GetPointData()
@@ -795,7 +813,8 @@ class LoadNexusPlotDialog(wx.Dialog):
 			imageraw = self.GetImageData(poss)
 		except:
 			self.ancestor.GetPage(0).queue_info.put("Could not load image from path")
-		imageraw = self.GetImageData(poss)
+			self.ancestor.GetPage(4).UpdateLog(None)
+			return
 		self.parent.SaveImage(imageraw)
 		self.parent.ViewImage()
 	def OnSize(self, event):
@@ -1206,7 +1225,7 @@ class SubPanel_HDF_to_Numpy(wx.Panel):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		title = wx.StaticText(self, label="Convert HDF5 to Numpy array.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.input_filename = TextPanelObject(self, "Input HDF5 File: ", "",150,"HDF files (*.hdf)|*.hdf|HDF5 files (*.h5)|*.h5|All files (*.*)|*.*")
+		self.input_filename = TextPanelObject(self, "Input HDF5 File: ", "",150,"HDF5 files (*.hdf;*.hdf5;*.h5;*.nxs)|*.hdf;*.hdf5;*.h5;*.nxs|HDF5 files (*.h5;*.hdf5)|*.h5;*.hdf5|NXS files (*.nxs)|*.nxs|All files (*.*)|*.*")
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		label = wx.StaticText(self, -1,"HDF Key Path:" , style =wx.ALIGN_RIGHT, size=(150,-1) )
@@ -1235,7 +1254,7 @@ class SubPanel_HDF_to_Numpy(wx.Panel):
 			self.file = h5py.File(self.input_filename.objectpath.GetValue(),'r')
 		except:
 			title = "Sequence " + self.treeitem['name']
-			msg = "Could not load HDF file. Is H5py installed?"
+			msg = "Could not load HDF file. Please check the file name."
 			wx.CallAfter(self.panelphase.UserMessage, title, msg)
 			wx.CallAfter(self.panelphase.ancestor.GetPage(4).UpdateLog, None)
 			return
@@ -1576,7 +1595,12 @@ class KeyDialog(wx.Dialog):
 			#object = object[()]
 			self.object = object
 			self.info.Clear()
-			self.info.AppendText("Data type: "+str(object.dtype.name)+" ,    Byte order: "+str(object.dtype.byteorder)+os.linesep)
+			byteorder = str(object.dtype.byteorder)
+			byteorder = byteorder.replace("=","native")
+			byteorder = byteorder.replace("<","little-endian")
+			byteorder = byteorder.replace(">","big-endian")
+			byteorder = byteorder.replace("|","built-in")
+			self.info.AppendText("Data type: "+str(object.dtype.name)+" ,    Byte order: "+byteorder+os.linesep)
 			self.info.AppendText("Element size: "+str(object.dtype.itemsize)+" ,    Data shape: "+str(object.shape))
 			if self.rb.GetStringSelection() == 'Array':
 				self.dataview.Clear()

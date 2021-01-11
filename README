@@ -14,6 +14,11 @@ doi:10.1107/S0021889812026751
 HISTORY
 ============
 
+Version 3.3.2
+
+	+ Compatibility with h5py 3.x
+	* Bug fixes.
+
 Version 3.3.1
 
 	* Bug fixes.

@@ -1,7 +1,7 @@
 [Desktop Entry]
 Comment=The Interactive Phase Retrieval Suite
 Name=Bonsu
-Version=3.3
+Version=1.0
 Exec=bonsu %f
 Icon=bonsu
 Terminal=false
