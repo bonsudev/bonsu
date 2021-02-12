@@ -33,6 +33,11 @@ if IsNotWX4():
 else:
 	from wx.lib.plot.plotcanvas import PlotCanvas, PolyMarker, PolyLine
 	from wx.lib.plot.polyobjects import PlotGraphics
+class ContextSup:
+	def __enter__(self):
+		pass
+	def __exit__(self, *args):
+		return True
 class SubPanel_NEXUSView(wx.ScrolledWindow):
 	treeitem = {'name':  'Nexus Viewer I16', 'type': 'operpreview'}
 	def sequence(self, selff, pipelineitem):
@@ -78,7 +83,7 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 		vbox.Add(self.axes_fontfactor,0)
 		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 		hboxscan = wx.BoxSizer(wx.HORIZONTAL)
-		self.scanlabel = StaticTextNew(self, label="Scan No.:", style=wx.ALIGN_RIGHT, size=(100,-1) )
+		self.scanlabel = StaticTextNew(self, label="Scan No.:", style=wx.ALIGN_RIGHT, size=(-1,-1) )
 		self.scanno = TextCtrlNew(self, value="",size=(150, -1), style=wx.TE_PROCESS_ENTER)
 		self.scanspin = wx.SpinButton(self, size=(-1,-1))
 		self.scanspin.SetRange(MIN_INT, MAX_INT)
@@ -107,129 +112,129 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 10))
 		hbox_com = wx.BoxSizer(wx.HORIZONTAL)
-		txtcom = StaticTextNew(self, label="Command : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.txtcom_value = wx.TextCtrl(self, -1, value="", size=(450,-1), style=wx.TE_READONLY|wx.TE_DONTWRAP)
+		txtcom = StaticTextNew(self, label="Command : ", style=wx.ALIGN_RIGHT, size=(200,-1))
+		self.txtcom_value = wx.TextCtrl(self, -1, value="", size=(520,-1), style=wx.TE_READONLY|wx.TE_DONTWRAP)
 		hbox_com.Add(txtcom)
 		hbox_com.Add(self.txtcom_value)
 		hbox_npoints = wx.BoxSizer(wx.HORIZONTAL)
-		txtnpoints = StaticTextNew(self, label="No. of points : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		txtnpoints = StaticTextNew(self, label="No. of points : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
 		self.txtnpoints_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
 		hbox_npoints.Add(txtnpoints)
 		hbox_npoints.Add(self.txtnpoints_value)
 		hbox_hkl = wx.BoxSizer(wx.HORIZONTAL)
-		hkl = StaticTextNew(self, label="hkl : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		hkl = StaticTextNew(self, label="hkl : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
 		self.hkl_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
 		hbox_hkl.Add(hkl)
 		hbox_hkl.Add(self.hkl_value)
 		hbox_energy = wx.BoxSizer(wx.HORIZONTAL)
-		energy = StaticTextNew(self, label="energy : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		energy = StaticTextNew(self, label="energy : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
 		self.energy_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
 		hbox_energy.Add(energy)
 		hbox_energy.Add(self.energy_value)
 		hbox_temp = wx.BoxSizer(wx.HORIZONTAL)
-		temp = StaticTextNew(self, label="Temp : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		temp = StaticTextNew(self, label="Temp : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
 		self.temp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
 		hbox_temp.Add(temp)
 		hbox_temp.Add(self.temp_value)
 		hbox_atten = wx.BoxSizer(wx.HORIZONTAL)
-		atten = StaticTextNew(self, label="Transmission : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		atten = StaticTextNew(self, label="Transmission : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
 		self.atten_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
 		hbox_atten.Add(atten)
 		hbox_atten.Add(self.atten_value)
 		hbox_minimirrors = wx.BoxSizer(wx.HORIZONTAL)
-		minimirrors = StaticTextNew(self, label="Mini mirrors : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		minimirrors = StaticTextNew(self, label="Mini mirrors : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
 		self.minimirrors_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
 		hbox_minimirrors.Add(minimirrors)
 		hbox_minimirrors.Add(self.minimirrors_value)
 		hbox_detoffset = wx.BoxSizer(wx.HORIZONTAL)
-		detoffset = StaticTextNew(self, label="Det. offset : ", style=wx.ALIGN_RIGHT, size=(170,-1))
+		detoffset = StaticTextNew(self, label="Det. offset : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
 		self.detoffset_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT)
 		hbox_detoffset.Add(detoffset)
 		hbox_detoffset.Add(self.detoffset_value)
 		hbox_ths = wx.BoxSizer(wx.HORIZONTAL)
-		thp = StaticTextNew(self, label="Theta : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.thp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		thp = StaticTextNew(self, label="Theta : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.thp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_ths.Add(thp)
 		hbox_ths.Add(self.thp_value)
-		tthp = StaticTextNew(self, label="2theta : ", style=wx.ALIGN_RIGHT, size=(100,-1))
-		self.tthp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		tthp = StaticTextNew(self, label="2theta : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.tthp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_ths.Add(tthp)
 		hbox_ths.Add(self.tthp_value)
-		thpol = StaticTextNew(self, label="pol : ", style=wx.ALIGN_RIGHT, size=(100,-1))
-		self.thpol_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		thpol = StaticTextNew(self, label="pol : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.thpol_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_ths.Add(thpol)
 		hbox_ths.Add(self.thpol_value)
 		hbox_etamu = wx.BoxSizer(wx.HORIZONTAL)
-		eta = StaticTextNew(self, label="Eta : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.eta_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		eta = StaticTextNew(self, label="Eta : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.eta_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_etamu.Add(eta)
 		hbox_etamu.Add(self.eta_value)
-		mu = StaticTextNew(self, label="Mu : ", style=wx.ALIGN_RIGHT, size=(100,-1))
-		self.mu_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(200,-1))
+		mu = StaticTextNew(self, label="Mu : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.mu_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_etamu.Add(mu)
 		hbox_etamu.Add(self.mu_value)
 		hbox_delgam = wx.BoxSizer(wx.HORIZONTAL)
-		delta = StaticTextNew(self, label="Delta : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.delta_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		delta = StaticTextNew(self, label="Delta : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.delta_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_delgam.Add(delta)
 		hbox_delgam.Add(self.delta_value)
-		gamma = StaticTextNew(self, label="Gam : ", style=wx.ALIGN_RIGHT, size=(100,-1))
-		self.gamma_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		gamma = StaticTextNew(self, label="Gam : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.gamma_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_delgam.Add(gamma)
 		hbox_delgam.Add(self.gamma_value)
 		hbox_chiphi = wx.BoxSizer(wx.HORIZONTAL)
-		chi = StaticTextNew(self, label="Chi : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.chi_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		chi = StaticTextNew(self, label="Chi : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.chi_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_chiphi.Add(chi)
 		hbox_chiphi.Add(self.chi_value)
-		phi = StaticTextNew(self, label="Phi : ", style=wx.ALIGN_RIGHT, size=(100,-1))
-		self.phi_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		phi = StaticTextNew(self, label="Phi : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.phi_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_chiphi.Add(phi)
 		hbox_chiphi.Add(self.phi_value)
 		hbox_psi = wx.BoxSizer(wx.HORIZONTAL)
-		psi = StaticTextNew(self, label="Psi : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.psi_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		psi = StaticTextNew(self, label="Psi : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.psi_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_psi.Add(psi)
 		hbox_psi.Add(self.psi_value)
 		hbox_sxyz = wx.BoxSizer(wx.HORIZONTAL)
-		sx = StaticTextNew(self, label="sx : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.sx_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		sx = StaticTextNew(self, label="sx : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.sx_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_sxyz.Add(sx)
 		hbox_sxyz.Add(self.sx_value)
-		sy = StaticTextNew(self, label="sy : ", style=wx.ALIGN_RIGHT, size=(100,-1))
-		self.sy_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		sy = StaticTextNew(self, label="sy : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.sy_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_sxyz.Add(sy)
 		hbox_sxyz.Add(self.sy_value)
-		sz = StaticTextNew(self, label="sz : ", style=wx.ALIGN_RIGHT, size=(100,-1))
-		self.sz_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		sz = StaticTextNew(self, label="sz : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.sz_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_sxyz.Add(sz)
 		hbox_sxyz.Add(self.sz_value)
 		hbox_spp = wx.BoxSizer(wx.HORIZONTAL)
-		sperp = StaticTextNew(self, label="sperp : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.sperp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		sperp = StaticTextNew(self, label="sperp : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.sperp_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_spp.Add(sperp)
 		hbox_spp.Add(self.sperp_value)
-		spara = StaticTextNew(self, label="spara : ", style=wx.ALIGN_RIGHT, size=(100,-1))
-		self.spara_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		spara = StaticTextNew(self, label="spara : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.spara_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_spp.Add(spara)
 		hbox_spp.Add(self.spara_value)
 		hbox_slits = wx.BoxSizer(wx.HORIZONTAL)
-		sslits = StaticTextNew(self, label="Sample Slits : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.sslits_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(200,-1))
+		sslits = StaticTextNew(self, label="Sample Slits : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.sslits_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_slits.Add(sslits)
 		hbox_slits.Add(self.sslits_value)
-		dslits = StaticTextNew(self, label="Detector Slits : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.dslits_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(150,-1))
+		dslits = StaticTextNew(self, label="Det. Slits : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.dslits_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_slits.Add(dslits)
 		hbox_slits.Add(self.dslits_value)
 		hbox_date = wx.BoxSizer(wx.HORIZONTAL)
-		expdate = StaticTextNew(self, label="Date : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.expdate_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(100,-1))
+		expdate = StaticTextNew(self, label="Date : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.expdate_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_date.Add(expdate)
 		hbox_date.Add(self.expdate_value)
 		hbox_durat = wx.BoxSizer(wx.HORIZONTAL)
-		expdurat = StaticTextNew(self, label="Duration : ", style=wx.ALIGN_RIGHT, size=(170,-1))
-		self.expdurat_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(100,-1))
+		expdurat = StaticTextNew(self, label="Duration : ", style=wx.ALIGN_RIGHT, size=(200,-1), autotip=True)
+		self.expdurat_value = StaticTextNew(self, label="", style=wx.ALIGN_LEFT, size=(180,-1))
 		hbox_durat.Add(expdurat)
 		hbox_durat.Add(self.expdurat_value)
 		vbox.Add(hbox_com, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -306,54 +311,59 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 			cwd = os.getcwd()
 			f = h5py.File(os.path.join(cwd, self.fnames[self.fnamesidx]),'r')
 			d = {}
-			d['command'] = self.IterateKey("/,entry1,scan_command",f)[()]
-			d['npoints'] = self.IterateKey("/,entry1,scan_dimensions",f)[()]
-			d['h'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,h",f)[()]
-			d['k'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,k",f)[()]
-			d['l'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,l",f)[()]
-			energy = self.IterateKey("/,entry1,sample,beam,incident_energy",f)[()]
-			if not numpy.isscalar(energy):
-				d['energy'] = energy[0]
-			else:
-				d['energy'] = energy
-			d['temp'] = self.IterateKey("/,entry1,before_scan,lakeshore,Tset",f)[()]
-			d['atten'] = self.IterateKey("/,entry1,instrument,attenuator,attenuator_transmission",f)[()]
-			d['minimirrors'] = self.IterateKey("/,entry1,before_scan,mirrors,m4pitch",f)[()]
-			d['detoffset'] = self.IterateKey("/,entry1,before_scan,delta_offset,delta_offset",f)[()]
-			d['thp'] = self.IterateKey("/,entry1,before_scan,pa,thp",f)[()]
-			d['tthp'] = self.IterateKey("/,entry1,before_scan,pa,tthp",f)[()]
-			d['pol'] = self.IterateKey("/,entry1,before_scan,pa,zp",f)[()]
-			d['eta'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,eta",f)[()]
-			d['delta'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,delta",f)[()]
-			d['gam'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,gam",f)[()]
-			d['chi'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,chi",f)[()]
-			d['psi'] = self.IterateKey("/,entry1,before_scan,psi,psi",f)[()]
-			d['kphi'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,kphi",f)[()]
-			d['phi'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,phi",f)[()]
-			d['mu'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,mu",f)[()]
-			d['sx'] = self.IterateKey("/,entry1,before_scan,positions,sx",f)[()]
-			d['sy'] = self.IterateKey("/,entry1,before_scan,positions,sy",f)[()]
-			d['sz'] = self.IterateKey("/,entry1,before_scan,positions,sz",f)[()]
-			d['sperp'] = self.IterateKey("/,entry1,before_scan,positions,sperp",f)[()]
-			d['spara'] = self.IterateKey("/,entry1,before_scan,positions,spara",f)[()]
-			d['sslitsx'] = self.IterateKey("/,entry1,before_scan,jjslits,s5xgap",f)[()]
-			d['sslitsy'] = self.IterateKey("/,entry1,before_scan,jjslits,s5ygap",f)[()]
-			try:
-				d['dslitsx'] = self.IterateKey("/,entry1,before_scan,jjslits,s6xgap",f)[()]
-				d['dslitsy'] = self.IterateKey("/,entry1,before_scan,jjslits,s6ygap",f)[()]
-			except:
-				d['dslitsx'] = self.IterateKey("/,entry1,before_scan,jjslits,s7xgap",f)[()]
-				d['dslitsy'] = self.IterateKey("/,entry1,before_scan,jjslits,s7ygap",f)[()]
-			d['starttime'] = self.IterateKey("/,entry1,start_time",f)[()]
-			timesec = self.IterateKey("/,entry1,measurement,TimeSec",f)[()]
-			timesec = timesec.flatten()
-			dtime = timesec[-1] - timesec[0]
-			d['timetotalsec'] = dtime
-			d['timehours'] = numpy.int(numpy.floor(dtime/3600))
-			d['timemin'] = numpy.int(numpy.floor(numpy.remainder(dtime,3600)/60))
-			d['timesec'] = numpy.remainder(numpy.remainder(dtime,3600),60)
+			trial = ContextSup()
+			with trial: d['command'] = self.IterateKey("/,entry1,scan_command",f)[()]
+			with trial: d['npoints'] = self.IterateKey("/,entry1,scan_dimensions",f)[()]
+			with trial: d['h'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,h",f)[()]
+			with trial: d['k'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,k",f)[()]
+			with trial: d['l'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,l",f)[()]
+			with trial:
+				energy = self.IterateKey("/,entry1,sample,beam,incident_energy",f)[()]
+				if not numpy.isscalar(energy):
+					d['energy'] = energy[0]
+				else:
+					d['energy'] = energy
+			with trial: d['temp'] = self.IterateKey("/,entry1,before_scan,lakeshore,Tset",f)[()]
+			with trial: d['atten'] = self.IterateKey("/,entry1,instrument,attenuator,attenuator_transmission",f)[()]
+			with trial: d['minimirrors'] = self.IterateKey("/,entry1,before_scan,mirrors,m4pitch",f)[()]
+			with trial: d['detoffset'] = self.IterateKey("/,entry1,before_scan,delta_offset,delta_offset",f)[()]
+			with trial: d['thp'] = self.IterateKey("/,entry1,before_scan,pa,thp",f)[()]
+			with trial: d['tthp'] = self.IterateKey("/,entry1,before_scan,pa,tthp",f)[()]
+			with trial: d['pol'] = self.IterateKey("/,entry1,before_scan,pa,zp",f)[()]
+			with trial: d['eta'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,eta",f)[()]
+			with trial: d['delta'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,delta",f)[()]
+			with trial: d['gam'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,gam",f)[()]
+			with trial: d['chi'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,chi",f)[()]
+			with trial: d['psi'] = self.IterateKey("/,entry1,before_scan,psi,psi",f)[()]
+			with trial: d['kphi'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,kphi",f)[()]
+			with trial: d['phi'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,phi",f)[()]
+			with trial: d['mu'] = self.IterateKey("/,entry1,before_scan,diffractometer_sample,mu",f)[()]
+			with trial: d['sx'] = self.IterateKey("/,entry1,before_scan,positions,sx",f)[()]
+			with trial: d['sy'] = self.IterateKey("/,entry1,before_scan,positions,sy",f)[()]
+			with trial: d['sz'] = self.IterateKey("/,entry1,before_scan,positions,sz",f)[()]
+			with trial: d['sperp'] = self.IterateKey("/,entry1,before_scan,positions,sperp",f)[()]
+			with trial: d['spara'] = self.IterateKey("/,entry1,before_scan,positions,spara",f)[()]
+			with trial: d['sslitsx'] = self.IterateKey("/,entry1,before_scan,jjslits,s5xgap",f)[()]
+			with trial: d['sslitsy'] = self.IterateKey("/,entry1,before_scan,jjslits,s5ygap",f)[()]
+			with trial:
+				try:
+					d['dslitsx'] = self.IterateKey("/,entry1,before_scan,jjslits,s6xgap",f)[()]
+					d['dslitsy'] = self.IterateKey("/,entry1,before_scan,jjslits,s6ygap",f)[()]
+				except:
+					d['dslitsx'] = self.IterateKey("/,entry1,before_scan,jjslits,s7xgap",f)[()]
+					d['dslitsy'] = self.IterateKey("/,entry1,before_scan,jjslits,s7ygap",f)[()]
+			with trial: d['starttime'] = self.IterateKey("/,entry1,start_time",f)[()]
+			with trial:
+				timesec = self.IterateKey("/,entry1,measurement,TimeSec",f)[()]
+				timesec = timesec.flatten()
+				dtime = timesec[-1] - timesec[0]
+				d['timetotalsec'] = dtime
+				d['timehours'] = numpy.int(numpy.floor(dtime/3600))
+				d['timemin'] = numpy.int(numpy.floor(numpy.remainder(dtime,3600)/60))
+				d['timesec'] = numpy.remainder(numpy.remainder(dtime,3600),60)
 			self.motors = []
 			f.get('entry1').get('before_scan').visititems(self.IterateH5)
+			f.get('entry1').get('measurement').visititems(self.IterateH5)
 			f.close()
 			self.metacache[self.fnamesidx] = d
 		else:
@@ -369,44 +379,47 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 			self.ancestor.GetPage(0).queue_info.put("Could not load record %s"%self.fnames[self.fnamesidx])
 			self.ancestor.GetPage(4).UpdateLog(None)
 		else:
-			self.txtcom_value.ChangeValue(d['command'])
-			self.txtnpoints_value.SetLabel(str(d['npoints']).strip('[]'))
-			self.hkl_value.SetLabel("[ %d %d %d ]"%(d['h'],d['k'],d['l']))
-			self.energy_value.SetLabel("%g keV"%d['energy'])
-			self.temp_value.SetLabel("%g K"%d['temp'])
-			self.atten_value.SetLabel("%g"%d['atten'])
-			self.minimirrors_value.SetLabel("%g"%d['minimirrors'])
-			self.detoffset_value.SetLabel("%g"%d['detoffset'])
-			self.thp_value.SetLabel("%g"%d['thp'])
-			self.tthp_value.SetLabel("%g"%d['tthp'])
-			self.thpol_value.SetLabel("%g"%d['pol'])
-			self.eta_value.SetLabel("%g"%d['eta'])
-			self.mu_value.SetLabel("%g"%d['mu'])
-			self.delta_value.SetLabel("%g"%d['delta'])
-			self.gamma_value.SetLabel("%g"%d['gam'])
-			self.chi_value.SetLabel("%g"%d['chi'])
-			self.phi_value.SetLabel("%g"%d['kphi'])
-			self.psi_value.SetLabel("%g"%d['psi'])
-			self.sx_value.SetLabel("%g"%d['sx'])
-			self.sy_value.SetLabel("%g"%d['sy'])
-			self.sz_value.SetLabel("%g"%d['sz'])
-			self.sperp_value.SetLabel("%g"%d['sperp'])
-			self.spara_value.SetLabel("%g"%d['spara'])
-			self.sslits_value.SetLabel("(%g, %g)"%(d['sslitsx'],d['sslitsy']))
-			self.dslits_value.SetLabel("(%g, %g)"%(d['dslitsx'],d['dslitsy']))
-			try:
-				self.expdate_value.SetLabel(str(numpy.char.mod('%s',d['starttime'].decode())).replace('T',' ').replace('Z',''))
-			except(UnicodeDecodeError, AttributeError):
-				self.expdate_value.SetLabel(d['starttime'].replace('T',' ').replace('Z',''))
-			self.expdurat_value.SetLabel("%d hours, %d mins, %d sec"%(d['timehours'],d['timemin'],d['timesec']))
+			trial = ContextSup()
+			with trial: self.txtcom_value.ChangeValue(d['command'])
+			with trial: self.txtnpoints_value.SetLabel(str(d['npoints']).strip('[]'))
+			with trial: self.hkl_value.SetLabel("[ %d %d %d ]"%(d['h'],d['k'],d['l']))
+			with trial: self.energy_value.SetLabel("%g keV"%d['energy'])
+			with trial: self.temp_value.SetLabel("%g K"%d['temp'])
+			with trial: self.atten_value.SetLabel("%g"%d['atten'])
+			with trial: self.minimirrors_value.SetLabel("%g"%d['minimirrors'])
+			with trial: self.detoffset_value.SetLabel("%g"%d['detoffset'])
+			with trial: self.thp_value.SetLabel("%g"%d['thp'])
+			with trial: self.tthp_value.SetLabel("%g"%d['tthp'])
+			with trial: self.thpol_value.SetLabel("%g"%d['pol'])
+			with trial: self.eta_value.SetLabel("%g"%d['eta'])
+			with trial: self.mu_value.SetLabel("%g"%d['mu'])
+			with trial: self.delta_value.SetLabel("%g"%d['delta'])
+			with trial: self.gamma_value.SetLabel("%g"%d['gam'])
+			with trial: self.chi_value.SetLabel("%g"%d['chi'])
+			with trial: self.phi_value.SetLabel("%g"%d['kphi'])
+			with trial: self.psi_value.SetLabel("%g"%d['psi'])
+			with trial: self.sx_value.SetLabel("%g"%d['sx'])
+			with trial: self.sy_value.SetLabel("%g"%d['sy'])
+			with trial: self.sz_value.SetLabel("%g"%d['sz'])
+			with trial: self.sperp_value.SetLabel("%g"%d['sperp'])
+			with trial: self.spara_value.SetLabel("%g"%d['spara'])
+			with trial: self.sslits_value.SetLabel("(%g, %g)"%(d['sslitsx'],d['sslitsy']))
+			with trial: self.dslits_value.SetLabel("(%g, %g)"%(d['dslitsx'],d['dslitsy']))
+			with trial:
+				try:
+					self.expdate_value.SetLabel(str(numpy.char.mod('%s',d['starttime'].decode())).replace('T',' ').replace('Z',''))
+				except(UnicodeDecodeError, AttributeError):
+					self.expdate_value.SetLabel(d['starttime'].replace('T',' ').replace('Z',''))
+				self.expdurat_value.SetLabel("%d hours, %d mins, %d sec"%(d['timehours'],d['timemin'],d['timesec']))
 			self.xkeys = []
-			try:
-				cmds = str(numpy.char.mod('%s',d['command'].decode())).split(' ')
-			except (UnicodeDecodeError, AttributeError):
-				cmds = d['command'].split(' ')
-			for word in cmds:
-				if word in self.motors:
-					self.xkeys.append(word)
+			with trial:
+				try:
+					cmds = str(numpy.char.mod('%s',d['command'].decode())).split(' ')
+				except (UnicodeDecodeError, AttributeError):
+					cmds = d['command'].split(' ')
+				for word in cmds:
+					if word in self.motors:
+						self.xkeys.append(word)
 	def OnScanSpinUp(self, event):
 		self.OnScanSpin(self.scanspin.GetValue())
 	def OnScanSpinDown(self, event):
@@ -447,6 +460,8 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 		self.ancestor.GetPage(4).data_poll_timer.Start(1000)
 	def OnClickPlot(self, event):
 		if len(self.fnames) == 0:
+			return
+		if len(self.xkeys) == 0:
 			return
 		self.OnClickLoad(None)
 		cwd = os.getcwd()
@@ -2165,6 +2180,49 @@ class SubPanel_Cuboid_Support(wx.Panel):
 		hbox1.Add(self.sdims[1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		hbox1.Add(self.sdims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+class SubPanel_Polyhedron_Support(wx.Panel):
+	treeitem = {'name':  'Polyhedron Support' , 'type': 'operpre'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_Polyhedron_Support(selff, pipelineitem)
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = StaticTextNew(self, label="Make Polyhedron Support")
+		title.SetToolTipNew("Create a list of vectors that define planes of the Polyhedron. "+os.linesep+"One per line. Comma separated ordinates.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.filename = TextPanelObject(self, "Support File: ", "support.npy",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.fromfile = TextPanelObject(self, "(x,y,z) from array: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.fromfile, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		title2 = wx.StaticText(self, label="(x,y,z) from dimensions: ")
+		vbox.Add(title2 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.dims=[{} for i in range(3)]
+		self.dims[0] = SpinnerObject(self,"x",MAX_INT_16,1,1,1,20,60)
+		self.dims[1] = SpinnerObject(self,"y",MAX_INT_16,1,1,1,20,60)
+		self.dims[2] = SpinnerObject(self,"z",MAX_INT_16,1,1,1,20,60)
+		hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+		hbox1.Add(self.dims[0], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox1.Add(self.dims[1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox1.Add(self.dims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		vbox.Add(hbox1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+		vbox1 = wx.BoxSizer(wx.VERTICAL)
+		vbox2 = wx.BoxSizer(wx.VERTICAL)
+		title1 = StaticTextNew(self, label="Initial Point Coords:")
+		title2 = StaticTextNew(self, label="Terminal Point Coords:")
+		vbox1.Add(title1, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox2.Add(title2, 0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.init_points = wx.TextCtrl(self, style=wx.TE_BESTWRAP | wx.TE_MULTILINE)
+		self.term_points = wx.TextCtrl(self, style=wx.TE_BESTWRAP | wx.TE_MULTILINE)
+		self.init_points.Enable(True)
+		self.term_points.Enable(True)
+		vbox1.Add(self.init_points, 1, wx.EXPAND | wx.ALL, 2)
+		vbox2.Add(self.term_points, 1, wx.EXPAND | wx.ALL, 2)
+		hbox2.Add(vbox1, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		hbox2.Add(vbox2, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox2, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
 class SubPanel_ArraytoVTK(wx.Panel):

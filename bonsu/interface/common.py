@@ -484,8 +484,18 @@ pipelineignore24 = PyEmbeddedImage(
     "cGUub3Jnm+48GgAAAABJRU5ErkJggg==")
 getpipelineignore24Bitmap = pipelineignore24.GetBitmap
 class StaticTextNew(wx.StaticText):
-	def __init__(self, parent, id=wx.ID_ANY, label="", style=wx.ALIGN_LEFT, size=(-1,-1)):
+	def __init__(self, parent, id=wx.ID_ANY, label="", style=wx.ALIGN_LEFT, size=(-1,-1), autotip=False, trunc=". : "):
+		oldlabel = label
+		if autotip and size[0] > 0:
+			font = wx.Font()
+			dc = wx.ScreenDC()
+			dc.SetFont(parent.GetFont())
+			width = dc.GetTextExtent(label)[0]
+			if width > size[0]:
+				label = label[0:int(len(label)*(float(size[0])/float(width)))-len(trunc)]+trunc
 		wx.StaticText.__init__(self, parent, id, label=label, style=style, size=size)
+		if autotip:
+			self.SetToolTipNew(oldlabel)
 	def SetToolTipNew(self, string):
 		if IsNotWX4():
 			self.SetToolTipString(string)

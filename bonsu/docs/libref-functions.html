@@ -4,9 +4,10 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Library Reference - Functions &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</title>
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
@@ -36,7 +37,8 @@
           <a href="libref-exporttools.html" title="Library Reference - Export Tools"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Library Reference - Functions</a></li> 
       </ul>
     </div>  
 
@@ -158,9 +160,27 @@
 </dd>
 </dl>
 </div>
+<div class="section" id="polyhedron-support">
+<h2>Polyhedron Support<a class="headerlink" href="#polyhedron-support" title="Permalink to this headline">¶</a></h2>
+<p id="index-8">Creates a <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">support</span></a> array for use in phase retrieval using the specified planes to form the surface. The vector formed by each terminal and initial point coordinate pair is the normal vector to a surface that encloses the support. Voxels in this array take a value of <img class="math" src="_images/math/e590ec00e4bb2ddd267490a7cc706a6bbd69a2cf.png" alt="1 + 0j"/> inside the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">support</span></a> and zero everywhere else.</p>
+<p>If any array is supplied in the <code class="docutils literal notranslate"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field, the dimensions of this array will be used for the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">support</span></a> array. Otherwise, the specified dimensions will be used.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Support file</strong></dt><dd><p>User provided path string for the output <code class="docutils literal notranslate"><span class="pre">support</span></code> NumPy file.</p>
+</dd>
+<dt><strong>(xyz) from array</strong></dt><dd><p>Optional user provided path string for NumPy file used to provide the <code class="docutils literal notranslate"><span class="pre">support</span></code> array dimensions.</p>
+</dd>
+<dt><strong>(xyz) from dimensions {x,y,z}</strong></dt><dd><p>Dimensions of the <code class="docutils literal notranslate"><span class="pre">support</span></code> array.  This is overridden if the <code class="docutils literal notranslate"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field is used.</p>
+</dd>
+<dt><strong>Initial Point Coordinates</strong></dt><dd><p>List of initial point coordinates of vector normals to each surface.  One per line with comma separated ordinates. Parentheses are ignored.</p>
+</dd>
+<dt><strong>Terminal Point Coordinates</strong></dt><dd><p>List of terminal point coordinates of vector normals to each surface.  One per line with comma separated ordinates. Parentheses are ignored.</p>
+</dd>
+</dl>
+</div>
 <div class="section" id="fourier-transform">
 <h2>Fourier Transform<a class="headerlink" href="#fourier-transform" title="Permalink to this headline">¶</a></h2>
-<p id="index-8">Performs a Fast Fourier transform (FFT) on the input NumPy file in the specified direction.</p>
+<p id="index-9">Performs a Fast Fourier transform (FFT) on the input NumPy file in the specified direction.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -176,7 +196,7 @@
 </div>
 <div class="section" id="gaussian-fill">
 <h2>Gaussian Fill<a class="headerlink" href="#gaussian-fill" title="Permalink to this headline">¶</a></h2>
-<p id="index-9">Fill the input NumPy file with a Gaussian function.</p>
+<p id="index-10">Fill the input NumPy file with a Gaussian function.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -189,7 +209,7 @@
 </div>
 <div class="section" id="interpolate-object">
 <h2>Interpolate Object<a class="headerlink" href="#interpolate-object" title="Permalink to this headline">¶</a></h2>
-<p id="index-10">Interpolates an input NumPy array and it’s corresponding co-ordinates onto regular grid NumPy array with dimensions dictated by <code class="docutils literal notranslate"><span class="pre">Array</span> <span class="pre">grid</span> <span class="pre">size</span></code>. <a class="reference external" href="http://dx.doi.org/10.1145/800186.810616">Shepards famous algorithm</a> is used for the interpolation.</p>
+<p id="index-11">Interpolates an input NumPy array and it’s corresponding co-ordinates onto regular grid NumPy array with dimensions dictated by <code class="docutils literal notranslate"><span class="pre">Array</span> <span class="pre">grid</span> <span class="pre">size</span></code>. <a class="reference external" href="http://dx.doi.org/10.1145/800186.810616">Shepards famous algorithm</a> is used for the interpolation.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -206,7 +226,7 @@
 </div>
 <div class="section" id="mask">
 <span id="libref-functions-mask"></span><h2>Mask<a class="headerlink" href="#mask" title="Permalink to this headline">¶</a></h2>
-<p id="index-11">Creates a <code class="docutils literal notranslate"><span class="pre">mask</span></code> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/e590ec00e4bb2ddd267490a7cc706a6bbd69a2cf.png" alt="1 + 0j"/> if the corresponding voxel of the <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> is inside the range of <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code>.  Voxels outside the same range are set to zero.</p>
+<p id="index-12">Creates a <code class="docutils literal notranslate"><span class="pre">mask</span></code> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/e590ec00e4bb2ddd267490a7cc706a6bbd69a2cf.png" alt="1 + 0j"/> if the corresponding voxel of the <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> is inside the range of <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code>.  Voxels outside the same range are set to zero.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file from which <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> and <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are obtained.</p>
@@ -221,7 +241,7 @@
 </div>
 <div class="section" id="median-filter">
 <h2>Median Filter<a class="headerlink" href="#median-filter" title="Permalink to this headline">¶</a></h2>
-<p id="index-12">Applies a median filter to the amplitude of the input array.  Voxels are only replaced in the array if they deviate from the median filtered equivalent by an amount greater than the <code class="docutils literal notranslate"><span class="pre">Normal</span> <span class="pre">deviation</span></code>.</p>
+<p id="index-13">Applies a median filter to the amplitude of the input array.  Voxels are only replaced in the array if they deviate from the median filtered equivalent by an amount greater than the <code class="docutils literal notranslate"><span class="pre">Normal</span> <span class="pre">deviation</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -236,11 +256,11 @@
 </div>
 <div class="section" id="python-script">
 <span id="libref-functions-script"></span><h2>Python Script<a class="headerlink" href="#python-script" title="Permalink to this headline">¶</a></h2>
-<p id="index-13">Execute python script. <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">Memory arrays</span></a> are exposed to this function.</p>
+<p id="index-14">Execute python script. <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">Memory arrays</span></a> are exposed to this function.</p>
 </div>
 <div class="section" id="rotate-support">
 <h2>Rotate Support<a class="headerlink" href="#rotate-support" title="Permalink to this headline">¶</a></h2>
-<p id="index-14">Rotates a binary array (such as a support array) by the specified angle in degrees normal to the specified axis. This operation is only intended for binary arrays.</p>
+<p id="index-15">Rotates a binary array (such as a support array) by the specified angle in degrees normal to the specified axis. This operation is only intended for binary arrays.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -255,7 +275,7 @@
 </div>
 <div class="section" id="scale-array">
 <h2>Scale Array<a class="headerlink" href="#scale-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-15">Scales the input array by a given amount. Scaling is performed element-wise.</p>
+<p id="index-16">Scales the input array by a given amount. Scaling is performed element-wise.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -268,7 +288,7 @@
 </div>
 <div class="section" id="sum-or-subtract-array">
 <h2>Sum or Subtract Array<a class="headerlink" href="#sum-or-subtract-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-16">Takes the sum or difference of two input arrays and places the result in the output array.</p>
+<p id="index-17">Takes the sum or difference of two input arrays and places the result in the output array.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file 1</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -283,7 +303,7 @@
 </div>
 <div class="section" id="threshold-data">
 <h2>Threshold Data<a class="headerlink" href="#threshold-data" title="Permalink to this headline">¶</a></h2>
-<p id="index-17">Creates an array using data from the <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> for which voxels outside the range of <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are set to zero.</p>
+<p id="index-18">Creates an array using data from the <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> for which voxels outside the range of <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are set to zero.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file from which <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> and <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are obtained.</p>
@@ -298,7 +318,7 @@
 </div>
 <div class="section" id="transpose-array">
 <h2>Transpose Array<a class="headerlink" href="#transpose-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-18">Transposes an array from dimensions {x,y,z} to dimensions {z,y,x}.</p>
+<p id="index-19">Transposes an array from dimensions {x,y,z} to dimensions {z,y,x}.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -309,7 +329,7 @@
 </div>
 <div class="section" id="voxel-replace">
 <h2>Voxel Replace<a class="headerlink" href="#voxel-replace" title="Permalink to this headline">¶</a></h2>
-<p id="index-19">Replaces all voxels with indices in the range of <code class="docutils literal notranslate"><span class="pre">Start</span> <span class="pre">dimensions</span></code> and <code class="docutils literal notranslate"><span class="pre">End</span> <span class="pre">dimensions</span></code> with the specified <code class="docutils literal notranslate"><span class="pre">complex</span> <span class="pre">value</span></code>.</p>
+<p id="index-20">Replaces all voxels with indices in the range of <code class="docutils literal notranslate"><span class="pre">Start</span> <span class="pre">dimensions</span></code> and <code class="docutils literal notranslate"><span class="pre">End</span> <span class="pre">dimensions</span></code> with the specified <code class="docutils literal notranslate"><span class="pre">complex</span> <span class="pre">value</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -326,7 +346,7 @@
 </div>
 <div class="section" id="wrap-data">
 <span id="libref-functions-wrap"></span><h2>Wrap Data<a class="headerlink" href="#wrap-data" title="Permalink to this headline">¶</a></h2>
-<p id="index-20">Reorders the data of the input NumPy file into wrap-around order.</p>
+<p id="index-21">Reorders the data of the input NumPy file into wrap-around order.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -340,6 +360,7 @@
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -359,6 +380,7 @@
 <li><a class="reference internal" href="#convolve">Convolve</a></li>
 <li><a class="reference internal" href="#crop-pad">Crop Pad</a></li>
 <li><a class="reference internal" href="#cuboid-support">Cuboid Support</a></li>
+<li><a class="reference internal" href="#polyhedron-support">Polyhedron Support</a></li>
 <li><a class="reference internal" href="#fourier-transform">Fourier Transform</a></li>
 <li><a class="reference internal" href="#gaussian-fill">Gaussian Fill</a></li>
 <li><a class="reference internal" href="#interpolate-object">Interpolate Object</a></li>
@@ -412,11 +434,12 @@
           <a href="libref-exporttools.html" title="Library Reference - Export Tools"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Library Reference - Functions</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2011 - 2020, Marcus C. Newton.
+        &#169; Copyright 2011 - 2021, Marcus C. Newton.
     </div>
   </body>
 </html>

@@ -1090,6 +1090,86 @@ def Sequence_Cuboid_Support(\
 			wx.CallAfter(self.UserMessage, title, msg)
 			self.pipeline_started = False
 			return
+class Polyhedron():
+	def __init__(self):
+		self.arobj = None
+		self.surfaces = None
+		self.shape = None
+		self.len = None
+		self.amp = 1.0
+		self.idxs = None
+		self.xyzs = None
+	def SetArray(self, arobj):
+		self.arobj = arobj
+		self.shape = self.arobj.shape
+		self.len = numpy.prod(self.arobj.shape)
+		self.idxs = numpy.arange(self.len)
+		self.xyzs = numpy.transpose(numpy.unravel_index(self.idxs, self.shape))
+		self.flatarobj = self.arobj.reshape((self.len))
+	def SetSurfacesArray(self, surfaces):
+		self.surfaces = surfaces
+	def FillPoints(self):
+		init = self.surfaces[0,0:3]
+		term = self.surfaces[0,3:6]
+		norm = term - init
+		norm = norm * (1.0/numpy.sqrt(numpy.dot(norm,norm)))
+		inout = numpy.dot((self.xyzs - init),norm) < 0
+		for i in range(1,len(self.surfaces),1):
+			init = self.surfaces[i,0:3]
+			term = self.surfaces[i,3:6]
+			norm = term - init
+			norm = norm * (1.0/numpy.sqrt(numpy.dot(norm,norm)))
+			inout *= numpy.dot((self.xyzs - init),norm) < 0
+		self.flatarobj[inout] = self.amp
+def Sequence_Polyhedron_Support(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Preparing polyhedron support array...")
+		x =  int(pipelineitem.dims[0].value.GetValue())
+		y =  int(pipelineitem.dims[1].value.GetValue())
+		z =  int(pipelineitem.dims[2].value.GetValue())
+		fname = pipelineitem.filename.objectpath.GetValue()
+		fromfile = pipelineitem.fromfile.objectpath.GetValue()
+		if fromfile != "":
+			fromarray = LoadArray(self, fromfile)
+			support = numpy.asarray(fromarray, dtype=numpy.cdouble, order='C')
+			x,y,z = numpy.asarray( support.shape, numpy.int)
+		try:
+			support = NewArray(self,x,y,z)
+		except:
+			return
+		initpoints = pipelineitem.init_points.GetValue().split(os.linesep)
+		termpoints = pipelineitem.term_points.GetValue().split(os.linesep)
+		surfaces_char = list(zip(initpoints,termpoints))
+		Nsurf = len(surfaces_char)
+		surfaces = numpy.zeros((Nsurf,6), dtype=numpy.double)
+		i=0
+		try:
+			for line in surfaces_char:
+				init_char = line[0]
+				term_char = line[1]
+				init = ''.join(c for c in init_char if (c.isdigit() or c=="," or c=="."))
+				term = ''.join(c for c in term_char if (c.isdigit() or c=="," or c=="."))
+				surfaces[i,0:3] = numpy.fromstring(init, dtype=numpy.double, sep=',')
+				surfaces[i,3:6] = numpy.fromstring(term, dtype=numpy.double, sep=',')
+				i+=1
+		except:
+			self.ancestor.GetPage(0).queue_info.put("Could not read all coodrinates. Please check for errors.")
+			return
+		poly = Polyhedron()
+		poly.SetArray(support)
+		poly.SetSurfacesArray(surfaces)
+		poly.FillPoints()
+		try:
+			SaveArray(self, fname,support)
+		except:
+			msg = "Could not save array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
 def Sequence_Save_Sequence(\
 	self,
 	pipelineitem
