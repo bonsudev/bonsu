@@ -469,18 +469,46 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 			f = h5py.File(os.path.join(cwd, self.fnames[self.fnamesidx]),'r')
 		except:
 			return
-		try:
-			imgarraypath = self.IterateKey("/,entry1,instrument,pil3_100k,image_data",f)[()]
-			imgarraysum = self.IterateKey("/,entry1,instrument,pil3_100k,sum",f)[()]
-		except:
+		imgarraypath = None
+		imgarraysum = None
+		detnames = ["pil3_100k", "merlin", "merlins", "pilatus3_100k", "pilatus3_100ks","pil3_100ks"]
+		newdet = self.txtcom_value.GetValue().split()[-2]
+		if newdet not in detnames:
+			detnames.append(newdet)
+		for detname in detnames:
 			try:
-				imgarraypath = self.IterateKey("/,entry1,instrument,merlin,image_data",f)[()]
-				imgarraysum = self.IterateKey("/,entry1,instrument,merlin,sum",f)[()]
+				imgarraysum = self.IterateKey("/,entry1,instrument,"+detname+",sum",f)[()]
+				imgarraypath = self.IterateKey("/,entry1,instrument,"+detname+",image_data",f)[()]
 			except:
-				self.ancestor.GetPage(0).queue_info.put("Could not load image data from path")
-				self.ancestor.GetPage(4).UpdateLog(None)
-				f.close()
-				return
+				continue
+			else:
+				break
+		if imgarraypath is None:
+			for detname in detnames:
+				imgarraypathdir = self.scanno.GetValue()+"-"+detname+"-files/"
+				try:
+					assert os.path.exists(imgarraypathdir)
+				except:
+					continue
+				else:
+					fnames = [f for f in os.listdir(imgarraypathdir) if (os.path.isfile(os.path.join(imgarraypathdir, f)) and f.endswith(".tif"))]
+					fnames.sort()
+					imgarraypath = numpy.array([os.path.join(imgarraypathdir, fname) for fname in fnames])
+					break
+		self.ancestor.GetPage(0).queue_info.put(imgarraypath)
+		self.ancestor.GetPage(4).UpdateLog(None)
+		if imgarraysum is None and imgarraypath is not None:
+			try:
+				imgarraysum = numpy.zeros(imgarraypath.shape)
+			except:
+				pass
+		if imgarraypath is not None and imgarraysum is not None:
+			imgarraypath = imgarraypath.reshape(imgarraysum.shape)
+		else:
+			self.ancestor.GetPage(0).queue_info.put("Could not load image data from path")
+			self.ancestor.GetPage(4).UpdateLog(None)
+			f.close()
+			return
 		self.n = imgarraysum.ndim
 		if self.plotcache[self.fnamesidx] == "":
 			xwhole = []
