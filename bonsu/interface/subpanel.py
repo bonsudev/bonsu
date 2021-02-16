@@ -495,17 +495,21 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 					fnames.sort()
 					imgarraypath = numpy.array([os.path.join(imgarraypathdir, fname) for fname in fnames])
 					break
-		self.ancestor.GetPage(0).queue_info.put(imgarraypath)
-		self.ancestor.GetPage(4).UpdateLog(None)
 		if imgarraysum is None and imgarraypath is not None:
 			try:
 				imgarraysum = numpy.zeros(imgarraypath.shape)
 			except:
 				pass
 		if imgarraypath is not None and imgarraysum is not None:
-			imgarraypath = imgarraypath.reshape(imgarraysum.shape)
-		else:
-			self.ancestor.GetPage(0).queue_info.put("Could not load image data from path")
+			try:
+				imgarraypath = imgarraypath.reshape(imgarraysum.shape)
+			except:
+				self.ancestor.GetPage(0).queue_info.put("Nexus Viewer: Image dimensions are inconsistent.")
+				self.ancestor.GetPage(4).UpdateLog(None)
+				f.close()
+				return
+		if imgarraypath is None or imgarraysum is None:
+			self.ancestor.GetPage(0).queue_info.put("Nexus Viewer: Could not load image data from path.")
 			self.ancestor.GetPage(4).UpdateLog(None)
 			f.close()
 			return
