@@ -571,6 +571,8 @@ class LoadNexusPlotDialog(wx.Dialog):
 			self.canvas1.enableZoom = False
 			self.canvas1.fontSizeAxis = fontpoint
 			self.canvas1.fontSizeTitle =fontpoint
+			self.canvas1.SetBackgroundColour(wx.Colour(wx.WHITE))
+			self.canvas1.SetForegroundColour(wx.Colour(wx.BLACK))
 		self.vbox1.Add(self.canvas1, 1, flag=wx.EXPAND|wx.ALL)
 		self.canvas2 = PlotCanvas(self)
 		self.canvas2.SetInitialSize(size=self.GetClientSize())
@@ -591,6 +593,8 @@ class LoadNexusPlotDialog(wx.Dialog):
 			self.canvas2.enableZoom = False
 			self.canvas2.fontSizeAxis = fontpoint
 			self.canvas2.fontSizeTitle =fontpoint
+			self.canvas2.SetBackgroundColour(wx.Colour(wx.WHITE))
+			self.canvas2.SetForegroundColour(wx.Colour(wx.BLACK))
 		self.vbox2.Add(self.canvas2, 1, flag=wx.EXPAND|wx.ALL)
 		self.canvas3 = PlotCanvas(self)
 		self.canvas3.SetInitialSize(size=self.GetClientSize())
@@ -611,6 +615,8 @@ class LoadNexusPlotDialog(wx.Dialog):
 			self.canvas3.enableZoom = False
 			self.canvas3.fontSizeAxis = fontpoint
 			self.canvas3.fontSizeTitle =fontpoint
+			self.canvas3.SetBackgroundColour(wx.Colour(wx.WHITE))
+			self.canvas3.SetForegroundColour(wx.Colour(wx.BLACK))
 		self.vbox3.Add(self.canvas3, 1, flag=wx.EXPAND|wx.ALL)
 		self.canvass = [self.canvas1,self.canvas2,self.canvas3]
 		vbox.Add(self.vbox1, 1, wx.EXPAND | wx.ALL, border=0)
