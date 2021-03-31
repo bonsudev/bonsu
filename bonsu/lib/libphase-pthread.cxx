@@ -1,8 +1,8 @@
 /*
 #############################################
-##   Filename: libphase.cxx
+##   Filename: libphase-pthread.cxx
 ##
-##    Copyright (C) 2011 Marcus C. Newton
+##    Copyright (C) 2018 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by

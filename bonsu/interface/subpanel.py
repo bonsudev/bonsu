@@ -2263,6 +2263,34 @@ class SubPanel_Polyhedron_Support(wx.Panel):
 		vbox.Add(hbox2, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+class SubPanel_Empty_Array(wx.Panel):
+	treeitem = {'name':  'Empty Array' , 'type': 'importtools'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_Empty_Array(selff, pipelineitem)
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = StaticTextNew(self, label="Make Empty Array")
+		title.SetToolTipNew("Make Empty Array.  Always returns a new array.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.filename = TextPanelObject(self, "Output File: ", "memory0",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.fromfile = TextPanelObject(self, "(x,y,z) from array: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.fromfile, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 5))
+		title2 = wx.StaticText(self, label="(x,y,z) from dimensions: ")
+		vbox.Add(title2 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.dims=[{} for i in range(3)]
+		self.dims[0] = SpinnerObject(self,"x",MAX_INT_16,1,1,1,20,60)
+		self.dims[1] = SpinnerObject(self,"y",MAX_INT_16,1,1,1,20,60)
+		self.dims[2] = SpinnerObject(self,"z",MAX_INT_16,1,1,1,20,60)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.dims[0], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox.Add(self.dims[1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox.Add(self.dims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
 class SubPanel_ArraytoVTK(wx.Panel):
 	treeitem = {'name':  'Array to VTK' , 'type': 'exporttools'}
 	def sequence(self, selff, pipelineitem):

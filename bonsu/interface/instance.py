@@ -278,6 +278,12 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].dims[2].value.GetValue() )
 			object.append( panelphase.pipelineitems[i].init_points.GetValue() )
 			object.append( panelphase.pipelineitems[i].term_points.GetValue() )
+		if subpanelname == 'Empty Array' :
+			object.append( panelphase.pipelineitems[i].filename.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].fromfile.objectpath.GetValue() )
+			object.append( panelphase.pipelineitems[i].dims[0].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].dims[1].value.GetValue() )
+			object.append( panelphase.pipelineitems[i].dims[2].value.GetValue() )
 		if subpanelname == 'View Support':
 			object.append( panelphase.pipelineitems[i].support.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
@@ -909,6 +915,16 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].dims[2].value.SetValue(object[4])
 			panelphase.pipelineitems[-1].init_points.SetValue(object[5])
 			panelphase.pipelineitems[-1].term_points.SetValue(object[6])
+			DoListCheck(panelphase, object, -1)
+		if subpanelname == 'Empty Array':
+			panelphase.pipelineitems.append(SubPanel_Empty_Array(panelphase.panel2))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].filename.objectpath.SetValue(object[0])
+			panelphase.pipelineitems[-1].fromfile.objectpath.SetValue(object[1])
+			panelphase.pipelineitems[-1].dims[0].value.SetValue(object[2])
+			panelphase.pipelineitems[-1].dims[1].value.SetValue(object[3])
+			panelphase.pipelineitems[-1].dims[2].value.SetValue(object[4])
 			DoListCheck(panelphase, object, -1)
 		if subpanelname == 'View Support':
 			panelphase.pipelineitems.append(SubPanel_View_Support(panelphase.panel2, panelphase.ancestor))

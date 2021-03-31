@@ -1057,24 +1057,27 @@ def Sequence_Cuboid_Support(\
 		z =  int(pipelineitem.dims[2].value.GetValue())
 		fname = pipelineitem.filename.objectpath.GetValue()
 		fromfile = pipelineitem.fromfile.objectpath.GetValue()
-		if fromfile == "" and (sx> x or sy > y or sz > z):
+		if fromfile != "":
+			try:
+				fromarray = LoadArray(self, fromfile)
+			except:
+				msg = "Could not load array."
+				wx.CallAfter(self.UserMessage, title, msg)
+				self.pipeline_started = False
+				return
+			else:
+				x,y,z = numpy.asarray(fromarray.shape, numpy.int)
+		elif (sx> x or sy > y or sz > z):
 			msg = "Invalid support dimensions."
 			wx.CallAfter(self.UserMessage, title, msg)
 			self.pipeline_started = False
 			return
-		else:
-			if fromfile != "":
-				fromarray = LoadArray(self, fromfile)
-				support = numpy.asarray(fromarray, dtype=numpy.cdouble, order='C')
-				x,y,z = numpy.asarray( support.shape, numpy.int)
-				if (sx> x or sy > y or sz > z):
-					msg = "Invalid support dimensions."
-					wx.CallAfter(self.UserMessage, title, msg)
-					self.pipeline_started = False
-					return
 		try:
 			support = NewArray(self,x,y,z)
 		except:
+			msg = "Could not prepare array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
 			return
 		x1 = (x - sx)//2;
 		x2 = x1 + sx
@@ -1134,12 +1137,21 @@ def Sequence_Polyhedron_Support(\
 		fname = pipelineitem.filename.objectpath.GetValue()
 		fromfile = pipelineitem.fromfile.objectpath.GetValue()
 		if fromfile != "":
-			fromarray = LoadArray(self, fromfile)
+			try:
+				fromarray = LoadArray(self, fromfile)
+			except:
+				msg = "Could not load array."
+				wx.CallAfter(self.UserMessage, title, msg)
+				self.pipeline_started = False
+				return
 			support = numpy.asarray(fromarray, dtype=numpy.cdouble, order='C')
 			x,y,z = numpy.asarray( support.shape, numpy.int)
 		try:
 			support = NewArray(self,x,y,z)
 		except:
+			msg = "Could not prepare array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
 			return
 		initpoints = pipelineitem.init_points.GetValue().split(os.linesep)
 		termpoints = pipelineitem.term_points.GetValue().split(os.linesep)
@@ -1165,6 +1177,42 @@ def Sequence_Polyhedron_Support(\
 		poly.FillPoints()
 		try:
 			SaveArray(self, fname,support)
+		except:
+			msg = "Could not save array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+def Sequence_Empty_Array(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Preparing empty array...")
+		x =  int(pipelineitem.dims[0].value.GetValue())
+		y =  int(pipelineitem.dims[1].value.GetValue())
+		z =  int(pipelineitem.dims[2].value.GetValue())
+		fname = pipelineitem.filename.objectpath.GetValue()
+		fromfile = pipelineitem.fromfile.objectpath.GetValue()
+		if fromfile != "":
+			try:
+				fromarray = LoadArray(self, fromfile)
+			except:
+				msg = "Could not load array."
+				wx.CallAfter(self.UserMessage, title, msg)
+				self.pipeline_started = False
+				return
+			else:
+				x,y,z = numpy.asarray(fromarray.shape, numpy.int)
+		try:
+			emptyarray = NewArray(self,x,y,z)
+		except:
+			msg = "Could not prepare array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+		try:
+			SaveArray(self, fname, emptyarray)
 		except:
 			msg = "Could not save array."
 			wx.CallAfter(self.UserMessage, title, msg)

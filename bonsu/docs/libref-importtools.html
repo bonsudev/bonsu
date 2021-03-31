@@ -13,7 +13,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -60,9 +59,22 @@
 </dd>
 </dl>
 </div>
+<div class="section" id="empty-array">
+<h2>Empty Array<a class="headerlink" href="#empty-array" title="Permalink to this headline">¶</a></h2>
+<p id="index-1">Creates an empty new array. If any array is supplied in the <code class="docutils literal notranslate"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field, the dimensions of this array will be used for the empty array. Otherwise, the specified dimensions are used.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Output file</strong></dt><dd><p>User provided path string for the output NumPy file.</p>
+</dd>
+<dt><strong>(xyz) from array</strong></dt><dd><p>Optional user provided path string for NumPy file used to provide the <code class="docutils literal notranslate"><span class="pre">support</span></code> array dimensions.</p>
+</dd>
+<dt><strong>(xyz) from dimensions {x,y,z}</strong></dt><dd><p>Dimensions of the <code class="docutils literal notranslate"><span class="pre">support</span></code> array.  This is overridden if the <code class="docutils literal notranslate"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field is used.</p>
+</dd>
+</dl>
+</div>
 <div class="section" id="hdf5-to-numpy">
 <h2>HDF5 to Numpy<a class="headerlink" href="#hdf5-to-numpy" title="Permalink to this headline">¶</a></h2>
-<p id="index-1">Provides a means to browse and import data within a Hierarchical Data Format (HDF) file.  HDF5 is supported via the python <a class="reference external" href="http://www.h5py.org/">H5Py</a> package.</p>
+<p id="index-2">Provides a means to browse and import data within a Hierarchical Data Format (HDF) file.  HDF5 is supported via the python <a class="reference external" href="http://www.h5py.org/">H5Py</a> package.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input HDF file</strong></dt><dd><p>User provided path string to the input HDF file.</p>
@@ -75,7 +87,7 @@
 </div>
 <div class="section" id="image-to-numpy">
 <h2>Image to Numpy<a class="headerlink" href="#image-to-numpy" title="Permalink to this headline">¶</a></h2>
-<p id="index-2">Provides a means to import image data into NumPy format. Accepted formats include Portable Network Graphics (PNG), JPEG, Portable PixMap (PPM) and Tagged Image File (TIF) format. Output Numpy arrays are three dimensional with unit length in the third dimension.</p>
+<p id="index-3">Provides a means to import image data into NumPy format. Accepted formats include Portable Network Graphics (PNG), JPEG, Portable PixMap (PPM) and Tagged Image File (TIF) format. Output Numpy arrays are three dimensional with unit length in the third dimension.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input Image file</strong></dt><dd><p>User provided path string to the input image file.</p>
@@ -86,7 +98,7 @@
 </div>
 <div class="section" id="load-co-ordinates">
 <h2>Load Co-ordinates<a class="headerlink" href="#load-co-ordinates" title="Permalink to this headline">¶</a></h2>
-<p id="index-3">Initialises or replaces the internally stored <code class="docutils literal notranslate"><span class="pre">Co-ordinates</span> <span class="pre">data</span></code> with the supplied array.</p>
+<p id="index-4">Initialises or replaces the internally stored <code class="docutils literal notranslate"><span class="pre">Co-ordinates</span> <span class="pre">data</span></code> with the supplied array.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -95,7 +107,7 @@
 </div>
 <div class="section" id="load-psf">
 <h2>Load PSF<a class="headerlink" href="#load-psf" title="Permalink to this headline">¶</a></h2>
-<p id="index-4">Initialises or replaces the internally stored <code class="docutils literal notranslate"><span class="pre">Point</span> <span class="pre">Spread</span> <span class="pre">Function</span> <span class="pre">data</span></code> with the supplied array. This is typically used before a <a class="reference internal" href="libref-algorithms.html#libref-algorithms-hiomaskpc"><span class="std std-ref">partial coherence</span></a> phase retrieval algorithm commences.</p>
+<p id="index-5">Initialises or replaces the internally stored <code class="docutils literal notranslate"><span class="pre">Point</span> <span class="pre">Spread</span> <span class="pre">Function</span> <span class="pre">data</span></code> with the supplied array. This is typically used before a <a class="reference internal" href="libref-algorithms.html#libref-algorithms-hiomaskpc"><span class="std std-ref">partial coherence</span></a> phase retrieval algorithm commences.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -104,7 +116,7 @@
 </div>
 <div class="section" id="spe-to-numpy">
 <h2>SPE to Numpy<a class="headerlink" href="#spe-to-numpy" title="Permalink to this headline">¶</a></h2>
-<p id="index-5">Provides a means to import data from <a class="reference external" href="http://www.princetoninstruments.com">SPE</a> format into NumPy format. During conversion, additional information is provided and appears in the <a class="reference internal" href="usage.html#usage-log"><span class="std std-ref">Log</span></a>.</p>
+<p id="index-6">Provides a means to import data from <a class="reference external" href="http://www.princetoninstruments.com">SPE</a> format into NumPy format. During conversion, additional information is provided and appears in the <a class="reference internal" href="usage.html#usage-log"><span class="std std-ref">Log</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input SPE file</strong></dt><dd><p>User provided path string to the input SPE file.</p>
@@ -129,6 +141,7 @@
   <ul>
 <li><a class="reference internal" href="#">Library Reference - Import Tools</a><ul>
 <li><a class="reference internal" href="#array-to-memory">Array to Memory</a></li>
+<li><a class="reference internal" href="#empty-array">Empty Array</a></li>
 <li><a class="reference internal" href="#hdf5-to-numpy">HDF5 to Numpy</a></li>
 <li><a class="reference internal" href="#image-to-numpy">Image to Numpy</a></li>
 <li><a class="reference internal" href="#load-co-ordinates">Load Co-ordinates</a></li>

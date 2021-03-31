@@ -34,7 +34,7 @@ def FreeSpace(path):
 		return free
 def ArTo3DNpy(array):
 	from numpy import newaxis
-	if numpy.any(array):
+	if isinstance(array, numpy.ndarray):
 		if array.ndim == 2:
 			array = array[:, :, newaxis]
 		if array.ndim == 1:
