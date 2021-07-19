@@ -373,6 +373,67 @@ void CopyAmp
 	}
 }
 
+int CopyAmp2
+(
+	double* data1, 
+	double* data2, 
+	int32_t* nn
+)
+{
+	CopyAmp(data1, data2, nn);
+	return 0;
+}
+
+void* CopyAbs_p(void* thdata)
+{
+	ThreadData* thd=(ThreadData*) thdata;
+	int64_t idxstart = thd->idxstart;
+	int64_t idxend = thd->idxend;
+	double* data1 = (double *) thd->ar1;
+	double* data2 = (double *) thd->ar2;
+	int64_t i;
+	for(i=idxstart; i<idxend; i++)
+	{
+		data2[2*i] = sqrt(data1[2*i]*data1[2*i] + data1[2*i+1]*data1[2*i+1]);
+		data2[2*i+1] = 0.0;
+	}
+	return NULL;
+}
+
+int CopyAbs
+(
+	double* data1, 
+	double* data2, 
+	int32_t* nn
+)
+{
+	int64_t len = (int64_t) nn[0] * nn[1] * nn[2];
+	pthread_t thread[npthread];
+	int64_t thdlen = (len + npthread-1)/npthread;
+	ThreadData thdata[npthread];
+	int i;
+	for (i=0; i<npthread; i++)
+	{
+		thdata[i].id = i;
+		thdata[i].idxstart = i*thdlen;
+		thdata[i].idxend = (i+1)*thdlen;
+		thdata[i].ar1 = data1;
+		thdata[i].ar2 = data2;
+	}
+	thdata[npthread-1].idxend = len;
+	for (i=0; i<npthread; i++)
+	{
+		pthread_create(&thread[i], NULL, CopyAbs_p, &thdata[i]);
+	}
+	for (i=0; i<npthread; i++)
+	{
+		pthread_join(thread[i], NULL);
+	}
+	return 0;
+}
+
+
+
 void* CopyPhase_p(void* thdata)
 {
 	ThreadData* thd=(ThreadData*) thdata;

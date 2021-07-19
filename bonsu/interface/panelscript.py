@@ -21,12 +21,18 @@
 import wx
 import os
 from wx.py.shell import Shell
+class ShellNew(Shell):
+	def __init__(self, parent, *args, **kwargs):
+		Shell.__init__(self, parent, *args, **kwargs)
+		self.Bind(wx.EVT_MIDDLE_UP, self.OnMiddle)
+	def OnMiddle(self, event):
+		pass
 class PanelScript(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 		self.intro = "Interactive Phase Retrieval Suite"
-		self.shell = Shell(parent = self, id = wx.ID_ANY, introText=self.intro)
-		self.shell.zoom(2)
+		self.shell = ShellNew(parent = self, id = wx.ID_ANY, introText=self.intro)
+		self.shell.zoom(4)
 		self.shell.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown, self.shell)
 		self.ih = 0
 		sizer = wx.BoxSizer(wx.VERTICAL)

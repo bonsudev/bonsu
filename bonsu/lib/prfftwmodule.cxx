@@ -141,6 +141,116 @@ PyObject* prfftw_wrap(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+PyObject* prfftw_wrap_nomem(PyObject *self, PyObject *args)
+{
+	double *indata;
+	double *tmpdata;
+	npy_intp *dims;
+	int32_t nn[3];
+	PyArrayObject *arg1=NULL;
+	PyArrayObject *arg2=NULL;
+	int drctn;
+	if (!PyArg_ParseTuple(args, "OOi", &arg1, &arg2, &drctn)){return NULL;};
+	indata = (double*) PyArray_DATA(arg1);
+	tmpdata = (double*) PyArray_DATA(arg2);
+	dims = PyArray_DIMS(arg1);
+	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
+	int wrapped;
+	Py_BEGIN_ALLOW_THREADS;
+	wrapped = wrap_array_nomem(indata, tmpdata, nn, drctn);
+	Py_END_ALLOW_THREADS;
+	if (wrapped)
+	{
+		PyErr_NoMemory();
+		return PyErr_Occurred();
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* prfftw_copy_abs(PyObject *self, PyObject *args)
+{
+	double *indata;
+	double *indata2;
+	npy_intp *dims;
+	int32_t nn[3];
+	PyArrayObject *arg1=NULL;
+	PyArrayObject *arg2=NULL;
+	if (!PyArg_ParseTuple(args, "OO", &arg1, &arg2)){return NULL;};
+	indata = (double*) PyArray_DATA(arg1);
+	indata2 = (double*) PyArray_DATA(arg2);
+	dims = PyArray_DIMS(arg1);
+	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
+	int result;
+	Py_BEGIN_ALLOW_THREADS;
+	result = CopyAbs(indata, indata2, nn);
+	Py_END_ALLOW_THREADS;
+	if (result)
+	{
+		PyErr_NoMemory();
+		return PyErr_Occurred();
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* prfftw_copy_amp(PyObject *self, PyObject *args)
+{
+	double *indata;
+	double *indata2;
+	npy_intp *dims;
+	int32_t nn[3];
+	PyArrayObject *arg1=NULL;
+	PyArrayObject *arg2=NULL;
+	if (!PyArg_ParseTuple(args, "OO", &arg1, &arg2)){return NULL;};
+	indata = (double*) PyArray_DATA(arg1);
+	indata2 = (double*) PyArray_DATA(arg2);
+	dims = PyArray_DIMS(arg1);
+	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
+	int result;
+	Py_BEGIN_ALLOW_THREADS;
+	result = CopyAmp2(indata, indata2, nn);
+	Py_END_ALLOW_THREADS;
+	if (result)
+	{
+		PyErr_NoMemory();
+		return PyErr_Occurred();
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* prfftw_max_value(PyObject *self, PyObject *args)
+{
+	double *indata;
+	double *maxval;
+	npy_intp *dims;
+	int32_t nn[3];
+	PyArrayObject *arg1=NULL;
+	PyArrayObject *arg2=NULL;
+	if (!PyArg_ParseTuple(args, "OO", &arg1, &arg2)){return NULL;};
+	indata = (double*) PyArray_DATA(arg1);
+	maxval = (double*) PyArray_DATA(arg2);
+	dims = PyArray_DIMS(arg1);
+	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
+	Py_BEGIN_ALLOW_THREADS;
+	int64_t len = (int64_t) nn[0] * nn[1] * nn[2];
+	int64_t i;
+	maxval[0] = 0.0;
+	maxval[1] = 0.0;
+	for(i=0; i<len; i++)
+	{
+		maxval[1] = indata[i];
+		if (maxval[1] > maxval[0])
+		{
+			maxval[0] = maxval[1];
+		}
+	}
+	Py_END_ALLOW_THREADS;
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 PyObject* prfftw_hio(PyObject *self, PyObject *args)
 {
 	PyArrayObject *arg1=NULL, *arg2=NULL, *arg3=NULL;
@@ -2033,6 +2143,82 @@ PyObject* prfftw_convolve(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+int convolve_sw(double* indata1, double* indata2, int32_t ndim, int32_t* dims)
+{
+	Py_BEGIN_ALLOW_THREADS;
+	fftw_plan torecip;
+	fftw_plan toreal;
+	int ii, i, j, k;
+	int32_t nn[3] = {dims[0], dims[1], dims[2]};
+	int len = nn[0] * nn[1] * nn[2];
+	double val1[2] = {0.0,0.0};
+	double val2[2] = {0.0,0.0};
+
+	for(ii=0; ii<len; ii++)
+	{
+		indata2[2*ii+1] = indata1[2*ii];
+	}
+	FFTPlan( &torecip, &toreal, indata1, nn, ndim );
+	for(ii=0; ii<len; ii++)
+	{
+		indata1[2*ii] = indata2[2*ii+1];
+		indata2[2*ii+1] = 0.0;
+	}
+	
+	FFTStride(indata1, nn, &torecip);
+	FFTStride(indata2, nn, &torecip);
+	for(i=0;i<nn[0]; i++)
+	{
+		for(j=0;j<nn[1]; j++)
+		{
+			for(k=0;k<nn[2]; k++)
+			{
+				ii = (k+nn[2]*(j+nn[1]*i));
+				val1[0] = indata1[2*ii];
+				val1[1] = indata1[2*ii+1];
+				val2[0] = indata2[2*ii];
+				val2[1] = indata2[2*ii+1];
+				indata1[2*ii] = (val1[0]*val2[0] - val1[1]*val2[1])*sqrt((double) len);
+				indata1[2*ii+1] = (val1[0]*val2[1] + val1[1]*val2[0])*sqrt((double) len);
+			}
+		}
+	}
+	FFTStride(indata1, nn, &toreal);
+	FFTStride(indata2, nn, &toreal);
+	
+	fftw_destroy_plan( torecip );
+	fftw_destroy_plan( toreal );
+	fftw_cleanup();
+	Py_END_ALLOW_THREADS;
+	return 0;
+}
+
+
+PyObject* prfftw_convolve_sw(PyObject *self, PyObject *args)
+{
+	PyArrayObject *arg1=NULL, *arg2=NULL;
+	double *indata1;
+	double *indata2;
+	npy_intp *dims;
+	int32_t ndim;
+	int32_t nn[3];
+	if (!PyArg_ParseTuple(args, "OO", &arg1, &arg2)){ return NULL;};
+	indata1 = (double*) PyArray_DATA(arg1);
+	indata2 = (double*) PyArray_DATA(arg2);
+	dims = PyArray_DIMS(arg1);
+	ndim = PyArray_NDIM(arg1);
+	nn[0] = (int32_t) dims[0]; nn[1] = (int32_t) dims[1]; nn[2] = (int32_t) dims[2];
+	int convolved;
+	convolved = convolve_sw(indata1, indata2, ndim, nn);
+	if (convolved)
+	{
+		PyErr_NoMemory();
+		return PyErr_Occurred();
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 PyObject* prfftw_fft(PyObject *self, PyObject *args)
 {
 	PyArrayObject *arg1=NULL;
@@ -2145,6 +2331,14 @@ static PyMethodDef prfftwMethods[] = {
      "Fourier transform a complex array."},
 	 {"wrap",  prfftw_wrap, METH_VARARGS,
      "Wrap array."},
+	 {"wrap_nomem",  prfftw_wrap_nomem, METH_VARARGS,
+     "Wrap array, nomem."},
+	 {"copy_amp",  prfftw_copy_amp, METH_VARARGS,
+     "Copy to real amp array."},
+	 {"copy_abs",  prfftw_copy_abs, METH_VARARGS,
+     "Copy abs array."},
+	 {"max_value",  prfftw_max_value, METH_VARARGS,
+     "Max value."},
 	 {"medianfilter",  prfftw_medianfilter, METH_VARARGS,
      "Median filter array."},
 	 {"blanklinefill",  prfftw_blanklinereplace, METH_VARARGS,
@@ -2153,6 +2347,8 @@ static PyMethodDef prfftwMethods[] = {
      "Reflect and conjugate a complex array."},
 	 {"convolve",  prfftw_convolve, METH_VARARGS,
      "Convolve two complex arrays."},
+	 {"convolve_sw",  prfftw_convolve_sw, METH_VARARGS,
+     "Convolve two complex arrays for shrink-wrap."},
 	{"convolve2",  prfftw_convolve2, METH_VARARGS,
      "Convolve two complex arrays."},
 	{"gaussian_filter",  prfftw_gaussian_filter, METH_VARARGS,

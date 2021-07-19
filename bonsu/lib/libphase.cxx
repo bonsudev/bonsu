@@ -152,6 +152,34 @@ void CopyAmp
 	}
 }
 
+int CopyAmp2
+(
+	double* data1, 
+	double* data2, 
+	int32_t* nn
+)
+{
+	CopyAmp(data1, data2, nn);
+	return 0;
+}
+
+int CopyAbs
+(
+	double* data1, 
+	double* data2, 
+	int32_t* nn
+)
+{
+	int64_t len = (int64_t) nn[0] * nn[1] * nn[2];
+	int64_t i;
+	for(i=0; i<len; i++)
+	{
+		data2[2*i] = sqrt(data1[2*i]*data1[2*i] + data1[2*i+1]*data1[2*i+1]);
+		data2[2*i+1] = 0.0;
+	}
+	return 0;
+}
+
 void CopyPhase
 (
 	double* data1, 

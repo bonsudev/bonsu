@@ -90,7 +90,9 @@ PyObject* prfftw_gaussian_fill(PyArrayObject *self, PyObject *args);
 PyObject* prfftw_gaussian_filter(PyObject *self, PyObject *args);
 PyObject* prfftw_convolve(PyObject *self, PyObject *args);
 PyObject* prfftw_convolve2(PyObject *self, PyObject *args);
+PyObject* prfftw_convolve_sw(PyObject *self, PyObject *args);
 PyObject* prfftw_wrap(PyObject *self, PyObject *args);
+PyObject* prfftw_wrap_nomem(PyObject *self, PyObject *args);
 PyObject* prfftw_medianfilter(PyObject *self, PyObject *args);
 PyObject* prfftw_conj_reflect(PyObject *self, PyObject *args);
 
@@ -174,6 +176,8 @@ int convolve_nomem2(double* indata1, double* indata2, int32_t ndim, int32_t* dim
 int convolve_nomem3(double* indata1, double* indata2, int32_t ndim, int32_t* dims, double* data1, double* data2, fftw_plan* torecip, fftw_plan* toreal);
 
 int convolve(double* indata1, double* indata2, int32_t ndim, int32_t* dims);
+
+int convolve_sw(double* indata1, double* indata2, int32_t ndim, int32_t* dims);
 
 void convolve_nomem(double* data1, double* data2, int32_t ndim, int32_t* nn, fftw_plan* torecip, fftw_plan* toreal);
 
@@ -333,6 +337,9 @@ void AddArray(double* data0, double* data1, double* data2, int32_t* nn);
 void MultiplyArray(double* data0, double* data1, double* data2, int32_t* nn);
 
 void CopyAmp(double* data1, double* data2, int32_t* nn);
+int CopyAmp2(double* data1, double* data2, int32_t* nn);
+
+int CopyAbs(double* data1, double* data2, int32_t* nn);
  
 void CopyPhase(double* data1, double* data2, int32_t* nn);
 

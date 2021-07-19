@@ -119,17 +119,26 @@ def LoadArray(self, filename):
 			raise NameError
 	else:
 		try:
-			f = open(filename, 'rb')
-			numpy.lib.npyio.format.read_magic(f)
-			head = numpy.lib.npyio.format.read_array_header_1_0(f)
-			f.close()
+			array_mm = numpy.load(filename, mmap_mode='r')
+			shape = array_mm.shape
+			if array_mm.ndim == 2:
+				shape = (*shape, 1)
+			elif array_mm.ndim == 1:
+				shape = (*shape, 1, 1)
+			elif array_mm.ndim > 3:
+				self.ancestor.GetPage(0).queue_info.put("Could not load array. Too many dimensions.")
+				self.ancestor.GetPage(4).UpdateLog(None)
+				raise TypeError
+			elif array_mm.ndim < 1:
+				self.ancestor.GetPage(0).queue_info.put("Could not load array. Too few dimensions.")
+				self.ancestor.GetPage(4).UpdateLog(None)
+				raise TypeError
 		except:
 			self.ancestor.GetPage(0).queue_info.put("Could not load array. Please check the input fields.")
 			self.ancestor.GetPage(4).UpdateLog(None)
 			raise IOError
 		else:
 			try:
-				shape = head[0]
 				dt = numpy.dtype(numpy.complex128)
 				memsize = dt.itemsize
 				for i in shape:
@@ -145,13 +154,12 @@ def LoadArray(self, filename):
 				try:
 					x,y,z = shape
 					array = ByteAlignedArray(x,y,z)
-					numpy.copyto(array, numpy.load(filename))
+					numpy.copyto(array, ArTo3DNpy(array_mm))
 				except MemoryError:
 					self.ancestor.GetPage(0).queue_info.put("Could not load array. Insufficient memory.")
 					self.ancestor.GetPage(4).UpdateLog(None)
 					raise MemoryError
 				else:
-					array = ArTo3DNpy(array)
 					return array
 def LoadCoordsArray(self, filename):
 	if filename == 'memorycoords':

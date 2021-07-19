@@ -925,14 +925,21 @@ class Sequence_ShrinkWrap(SequenceBaseMask):
 			if parent.citer_flow[1] == 2: return;
 			from ..lib.prfftw import threshold
 			from ..lib.prfftw import rangereplace
-			from ..lib.prfftw import convolve
+			from ..lib.prfftw import convolve_sw
 			from ..lib.prfftw import medianfilter
-			from ..lib.prfftw import wrap
+			from ..lib.prfftw import wrap_nomem
+			from ..lib.prfftw import copy_amp
+			from ..lib.prfftw import copy_abs
+			from ..lib.prfftw import max_value
 			self.threshold = threshold
 			self.rangereplace = rangereplace
-			self.convolve = convolve
+			self.convolve = convolve_sw
 			self.medianfilter = medianfilter
-			self.wrap = wrap
+			self.wrap = wrap_nomem
+			self.copy_abs = copy_abs
+			self.copy_amp = copy_amp
+			self.maxvalue = numpy.zeros((2), dtype=numpy.double)
+			self.max_value = max_value
 			self.beta = float(self.pipelineitem.beta.value.GetValue())
 			self.startiter = int(self.pipelineitem.start_iter)
 			self.numiter = int(self.pipelineitem.niter.value.GetValue())
@@ -978,7 +985,7 @@ class Sequence_ShrinkWrap(SequenceBaseMask):
 			self.parent.temparray = NewArray(self, *self.parent.support.shape)
 			self.parent.temparray2 = NewArray(self, *self.parent.support.shape)
 			gaussian_fill(self.parent.temparray, self.sigma)
-			self.wrap(self.parent.temparray, 1)
+			self.wrap(self.parent.temparray, self.parent.temparray2, 1)
 		except:
 			msg = "Insufficient memory for temporary arrays."
 			self.MsgDlg(msg)
@@ -988,15 +995,15 @@ class Sequence_ShrinkWrap(SequenceBaseMask):
 	def UpdateSupport(self):
 		if self.parent.ancestor.GetPage(0).citer_flow[4] > 0:
 			self.parent.ancestor.GetPage(0).queue_info.put("Updating support ...")
-			self.parent.support[:] = numpy.abs(self.parent.seqdata).copy()
-			maxvalue = numpy.abs(self.parent.support).max()
-			self.threshold(self.parent.support, (self.frac*maxvalue), maxvalue, 0.0)
+			self.copy_abs(self.parent.seqdata, self.parent.support)
+			self.max_value(self.parent.support.real, self.maxvalue)
+			self.threshold(self.parent.support, (self.frac*self.maxvalue[0]), self.maxvalue[0], 0.0)
 			self.medianfilter(self.parent.support, self.parent.temparray2, 3,3,3, 0.0)
-			self.wrap(self.parent.support, 1)
+			self.wrap(self.parent.support, self.parent.temparray2, 1)
 			self.convolve(self.parent.support, self.parent.temparray)
-			self.wrap(self.parent.support, -1)
-			self.rangereplace(self.parent.support, (self.frac*maxvalue), sys.float_info.max, 0.0, 1.0)
-			self.parent.visual_support[:] = numpy.abs(self.parent.support)
+			self.wrap(self.parent.support, self.parent.temparray2, -1)
+			self.rangereplace(self.parent.support, (self.frac*self.maxvalue[0]), sys.float_info.max, 0.0, 1.0)
+			self.copy_amp(self.parent.support, self.parent.visual_support)
 			self.parent.ancestor.GetPage(0).queue_info.put("... done.")
 	def UpdateVisualSupport(self):
 			if self.parent.ancestor.GetPage(0).citer_flow[4] > 0:
