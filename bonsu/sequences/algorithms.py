@@ -636,7 +636,7 @@ class SequenceBaseMask(SequenceBase):
 			self.parent.mask = LoadArray(self.parent, self.mask_path)
 			self.parent.mask[:] = WrapArray(self.parent.mask).copy()
 		except:
-			msg = "Could not load array from: \n"+ mask_path + "\nPlease check the log."
+			msg = "Could not load array from: \n"+ self.mask_path + "\nPlease check the log."
 			self.MsgDlg(msg)
 			return True
 		else:

@@ -19,7 +19,7 @@
 ##
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
-from setuptools import setup, Extension
+from setuptools import setup, Extension, dist
 import os, datetime
 from sys import argv
 from sys import platform
@@ -28,7 +28,8 @@ args = argv[1:]
 def CheckPython():
 	from sys import version_info
 	if version_info < (3,7):
-		sys.exit('Python < 3.7 is not supported. Please upgrade.')
+		from sys import exit
+		exit('Python < 3.7 is not supported. Please upgrade.')
 def SetBuildDate():
 	filename_bonsu = os.path.join(os.path.dirname(__file__), 'bonsu', 'interface', 'bonsu.py')
 	f1_bonsu = open(filename_bonsu, 'r')
@@ -43,6 +44,24 @@ def SetBuildDate():
 	f2_bonsu.writelines(lines)
 	f1_bonsu.close()
 	f2_bonsu.close()
+def SetBuiltin(name, value):
+	if isinstance(__builtins__, dict):
+		__builtins__[name] = value
+	else:
+		setattr(__builtins__, name, value)
+def ExtInclude(pars):
+	from setuptools.command.build_ext import build_ext as _build_ext
+	class build_ext(_build_ext):
+		def finalize_options(self):
+			_build_ext.finalize_options(self)
+			SetBuiltin("__NUMPY_SETUP__",False)
+			import numpy
+			from numpy.distutils.system_info import get_info
+			self.include_dirs.append(numpy.get_include())
+			self.include_dirs.append(os.path.join(numpy.get_include(), 'numpy'))
+			fftw_include_path = get_info('fftw3')['include_dirs'][0]
+			self.include_dirs.append(fftw_include_path)
+	return build_ext(pars)
 def Build( type=args[0] ):
 	bonsu_description = """ Bonsu is a collection of tools and algorithms primarily for
 	the reconstruction of phase information from diffraction intensity measurements.
@@ -104,7 +123,7 @@ def Build( type=args[0] ):
 	elif platform.startswith('win'):
 		extra_package_data = {'bonsu.lib': ['libfftw3-3.dll']}
 		package_data_dict.update(extra_package_data)
-	if platform.startswith('win'):
+	if platform.startswith('win') and not type.startswith('bdist_wheel'):
 		scripts=['bonsu/bonsu', 'bonsupost']
 	else:
 		scripts=['bonsu/bonsu']
@@ -160,24 +179,16 @@ def Build( type=args[0] ):
 		if type == 'sdist':
 			sourcelist.append('bonsu/lib/libphase-pthread.cxx')
 			sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
-	import numpy
-	from numpy.distutils.system_info import get_info
-	fftw_include_path = get_info('fftw3')['include_dirs'][0]
-	include_dirs = [
-		'include',
-		numpy.get_include(),
-		os.path.join(numpy.get_include(), 'numpy'),
-		fftw_include_path]
+	include_dirs = ['include']
 	modprfftw = Extension(
 		'prfftw',
 		include_dirs = include_dirs,
 		libraries = modprfftw_lib,
 		extra_compile_args = [debug_compile_args],
 		sources = sourcelist)
-	from bonsu.interface.bonsu import __version__
 	setup(
 		name = 'Bonsu',
-		version = __version__,
+		version = "3.4.0",
 		license = 'GPL3',
 		description = 'Bonsu - The Interactive Phase Retrieval Suite',
 		author = 'Marcus C. Newton',
@@ -199,6 +210,7 @@ def Build( type=args[0] ):
 		scripts = scripts,
 		package_data = package_data_dict,
 		data_files = data_files,
+		cmdclass={'build_ext' : ExtInclude},
 		requires = SETUP_REQUIRES,
 		install_requires = INSTALL_REQUIRES,
 		python_requires = '>=3.7',

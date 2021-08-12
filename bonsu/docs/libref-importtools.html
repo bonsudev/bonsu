@@ -4,12 +4,13 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Library Reference - Import Tools &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Library Reference - Import Tools &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -35,7 +36,7 @@
         <li class="right" >
           <a href="libref-visualtools.html" title="Library Reference - Visualisation Tools"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Library Reference - Import Tools</a></li> 
       </ul>
@@ -46,9 +47,9 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="library-reference-import-tools">
+  <section id="library-reference-import-tools">
 <span id="libref-importtools"></span><h1>Library Reference - Import Tools<a class="headerlink" href="#library-reference-import-tools" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="array-to-memory">
+<section id="array-to-memory">
 <span id="libref-importtools-arraytomem"></span><h2>Array to Memory<a class="headerlink" href="#array-to-memory" title="Permalink to this headline">¶</a></h2>
 <p id="index-0">Provides a means to load a NumPy array from disk directly into a memory by using either of the 10 keywords <code class="docutils literal notranslate"><span class="pre">memory0</span></code>, <code class="docutils literal notranslate"><span class="pre">memory1</span></code>, … , <code class="docutils literal notranslate"><span class="pre">memory9</span></code> as a string in place of a NumPy file path.  See <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">Array Creation and Storage</span></a> for furthr details.</p>
 <p><strong>Parameters</strong>:</p>
@@ -58,8 +59,8 @@
 <dt><strong>Output File</strong></dt><dd><p>User provided choice of memory keyword.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="empty-array">
+</section>
+<section id="empty-array">
 <h2>Empty Array<a class="headerlink" href="#empty-array" title="Permalink to this headline">¶</a></h2>
 <p id="index-1">Creates an empty new array. If any array is supplied in the <code class="docutils literal notranslate"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field, the dimensions of this array will be used for the empty array. Otherwise, the specified dimensions are used.</p>
 <p><strong>Parameters</strong>:</p>
@@ -71,8 +72,8 @@
 <dt><strong>(xyz) from dimensions {x,y,z}</strong></dt><dd><p>Dimensions of the <code class="docutils literal notranslate"><span class="pre">support</span></code> array.  This is overridden if the <code class="docutils literal notranslate"><span class="pre">(xyz)</span> <span class="pre">from</span> <span class="pre">array</span></code> field is used.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="hdf5-to-numpy">
+</section>
+<section id="hdf5-to-numpy">
 <h2>HDF5 to Numpy<a class="headerlink" href="#hdf5-to-numpy" title="Permalink to this headline">¶</a></h2>
 <p id="index-2">Provides a means to browse and import data within a Hierarchical Data Format (HDF) file.  HDF5 is supported via the python <a class="reference external" href="http://www.h5py.org/">H5Py</a> package.</p>
 <p><strong>Parameters</strong>:</p>
@@ -84,8 +85,8 @@
 <dt><strong>Output File</strong></dt><dd><p>User provided path string for the output NumPy file.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="image-to-numpy">
+</section>
+<section id="image-to-numpy">
 <h2>Image to Numpy<a class="headerlink" href="#image-to-numpy" title="Permalink to this headline">¶</a></h2>
 <p id="index-3">Provides a means to import image data into NumPy format. Accepted formats include Portable Network Graphics (PNG), JPEG, Portable PixMap (PPM) and Tagged Image File (TIF) format. Output Numpy arrays are three dimensional with unit length in the third dimension.</p>
 <p><strong>Parameters</strong>:</p>
@@ -95,8 +96,8 @@
 <dt><strong>Output File</strong></dt><dd><p>User provided path string for the output NumPy file.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="load-co-ordinates">
+</section>
+<section id="load-co-ordinates">
 <h2>Load Co-ordinates<a class="headerlink" href="#load-co-ordinates" title="Permalink to this headline">¶</a></h2>
 <p id="index-4">Initialises or replaces the internally stored <code class="docutils literal notranslate"><span class="pre">Co-ordinates</span> <span class="pre">data</span></code> with the supplied array.</p>
 <p><strong>Parameters</strong>:</p>
@@ -104,8 +105,8 @@
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="load-psf">
+</section>
+<section id="load-psf">
 <h2>Load PSF<a class="headerlink" href="#load-psf" title="Permalink to this headline">¶</a></h2>
 <p id="index-5">Initialises or replaces the internally stored <code class="docutils literal notranslate"><span class="pre">Point</span> <span class="pre">Spread</span> <span class="pre">Function</span> <span class="pre">data</span></code> with the supplied array. This is typically used before a <a class="reference internal" href="libref-algorithms.html#libref-algorithms-hiomaskpc"><span class="std std-ref">partial coherence</span></a> phase retrieval algorithm commences.</p>
 <p><strong>Parameters</strong>:</p>
@@ -113,8 +114,8 @@
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="spe-to-numpy">
+</section>
+<section id="spe-to-numpy">
 <h2>SPE to Numpy<a class="headerlink" href="#spe-to-numpy" title="Permalink to this headline">¶</a></h2>
 <p id="index-6">Provides a means to import data from <a class="reference external" href="http://www.princetoninstruments.com">SPE</a> format into NumPy format. During conversion, additional information is provided and appears in the <a class="reference internal" href="usage.html#usage-log"><span class="std std-ref">Log</span></a>.</p>
 <p><strong>Parameters</strong>:</p>
@@ -124,8 +125,8 @@
 <dt><strong>Output File</strong></dt><dd><p>User provided path string for the output NumPy file.</p>
 </dd>
 </dl>
-</div>
-</div>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -186,7 +187,7 @@
         <li class="right" >
           <a href="libref-visualtools.html" title="Library Reference - Visualisation Tools"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Library Reference - Import Tools</a></li> 
       </ul>

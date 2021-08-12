@@ -35,9 +35,9 @@ else:
 	from wx.lib.plot.plotcanvas import PlotCanvas, PolyLine
 	from wx.lib.plot.polyobjects import PlotGraphics
 if IsPy3():
-    from queue import Queue
+	from queue import Queue
 else:
-    from Queue import Queue
+	from Queue import Queue
 class AnimateDialog(wx.Dialog):
 	def __init__(self, parent):
 		wx.Dialog.__init__(self, parent, title="Animate Scene", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)

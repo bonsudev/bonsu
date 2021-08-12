@@ -4,12 +4,13 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Installation &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Installation &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -18,7 +19,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Introduction" href="intro.html" />
-    <link rel="prev" title="Bonsu 3.3 documentation" href="bonsu.html" /> 
+    <link rel="prev" title="Bonsu 3.4 documentation" href="bonsu.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -33,9 +34,9 @@
           <a href="intro.html" title="Introduction"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="bonsu.html" title="Bonsu 3.3 documentation"
+          <a href="bonsu.html" title="Bonsu 3.4 documentation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>  
@@ -45,9 +46,9 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="installation">
+  <section id="installation">
 <span id="setup"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="installation-on-mac-os-x">
+<section id="installation-on-mac-os-x">
 <h2>Installation on Mac OS X<a class="headerlink" href="#installation-on-mac-os-x" title="Permalink to this headline">¶</a></h2>
 <p>If a native Python environment is used, ensure that all dependencies are installed, ideally from the <a class="reference external" href="https://pypi.org">Python Package Index</a> using <a class="reference external" href="https://pypi.python.org/pypi">pip</a>. They are listed below.</p>
 <ul class="simple">
@@ -62,8 +63,8 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install bonsu
 </pre></div>
 </div>
-</div>
-<div class="section" id="installation-on-windows">
+</section>
+<section id="installation-on-windows">
 <h2>Installation on Windows<a class="headerlink" href="#installation-on-windows" title="Permalink to this headline">¶</a></h2>
 <p>Download 64-bit <a class="reference external" href="http://www.python.org">Python</a> 2.7 or <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 3.6 for Microsoft Windows from the Python website and follow the installation instructions.  Ensure that <a class="reference external" href="https://pypi.org/project/pip/">pip</a> is included in the installation.  Prerequisite binaries are available for download in the <a class="reference external" href="https://pypi.org">Python Package Index</a>. They are also listed below.</p>
 <ul class="simple">
@@ -86,10 +87,10 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip.exe install bonsu
 </pre></div>
 </div>
-</div>
-<div class="section" id="installation-on-linux-unix">
+</section>
+<section id="installation-on-linux-unix">
 <h2>Installation on Linux/Unix<a class="headerlink" href="#installation-on-linux-unix" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="system-preparation">
+<section id="system-preparation">
 <h3>System Preparation<a class="headerlink" href="#system-preparation" title="Permalink to this headline">¶</a></h3>
 <p>Before Bonsu can be installed from source, a number of software packages are required. They are namely:</p>
 <ul class="simple">
@@ -109,8 +110,8 @@ $ conda activate myenv
 $ <span class="nb">export</span> <span class="nv">PREFIX</span><span class="o">=</span><span class="s2">&quot;/path/to/conda/myenv/&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="note-on-building-fftw">
+</section>
+<section id="note-on-building-fftw">
 <h3>Note on Building FFTW<a class="headerlink" href="#note-on-building-fftw" title="Permalink to this headline">¶</a></h3>
 <p>To build FFTW into a stand alone python distribution such as that provided by <a class="reference external" href="http://www.enthought.com/products/epd.php">Enthought</a> , use the following sequence of commands:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ ./configure --prefix<span class="o">=</span><span class="si">${</span><span class="nv">PREFIX</span><span class="si">}</span> --enable-threads --enable-shared
@@ -118,8 +119,8 @@ $ make
 $ make install
 </pre></div>
 </div>
-</div>
-<div class="section" id="installing-bonsu">
+</section>
+<section id="installing-bonsu">
 <h3>Installing Bonsu<a class="headerlink" href="#installing-bonsu" title="Permalink to this headline">¶</a></h3>
 <p>Source code for Bonsu is available for download <a class="reference external" href="https://github.com/bonsudev/bonsu">here</a>.</p>
 <div class="admonition seealso">
@@ -181,9 +182,9 @@ $ make install
 <p class="admonition-title">Note</p>
 <p>For Linux users, a link to the program should be visible in the applications menu.</p>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -212,7 +213,7 @@ $ make install
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="bonsu.html"
-                        title="previous chapter">Bonsu 3.3 documentation</a></p>
+                        title="previous chapter">Bonsu 3.4 documentation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="intro.html"
                         title="next chapter">Introduction</a></p>
@@ -243,9 +244,9 @@ $ make install
           <a href="intro.html" title="Introduction"
              >next</a> |</li>
         <li class="right" >
-          <a href="bonsu.html" title="Bonsu 3.3 documentation"
+          <a href="bonsu.html" title="Bonsu 3.4 documentation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>

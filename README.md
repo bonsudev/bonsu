@@ -39,6 +39,15 @@ or visit: http://github.com/bonsudev/bonsu
 ## Version History
 
 
+#### Version 3.4.0
+
+	+ Installation improvements.
+	* Bug fixes.
+
+#### Version 3.3.7
+
+	* Bug fixes.
+
 #### Version 3.3.6
 
 	+ Interface improvements.

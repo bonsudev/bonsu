@@ -35,9 +35,9 @@ from .common import CheckListCtrl
 from .common import IsNotWX4
 from .common import IsPy3
 if IsPy3():
-    from queue import Queue
+	from queue import Queue
 else:
-    from Queue import Queue
+	from Queue import Queue
 class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 	def __init__(self,parent):
 		self.ancestor = parent
