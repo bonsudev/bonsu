@@ -41,14 +41,14 @@ zf = ZipFile(f)
 zf.extractall(path = FFTWPATH)
 zf.close()
 
-os.system("echo %cd%")
-os.system("dir")
+# os.system("echo %cd%")
+# os.system("dir")
 
-cmd = ["where", "/r", r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise", "lib.exe"]
-process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, close_fds=False)
-print(process.communicate())
+# cmd = ["where", "/r", r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise", "lib.exe"]
+# process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, close_fds=False)
+# print(process.communicate())
 
-lib = r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30037\bin\Hostx64\x64\lib.exe"
+lib = r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\bin\Hostx64\x64\lib.exe"
 
 wcmd = [lib, "/machine:x64", "/def:"+os.path.join(FFTWPATH, "libfftw3-3.def")]
 
