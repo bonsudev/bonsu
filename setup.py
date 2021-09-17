@@ -19,7 +19,7 @@
 ##
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
-from setuptools import setup, Extension, dist
+from setuptools import setup, Extension
 import os, datetime
 from sys import argv
 from sys import platform
@@ -188,7 +188,7 @@ def Build( type=args[0] ):
 		sources = sourcelist)
 	setup(
 		name = 'Bonsu',
-		version = "3.4.0",
+		version = "3.4.1",
 		license = 'GPL3',
 		description = 'Bonsu - The Interactive Phase Retrieval Suite',
 		author = 'Marcus C. Newton',

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Library Reference - Functions &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</title>
+    <title>Library Reference - Functions &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="libref-exporttools.html" title="Library Reference - Export Tools"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Library Reference - Functions</a></li> 
       </ul>
@@ -208,7 +208,7 @@
 </dl>
 </section>
 <section id="interpolate-object">
-<h2>Interpolate Object<a class="headerlink" href="#interpolate-object" title="Permalink to this headline">¶</a></h2>
+<span id="libref-interpolate-object"></span><h2>Interpolate Object<a class="headerlink" href="#interpolate-object" title="Permalink to this headline">¶</a></h2>
 <p id="index-11">Interpolates an input NumPy array and it’s corresponding co-ordinates onto regular grid NumPy array with dimensions dictated by <code class="docutils literal notranslate"><span class="pre">Array</span> <span class="pre">grid</span> <span class="pre">size</span></code>. <a class="reference external" href="http://dx.doi.org/10.1145/800186.810616">Shepards famous algorithm</a> is used for the interpolation.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
@@ -220,13 +220,34 @@
 </dd>
 <dt><strong>Array grid size</strong></dt><dd><p>Dimensions of the output NumPy array.</p>
 </dd>
-<dt><strong>Interpolation range</strong></dt><dd><p>fraction of the input array used for interpolating each point. Larger values approaching unity will significantly slow down the interpolation process.</p>
+<dt><strong>Array Bounds: Start: {x,y,z}</strong></dt><dd><p>Start bounding coordinates. Each value must be smaller than the <code class="docutils literal notranslate"><span class="pre">End</span></code> bounding coordinates. If all values are zero, they are ignored and the digault bounds are used instead.</p>
+</dd>
+<dt><strong>Array Bounds: End: {x,y,z}</strong></dt><dd><p>End bounding coordinates. Each value must be larger than the <code class="docutils literal notranslate"><span class="pre">Start</span></code> bounding coordinates. If all values are zero, they are ignored and the digault bounds are used instead.</p>
+</dd>
+<dt><strong>Interpolation range</strong></dt><dd><p>Fraction of the input array used for interpolating each point. Larger values approaching unity will significantly slow down the interpolation process.</p>
+</dd>
+</dl>
+</section>
+<section id="affine-transform">
+<h2>Affine Transform<a class="headerlink" href="#affine-transform" title="Permalink to this headline">¶</a></h2>
+<p id="index-12">Performs an affine (linear) transformation on the input coordinates file.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Input co-ord’s file</strong></dt><dd><p>User provided path string to the corresponding co-ordinates NumPy file. Generating coordinates files is achieved using the <a class="reference internal" href="libref-operations.html#libref-operations-coord"><span class="std std-ref">Coordinate transformation</span></a> operation.</p>
+</dd>
+<dt><strong>Output co-ord’s file</strong></dt><dd><p>User provided path string for the output co-ordinates NumPy file.</p>
+</dd>
+<dt><strong>Translate: {x,y,z}</strong></dt><dd><p>Translation of coordinates in each orthogonal direction. Units are equal to those of the original coordinates.</p>
+</dd>
+<dt><strong>Scale: {x,y,z}</strong></dt><dd><p>Scaling of each orthogonal axis.</p>
+</dd>
+<dt><strong>Rotate: {x,y,z}</strong></dt><dd><p>Rotation about each orthogonal axis. Units are in degrees.</p>
 </dd>
 </dl>
 </section>
 <section id="mask">
 <span id="libref-functions-mask"></span><h2>Mask<a class="headerlink" href="#mask" title="Permalink to this headline">¶</a></h2>
-<p id="index-12">Creates a <code class="docutils literal notranslate"><span class="pre">mask</span></code> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/e590ec00e4bb2ddd267490a7cc706a6bbd69a2cf.png" alt="1 + 0j"/> if the corresponding voxel of the <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> is inside the range of <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code>.  Voxels outside the same range are set to zero.</p>
+<p id="index-13">Creates a <code class="docutils literal notranslate"><span class="pre">mask</span></code> array for use in phase retrieval.  Voxels in this array take a value of <img class="math" src="_images/math/e590ec00e4bb2ddd267490a7cc706a6bbd69a2cf.png" alt="1 + 0j"/> if the corresponding voxel of the <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> is inside the range of <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code>.  Voxels outside the same range are set to zero.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file from which <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> and <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are obtained.</p>
@@ -241,7 +262,7 @@
 </section>
 <section id="median-filter">
 <h2>Median Filter<a class="headerlink" href="#median-filter" title="Permalink to this headline">¶</a></h2>
-<p id="index-13">Applies a median filter to the amplitude of the input array.  Voxels are only replaced in the array if they deviate from the median filtered equivalent by an amount greater than the <code class="docutils literal notranslate"><span class="pre">Normal</span> <span class="pre">deviation</span></code>.</p>
+<p id="index-14">Applies a median filter to the amplitude of the input array.  Voxels are only replaced in the array if they deviate from the median filtered equivalent by an amount greater than the <code class="docutils literal notranslate"><span class="pre">Normal</span> <span class="pre">deviation</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -256,11 +277,11 @@
 </section>
 <section id="python-script">
 <span id="libref-functions-script"></span><h2>Python Script<a class="headerlink" href="#python-script" title="Permalink to this headline">¶</a></h2>
-<p id="index-14">Execute python script. <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">Memory arrays</span></a> are exposed to this function.</p>
+<p id="index-15">Execute python script. <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">Memory arrays</span></a> are exposed to this function.</p>
 </section>
 <section id="rotate-support">
 <h2>Rotate Support<a class="headerlink" href="#rotate-support" title="Permalink to this headline">¶</a></h2>
-<p id="index-15">Rotates a binary array (such as a support array) by the specified angle in degrees normal to the specified axis. This operation is only intended for binary arrays.</p>
+<p id="index-16">Rotates a binary array (such as a support array) by the specified angle in degrees normal to the specified axis. This operation is only intended for binary arrays.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -275,7 +296,7 @@
 </section>
 <section id="scale-array">
 <h2>Scale Array<a class="headerlink" href="#scale-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-16">Scales the input array by a given amount. Scaling is performed element-wise.</p>
+<p id="index-17">Scales the input array by a given amount. Scaling is performed element-wise.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -288,7 +309,7 @@
 </section>
 <section id="sum-or-subtract-array">
 <h2>Sum or Subtract Array<a class="headerlink" href="#sum-or-subtract-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-17">Takes the sum or difference of two input arrays and places the result in the output array.</p>
+<p id="index-18">Takes the sum or difference of two input arrays and places the result in the output array.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file 1</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -303,7 +324,7 @@
 </section>
 <section id="threshold-data">
 <h2>Threshold Data<a class="headerlink" href="#threshold-data" title="Permalink to this headline">¶</a></h2>
-<p id="index-18">Creates an array using data from the <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> for which voxels outside the range of <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are set to zero.</p>
+<p id="index-19">Creates an array using data from the <code class="docutils literal notranslate"><span class="pre">input</span> <span class="pre">file</span></code> for which voxels outside the range of <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> to <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are set to zero.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file from which <code class="docutils literal notranslate"><span class="pre">Minimum</span> <span class="pre">Value</span></code> and <code class="docutils literal notranslate"><span class="pre">Maximum</span> <span class="pre">Value</span></code> are obtained.</p>
@@ -318,7 +339,7 @@
 </section>
 <section id="transpose-array">
 <h2>Transpose Array<a class="headerlink" href="#transpose-array" title="Permalink to this headline">¶</a></h2>
-<p id="index-19">Transposes an array from dimensions {x,y,z} to dimensions {z,y,x}.</p>
+<p id="index-20">Transposes an array from dimensions {x,y,z} to dimensions {z,y,x}.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -329,7 +350,7 @@
 </section>
 <section id="voxel-replace">
 <h2>Voxel Replace<a class="headerlink" href="#voxel-replace" title="Permalink to this headline">¶</a></h2>
-<p id="index-20">Replaces all voxels with indices in the range of <code class="docutils literal notranslate"><span class="pre">Start</span> <span class="pre">dimensions</span></code> and <code class="docutils literal notranslate"><span class="pre">End</span> <span class="pre">dimensions</span></code> with the specified <code class="docutils literal notranslate"><span class="pre">complex</span> <span class="pre">value</span></code>.</p>
+<p id="index-21">Replaces all voxels with indices in the range of <code class="docutils literal notranslate"><span class="pre">Start</span> <span class="pre">dimensions</span></code> and <code class="docutils literal notranslate"><span class="pre">End</span> <span class="pre">dimensions</span></code> with the specified <code class="docutils literal notranslate"><span class="pre">complex</span> <span class="pre">value</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -346,7 +367,7 @@
 </section>
 <section id="wrap-data">
 <span id="libref-functions-wrap"></span><h2>Wrap Data<a class="headerlink" href="#wrap-data" title="Permalink to this headline">¶</a></h2>
-<p id="index-21">Reorders the data of the input NumPy file into wrap-around order.</p>
+<p id="index-22">Reorders the data of the input NumPy file into wrap-around order.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
 <dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
@@ -384,6 +405,7 @@
 <li><a class="reference internal" href="#fourier-transform">Fourier Transform</a></li>
 <li><a class="reference internal" href="#gaussian-fill">Gaussian Fill</a></li>
 <li><a class="reference internal" href="#interpolate-object">Interpolate Object</a></li>
+<li><a class="reference internal" href="#affine-transform">Affine Transform</a></li>
 <li><a class="reference internal" href="#mask">Mask</a></li>
 <li><a class="reference internal" href="#median-filter">Median Filter</a></li>
 <li><a class="reference internal" href="#python-script">Python Script</a></li>
@@ -433,7 +455,7 @@
         <li class="right" >
           <a href="libref-exporttools.html" title="Library Reference - Export Tools"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Library Reference - Functions</a></li> 
       </ul>

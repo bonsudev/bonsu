@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Scripting with Bonsu &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</title>
+    <title>Scripting with Bonsu &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -32,7 +32,7 @@
         <li class="right" >
           <a href="libref-operations.html" title="Library Reference - Phasing Operations"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Scripting with Bonsu</a></li> 
       </ul>
     </div>  
@@ -131,13 +131,13 @@
 </div>
 </section>
 <section id="custom-algorithms">
-<h2>Custom Algorithms<a class="headerlink" href="#custom-algorithms" title="Permalink to this headline">¶</a></h2>
+<span id="libscript-customalgorithms"></span><h2>Custom Algorithms<a class="headerlink" href="#custom-algorithms" title="Permalink to this headline">¶</a></h2>
 <p>Bonsu provides tools to build custom projection algorithms.  To build a custom algorithm, create a script that imports an abstract algorithm class and subclasses the <code class="docutils literal notranslate"><span class="pre">DoIter</span></code> and <code class="docutils literal notranslate"><span class="pre">RSCons</span></code> methods.  <code class="docutils literal notranslate"><span class="pre">DoIter</span></code> is called at each iteration of the algorithm.  It will apply the real-space and Fourier-space constraints.  <code class="docutils literal notranslate"><span class="pre">RSCons</span></code> is a method called by <code class="docutils literal notranslate"><span class="pre">DoIter</span></code> to apply the real-space constraint.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bonsu.phasing.abstract</span> <span class="kn">import</span> <span class="n">PhaseAbstract</span>
 
 <span class="k">class</span> <span class="nc">MyAlgorithm</span><span class="p">(</span><span class="n">PhaseAbstract</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        My custom HIO algorithms</span>
+<span class="sd">        My custom HIO algorithm</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span> <span class="nf">DoIter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">rho_m1</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[:]</span>
@@ -172,6 +172,70 @@
 </div>
 <p>Execution then follows as before:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">myalg</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="concurrent-phase-retrieval">
+<h2>Concurrent Phase Retrieval<a class="headerlink" href="#concurrent-phase-retrieval" title="Permalink to this headline">¶</a></h2>
+<p>Bonsu provides tools to reconstruct atomic displacement field information (and subsequently strain field information) via concurrent phase reconstruction using diffraction pattern data that is obtained from multiple Bragg reflections of a single crystal. The method used is described in detail in the following publication: <a class="reference external" href="https://doi.org/10.1103/PhysRevB.102.014104">Newton, Phys. Rev. B 102, 014104 (2020)</a> .</p>
+<p>The concurrent phase retrieval method can in principle utilise any projection algorithm implemented using the <a class="reference internal" href="#libscript-customalgorithms"><span class="std std-ref">Custom Algorithm interface</span></a>.  The following example illustrates how to use utilise the method using the standard Abstract Algorithm class (HIO).  Please note that diffraction pattern data should undergo <a class="reference internal" href="libref-operations.html#libref-operations-coord"><span class="std std-ref">co-ordinate transformation</span></a> and <a class="reference internal" href="libref-functions.html#libref-interpolate-object"><span class="std std-ref">interpolation</span></a> onto a regular grid prior to commencement of the reconstruction process.  Please also note that no checking of the data type (numpy.cdouble) and consistency in the array dimensions is performed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bonsu.phasing.concurrent</span> <span class="kn">import</span> <span class="n">PhaseConcurrent</span>
+<span class="kn">from</span> <span class="nn">bonsu.phasing.abstract</span> <span class="kn">import</span> <span class="n">PhaseAbstract</span>
+<span class="kn">from</span> <span class="nn">bonsu.phasing.wrap</span> <span class="kn">import</span> <span class="n">WrapArray</span>
+
+<span class="c1"># Specify number of diffraction patterns / Q-vectors</span>
+<span class="n">NQ</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="c1"># Instantiate class object</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">PhaseConcurrent</span><span class="p">()</span>
+<span class="c1"># Specify class object of phase retrieval algorithm used for reconstruction</span>
+<span class="c1"># Define your own and use here, if preferred.</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetBaseClass</span><span class="p">(</span><span class="n">PhaseAbstract</span><span class="p">)</span>
+<span class="c1"># Set number of concurrent datasets / Q-vectors</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetNQ</span><span class="p">(</span><span class="n">NQ</span><span class="p">)</span>
+
+<span class="c1"># Set Q-vectors</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetQ</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetQ</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetQ</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetQ</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># Define names of files</span>
+<span class="n">expnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;diffamp0.npy&quot;</span><span class="p">,</span><span class="s2">&quot;diffamp1.npy&quot;</span><span class="p">,</span><span class="s2">&quot;diffamp2.npy&quot;</span><span class="p">,</span><span class="s2">&quot;diffamp3.npy&quot;</span><span class="p">]</span>
+<span class="n">masknames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mask0.npy&quot;</span><span class="p">,</span><span class="s2">&quot;mask1.npy&quot;</span><span class="p">,</span><span class="s2">&quot;mask2.npy&quot;</span><span class="p">,</span><span class="s2">&quot;mask3.npy&quot;</span><span class="p">]</span>
+<span class="n">supportname</span> <span class="o">=</span> <span class="s2">&quot;support.npy&quot;</span>
+
+<span class="c1"># Use names above to load arrays into list of length NQ</span>
+<span class="n">amps</span> <span class="o">=</span> <span class="p">[</span><span class="n">WrapArray</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">expnames</span><span class="p">]</span>
+<span class="n">masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">WrapArray</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">masknames</span><span class="p">]</span>
+<span class="n">supports</span> <span class="o">=</span> <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">supportname</span><span class="p">)]</span><span class="o">*</span><span class="n">NQ</span>
+<span class="n">seqdatas</span> <span class="o">=</span> <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span> <span class="k">for</span> <span class="n">amp</span> <span class="ow">in</span> <span class="n">amps</span><span class="p">]</span>
+
+<span class="c1"># Class methods below are the same as those in the phase retrieval algorithm</span>
+<span class="c1"># class but will instead take a list of length NQ.</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetExpdata</span><span class="p">(</span><span class="n">amps</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetSupport</span><span class="p">(</span><span class="n">supports</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetMask</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetSeqdata</span><span class="p">(</span><span class="n">seqdatas</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetBeta</span><span class="p">([</span><span class="mf">0.9</span><span class="p">]</span><span class="o">*</span><span class="n">NQ</span><span class="p">)</span>
+
+<span class="c1"># Set iterations</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetStartiter</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetNumiter</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="c1"># Number of FFTW threads for each concurrent reconstruction.</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetNumthreads</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Prepare</span>
+<span class="n">d</span><span class="o">.</span><span class="n">Prepare</span><span class="p">()</span>
+<span class="c1"># Start</span>
+<span class="n">d</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+
+<span class="c1"># Save reconstructed phase for each Q-vector</span>
+<span class="c1"># Filenames are automatically indexed.</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SaveSequences</span><span class="p">(</span><span class="s2">&quot;output.npy&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save displacement field</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SaveDField</span><span class="p">(</span><span class="s2">&quot;dfield.npy&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -995,6 +1059,7 @@ A negative value implies no reweighting.</p>
 <li><a class="reference internal" href="#">Scripting with Bonsu</a><ul>
 <li><a class="reference internal" href="#core-concepts">Core concepts</a></li>
 <li><a class="reference internal" href="#custom-algorithms">Custom Algorithms</a></li>
+<li><a class="reference internal" href="#concurrent-phase-retrieval">Concurrent Phase Retrieval</a></li>
 <li><a class="reference internal" href="#class-reference">Class Reference</a><ul>
 <li><a class="reference internal" href="#module-bonsu.phasing.abstract">Abstract Classes</a></li>
 <li><a class="reference internal" href="#module-bonsu.phasing.HIO">Hybrid Input-Output Classes</a></li>
@@ -1038,7 +1103,7 @@ A negative value implies no reweighting.</p>
         <li class="right" >
           <a href="libref-operations.html" title="Library Reference - Phasing Operations"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Scripting with Bonsu</a></li> 
       </ul>
     </div>

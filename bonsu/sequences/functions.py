@@ -1345,14 +1345,14 @@ def Sequence_ObjecttoVTK(\
 			wx.CallAfter(self.UserMessage, title, msg)
 			self.pipeline_started = False
 			return
-def InterpolatedScalarDataset(InputDataSet, grid, range):
+def InterpolatedScalarDataset(InputDataSet, grid, irange, cbounds):
 	def TPObserver(obj, event):
 		pass
 	bounds=list(InputDataSet.GetBounds())
 	RegGrid=vtk.vtkShepardMethod()
-	RegGrid.SetMaximumDistance(range)
+	RegGrid.SetMaximumDistance(irange)
 	RegGrid.SetSampleDimensions(grid)
-	RegGrid.SetModelBounds(bounds)
+	RegGrid.SetModelBounds(cbounds)
 	if IsNotVTK6():
 		RegGrid.SetInput(InputDataSet)
 	else:
@@ -1378,7 +1378,10 @@ def Sequence_InterpolateObject(\
 		x =  int(pipelineitem.spacer[0].value.GetValue())
 		y =  int(pipelineitem.spacer[1].value.GetValue())
 		z =  int(pipelineitem.spacer[2].value.GetValue())
-		range =  float(pipelineitem.interp_range.value.GetValue())
+		cbounds = [{} for i in range(6)]
+		for i in range(6):
+			cbounds[i] = float(pipelineitem.bounds[i].value.GetValue())
+		irange =  float(pipelineitem.interp_range.value.GetValue())
 		def Interpolate(self):
 			shp = numpy.array(data.shape, dtype=numpy.int)
 			vtk_coordarray = numpy_support.numpy_to_vtk(coords)
@@ -1400,11 +1403,24 @@ def Sequence_InterpolateObject(\
 			image_phase.GetPointData().SetScalars(vtk_data_array_phase)
 			image_phase.SetDimensions(shp)
 			image_phase.Modified()
-			bds = list(image_amp.GetBounds())
+			use_cbounds = False
+			for i in range(6):
+				if cbounds[i] != 0.0:
+					use_cbounds = True
+			for i in range(3):
+				if cbounds[2*i] > cbounds[2*i+1]:
+					use_cbounds = False
+					self.ancestor.GetPage(0).queue_info.put("Interpolate Object: Impossible bounds. Using default instead.")
+					break
+			if use_cbounds:
+				bds = cbounds
+			else:
+				bds = list(image_amp.GetBounds())
 			scale = [(bds[1] - bds[0])/float(x), (bds[3] - bds[2])/float(y), (bds[5] - bds[4])/float(z)]
+			self.ancestor.GetPage(0).queue_info.put("Bounds: " + str(bds))
 			self.ancestor.GetPage(0).queue_info.put("Array (x,y,z) spacing: " + str(scale))
-			interp_image_amp = InterpolatedScalarDataset(image_amp, [x,y,z] , range)
-			interp_image_phase = InterpolatedScalarDataset(image_phase, [x,y,z] , range)
+			interp_image_amp = InterpolatedScalarDataset(image_amp, [x,y,z] , irange, bds)
+			interp_image_phase = InterpolatedScalarDataset(image_phase, [x,y,z] , irange, bds)
 			dims = interp_image_amp.GetDimensions()
 			array_amp_flat = numpy_support.vtk_to_numpy(interp_image_amp.GetPointData().GetScalars())
 			array_amp = numpy.reshape(array_amp_flat, dims[::-1]).transpose(2,1,0)
@@ -1441,6 +1457,59 @@ def Sequence_InterpolateObject(\
 			thd = threading.Thread(target=Interpolate, args=(self,))
 			thd.daemon = True
 			thd.start()
+			return
+def Sequence_AffineTransform(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Preparing affine transform...")
+		translate=[{} for i in range(3)]
+		scale=[{} for i in range(3)]
+		rotate=[{} for i in range(3)]
+		for i in range(3):
+			translate[i] = float(pipelineitem.translate[i].value.GetValue())
+			scale[i] = float(pipelineitem.scale[i].value.GetValue())
+			rotate[i] = float(pipelineitem.rotate[i].value.GetValue())
+		fname = pipelineitem.coords_filename.objectpath.GetValue()
+		fnameout = pipelineitem.outputcoords_filename.objectpath.GetValue()
+		if fname != "":
+			try:
+				coords = LoadCoordsArray(self, fname)
+			except:
+				msg = "Could not load coordinate array."
+				wx.CallAfter(self.UserMessage, title, msg)
+				self.pipeline_started = False
+				return
+		vtk_coordarray = numpy_support.numpy_to_vtk(coords)
+		vtk_points = vtk.vtkPoints()
+		vtk_points.SetDataTypeToDouble()
+		vtk_points.SetNumberOfPoints(coords.shape[0])
+		vtk_points.SetData(vtk_coordarray)
+		image_amp = vtk.vtkStructuredGrid()
+		image_amp.SetPoints(vtk_points)
+		image_amp.Modified()
+		Transform = vtk.vtkTransform()
+		Transform.Translate([translate[0],translate[1],translate[2]])
+		Transform.Scale([scale[0],scale[1],scale[2]])
+		Transform.RotateX(rotate[0])
+		Transform.RotateY(rotate[1])
+		Transform.RotateZ(rotate[2])
+		Transform.Modified()
+		TransFilter=vtk.vtkTransformFilter()
+		TransFilter.SetTransform(Transform)
+		TransFilter.SetInputData(image_amp)
+		TransFilter.UpdateWholeExtent()
+		TransFilter.Modified()
+		new_vtk_points = TransFilter.GetOutput(0).GetPoints()
+		new_coords = numpy_support.vtk_to_numpy(new_vtk_points.GetData())
+		try:
+			SaveArray(self, fnameout, new_coords)
+		except:
+			msg = "Could not save new coordinate array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
 			return
 def Sequence_View_Array(self, ancestor):
 	def ViewDataAmp(self, ancestor, data, r, g, b):
