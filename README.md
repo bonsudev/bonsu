@@ -45,6 +45,11 @@ Documentation is also available in the application.
 ## Version History
 
 
+#### Version 3.4.2 🗓 ️(15/10/2021)
+
+	🔧 Bug fixes.
+
+
 #### Version 3.4.1 🗓 ️(17/09/2021)
 
 	✨ Concurrent phase retrieval scripting algorithm.

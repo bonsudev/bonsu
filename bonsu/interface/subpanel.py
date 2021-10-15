@@ -995,9 +995,9 @@ class ROIDialog(wx.Dialog):
 		self.vbox23 = wx.BoxSizer(wx.VERTICAL)
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
 		if IsNotWX4():
-			self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(0,0))
+			self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(1,1))
 		else:
-			self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(0,0))
+			self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(1,1))
 		self.vbox1.Add(self.image, 1, wx.EXPAND | wx.ALL, border=0)
 		self.scrollaxis = SpinnerObject(self,"Axis",3,1,1,1,50,40)
 		self.scrollaxis.spin.SetEventFunc(self.OnAxisSpin)
@@ -1401,9 +1401,9 @@ class KeyDialog(wx.Dialog):
 		self.hbox3.Add((20, -1))
 		self.hbox3.Add(self.vbox43, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
 		if IsNotWX4():
-			self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(0,0))
+			self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(1,1))
 		else:
-			self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(0,0))
+			self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(1,1))
 		self.vbox3.Add(self.image, 1, wx.EXPAND | wx.ALL, border=0)
 		self.vbox2.Add(self.vbox3, 1, wx.EXPAND | wx.ALL, border=2)
 		self.vbox2.Add(self.hbox2, 0, wx.EXPAND | wx.ALL, border=2)
