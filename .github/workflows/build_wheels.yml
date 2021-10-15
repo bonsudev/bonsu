@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 env:
   CIBW_BUILD: cp37-* cp38-* cp39-*
+  CIBW_SKIP: cp310-*
   CIBW_ARCHS_WINDOWS: "AMD64"
   CIBW_ARCHS_MACOS: "x86_64"
   CIBW_ARCHS_LINUX: "x86_64"
