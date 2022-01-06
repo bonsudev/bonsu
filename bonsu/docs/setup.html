@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Installation &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4.2 documentation</title>
+    <title>Installation &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Introduction" href="intro.html" />
-    <link rel="prev" title="Bonsu 3.4.2 documentation" href="bonsu.html" /> 
+    <link rel="prev" title="Bonsu 3.4.3 documentation" href="bonsu.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,9 +34,9 @@
           <a href="intro.html" title="Introduction"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="bonsu.html" title="Bonsu 3.4.2 documentation"
+          <a href="bonsu.html" title="Bonsu 3.4.3 documentation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>  
@@ -58,7 +58,7 @@
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/Pillow/">Pillow</a></p></li>
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/h5py">H5Py</a></p></li>
 </ul>
-<p>A stand alone python distribution such as <a class="reference external" href="https://anaconda.org/anaconda/python">Anaconda Python</a> or <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought Canopy</a> will likely include all of the above prerequisites.</p>
+<p>A stand alone python distribution such as <a class="reference external" href="https://www.anaconda.com/">Anaconda Python</a> will likely include all of the above prerequisites.</p>
 <p>It is then possible to install Bonsu from the <a class="reference external" href="https://pypi.org">Python Package Index</a> using the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install bonsu
 </pre></div>
@@ -82,7 +82,7 @@
 <p class="admonition-title">Note</p>
 <p>Prebuilt VTK packages <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 7.0 in <a class="reference external" href="https://pypi.python.org/pypi/vtk/">PyPI</a>  generally requre a graphics card with OpenGL 3 support.</p>
 </div>
-<p>Alternatively, it is possible to install a stand alone python distribution such as <a class="reference external" href="https://anaconda.org/anaconda/python">Anaconda Python</a> or <a class="reference external" href="https://www.enthought.com/products/canopy">Enthought Canopy</a>. This will likely include all of the above prerequisites.</p>
+<p>Alternatively, it is possible to install a stand alone python distribution such as <a class="reference external" href="https://www.anaconda.com">Anaconda Python</a> . This will likely include all of the above prerequisites.</p>
 <p>It is then possible to install Bonsu from the <a class="reference external" href="https://pypi.org">Python Package Index</a> using the following command</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip.exe install bonsu
 </pre></div>
@@ -141,39 +141,10 @@ $ make install
 </pre></div>
 </div>
 <p>To install the package to a non-default location (perhaps where super user privileges are not required) use the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python setup.py install --home<span class="o">=</span>/my/install/path
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python setup.py install --prefix<span class="o">=</span>/my/custom/install/path
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">--home</span></code> option defines the installation base directory.  Files are installed to the following directories under the installation base as follows</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 20%" />
-<col style="width: 80%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Type of file</p></th>
-<th class="head"><p>Installation directory</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>modules</p></td>
-<td><p><code class="file docutils literal notranslate"><em><span class="pre">home</span></em><span class="pre">/lib/python</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>scripts</p></td>
-<td><p><code class="file docutils literal notranslate"><em><span class="pre">home</span></em><span class="pre">/bin</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>data</p></td>
-<td><p><code class="file docutils literal notranslate"><em><span class="pre">home</span></em></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>C headers</p></td>
-<td><p><code class="file docutils literal notranslate"><em><span class="pre">home</span></em><span class="pre">/include/python/</span><em><span class="pre">distname</span></em></code></p></td>
-</tr>
-</tbody>
-</table>
-<p>To make Python find the distributions installed with this scheme, it is necessary to modify Python’s search path(s) to include the above.</p>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--prefix</span></code> option defines the installation base directory.  To allow Python to find the distributions installed with this scheme, it may be necessary to modify Python’s search path(s) to include the above.</p>
 <p>To start the program, execute the following from the command line:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ bonsu <span class="p">&amp;</span>
 </pre></div>
@@ -181,6 +152,15 @@ $ make install
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For Linux users, a link to the program should be visible in the applications menu.</p>
+</div>
+</section>
+<section id="remote-access">
+<h3>Remote Access<a class="headerlink" href="#remote-access" title="Permalink to this headline">¶</a></h3>
+<p>If Bonsu is used remotely via X11 fowarding or X2Go (NX technology), errors with rendering might occur dependent on the available graphics hardware.  A possible workaround is to add the following environment variables to your .bashrc script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">export</span> <span class="nv">LIBGL_ALWAYS_SOFTWARE</span><span class="o">=</span><span class="nb">true</span>
+$ <span class="nb">export</span> <span class="nv">MESA_GL_VERSION_OVERRIDE</span><span class="o">=</span><span class="m">3</span>.2
+$ <span class="nb">export</span> <span class="nv">MESA_GLSL_VERSION_OVERRIDE</span><span class="o">=</span><span class="m">150</span>
+</pre></div>
 </div>
 </section>
 </section>
@@ -205,6 +185,7 @@ $ make install
 <li><a class="reference internal" href="#system-preparation">System Preparation</a></li>
 <li><a class="reference internal" href="#note-on-building-fftw">Note on Building FFTW</a></li>
 <li><a class="reference internal" href="#installing-bonsu">Installing Bonsu</a></li>
+<li><a class="reference internal" href="#remote-access">Remote Access</a></li>
 </ul>
 </li>
 </ul>
@@ -213,7 +194,7 @@ $ make install
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="bonsu.html"
-                        title="previous chapter">Bonsu 3.4.2 documentation</a></p>
+                        title="previous chapter">Bonsu 3.4.3 documentation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="intro.html"
                         title="next chapter">Introduction</a></p>
@@ -244,14 +225,14 @@ $ make install
           <a href="intro.html" title="Introduction"
              >next</a> |</li>
         <li class="right" >
-          <a href="bonsu.html" title="Bonsu 3.4.2 documentation"
+          <a href="bonsu.html" title="Bonsu 3.4.3 documentation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2011 - 2021, Marcus C. Newton.
+        &#169; Copyright 2011 - 2022, Marcus C. Newton.
     </div>
   </body>
 </html>

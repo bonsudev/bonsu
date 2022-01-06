@@ -45,6 +45,13 @@ Documentation is also available in the application.
 ## Version History
 
 
+#### Version 3.4.3 🗓 ️(06/01/2022)
+
+	✨ View Array Amplitude q-contrast.
+	✨ Laxarus XRD Image Viewer.
+	🔧 Minor bug fixes.
+
+
 #### Version 3.4.2 🗓 ️(15/10/2021)
 
 	🔧 Bug fixes.

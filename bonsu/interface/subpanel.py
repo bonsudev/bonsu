@@ -38,6 +38,326 @@ class ContextSup:
 		pass
 	def __exit__(self, *args):
 		return True
+class SubPanel_LaxarusView(wx.Panel):
+	treeitem = {'name':  'Laxarus Viewer', 'type': 'operpreview'}
+	def sequence(self, selff, pipelineitem):
+		pass
+	def __init__(self, parent, ancestor):
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		self.panelphase = self.GetParent().GetParent().GetParent()
+		self.ancestor = self.panelphase.ancestor
+		self.panelvisual = self.ancestor.GetPage(1)
+		self.font = self.GetParent().font
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = wx.StaticText(self, label="Laxarus HDF5 Viewer.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.filename = TextPanelObject(self, "Input HDF5 File: ", "",150,"HDF5 files (*.hdf;*.hdf5;*.h5;*.nxs)|*.hdf;*.hdf5;*.h5;*.nxs|HDF5 files (*.h5;*.hdf5)|*.h5;*.hdf5|NXS files (*.nxs)|*.nxs|All files (*.*)|*.*")
+		vbox.Add(self.filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 10))
+		self.button_showplot = wx.Button(self, label="Show Image")
+		self.Bind(wx.EVT_BUTTON, self.OnClickPlot, self.button_showplot)
+		vbox.Add(self.button_showplot, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add((-1, 10))
+		self.input_filename = TextPanelObject(self, "Input file: ", "",100,'*.npy')
+		self.input_filename.objectpath.SetValue("memoryprivate")
+		self.input_filename.Hide()
+		vbox.Add(self.input_filename,0)
+		self.rbampphase = wx.RadioBox(self, label="", choices=['Amplitude'],  majorDimension=1, style=wx.RA_SPECIFY_COLS)
+		self.rbampphase.Hide()
+		vbox.Add(self.rbampphase,0)
+		self.sx = SpinnerObject(self,"x",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
+		self.sy = SpinnerObject(self,"y",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
+		self.sz = SpinnerObject(self,"z",MAX_INT_16,MIN_INT_16,0.1,1,15,80)
+		self.sx.Hide()
+		self.sy.Hide()
+		self.sz.Hide()
+		vbox.Add(self.sx,0)
+		vbox.Add(self.sy,0)
+		vbox.Add(self.sz,0)
+		self.chkbox_axes = wx.CheckBox(self, -1, 'View axes', size=(200, 20))
+		self.chkbox_axes.SetValue(True)
+		self.chkbox_axes.Hide()
+		vbox.Add(self.chkbox_axes,0)
+		self.axes_fontfactor = SpinnerObject(self,"Font Factor:",MAX_INT,1,1,2,100,100)
+		self.axes_fontfactor.Hide()
+		vbox.Add(self.axes_fontfactor,0)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+	def SaveImage(self,image):
+		SaveArray(self.panelphase,'memoryprivate',image)
+	def ViewImage(self):
+		Sequence_View_Array(self, self.ancestor)
+		self.ancestor.GetPage(4).data_poll_timer.Start(1000)
+	def OnClickPlot(self, event):
+		try:
+			fname = self.filename.objectpath.GetValue()
+			f = h5py.File(fname,'r')
+		except Exception as e:
+			self.ancestor.GetPage(0).queue_info.put(e)
+			self.ancestor.GetPage(4).UpdateLog(None)
+			return
+		else:
+			dialog = LaxarusPlotDialog(self,f)
+			dialog.Show()
+class LaxarusPlotDialog(wx.Dialog):
+	def __init__(self, parent, f):
+		wx.Dialog.__init__(self, parent, title="Laxarus Data Viewer", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX)
+		self.SetSizeHints(750,600,-1,-1)
+		self.parent = parent
+		self.ancestor = parent.ancestor
+		self.panelphase = self.ancestor.GetPage(0)
+		self.panelphase.Enable(False)
+		self.panelvisual = self.ancestor.GetPage(1)
+		self.panelvisual.button_start.Enable(False)
+		self.panelvisual.button_pause.Enable(False)
+		self.panelvisual.button_stop.Enable(False)
+		self.Bind(wx.EVT_SIZE, self.OnSize)
+		self.Bind(wx.EVT_CLOSE, self.OnExit)
+		self.f = f
+		self.scan_dims = [1]
+		self.scan_axes = ['none']
+		self.scan_axes_data = []
+		self.n = 0
+		self.p = [0]
+		self.data = None
+		self.data_sum = None
+		self.c = ['cyan','green','blue']
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+		self.graphs = []
+		self.ylimits = []
+		self.sliders = []
+		self.SetAutoLayout(True)
+		self.SetScanDims()
+		self.SetScanAxes()
+		self.SetScanAxesData()
+		self.SetData()
+		self.UpdateImage(self.p)
+		self.PaintAll()
+		self.SetSizer( self.vbox )
+		self.Fit()
+		self.Layout()
+		self.Show()
+	def PaintAll(self):
+		self.PlotAllGraphs()
+		self.DrawAllYLimits()
+		self.DrawAllSliders()
+	def PlotAllGraphs(self):
+		for i in range(self.n):
+			self.graphs.append(self.PlotGraphCanvas(i))
+			self.vbox.Add(self.graphs[-1][0], 1, flag=wx.EXPAND|wx.ALL)
+	def GetGraphData(self, id):
+		sliceobj = []
+		for i in range(self.n):
+			if i == id:
+				sliceobj.append(slice(None))
+			else:
+				sliceobj.append(slice(self.p[i],self.p[i]+1,1))
+		#data_sum = self.data_sum.reshape(self.scan_dims)[sliceobj]
+		#data_axis = self.scan_axes_data[id].reshape(self.scan_dims)[sliceobj]
+		data_sum = numpy.zeros(self.scan_dims, dtype=numpy.double)
+		data_axis = numpy.zeros(self.scan_dims, dtype=numpy.double)
+		data_sum_flat = data_sum.ravel()
+		data_axis_flat = data_axis.ravel()
+		data_sum_flat[0:self.data_sum.shape[0]] = self.data_sum[:]
+		data_axis_flat[0:self.scan_axes_data[id].shape[0]] = self.scan_axes_data[id][:]
+		data_sum = data_sum_flat.reshape(self.scan_dims)[tuple(sliceobj)]
+		data_axis = data_axis_flat.reshape(self.scan_dims)[tuple(sliceobj)]
+		x,y = numpy.squeeze(data_axis), numpy.squeeze(data_sum)
+		graphdata = numpy.vstack((x,y)).T
+		return graphdata
+	def PlotGraphCanvas(self, id):
+		# FIX/DELETE ME!
+		if id == 1:
+			id = 0
+		#
+		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		canvas = PlotCanvas(self)
+		canvas.SetInitialSize(size=self.GetClientSize())
+		if IsNotWX4():
+			canvas.SetShowScrollbars(False)
+			canvas.SetEnableLegend(False)
+			canvas.SetGridColour(wx.Colour(0, 0, 0))
+			canvas.SetForegroundColour(wx.Colour(0, 0, 0))
+			canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
+			canvas.SetEnableZoom(False)
+			canvas.SetFontSizeAxis(point=fontpoint)
+			canvas.SetFontSizeTitle(point=fontpoint)
+		else:
+			canvas.showScrollbars = False
+			canvas.enableLegend = False
+			canvas.enablePointLabel = True
+			canvas.enableZoom = False
+			canvas.fontSizeAxis = fontpoint
+			canvas.fontSizeTitle = fontpoint
+			canvas.SetBackgroundColour(wx.Colour(wx.WHITE))
+			canvas.SetForegroundColour(wx.Colour(wx.BLACK))
+		graphdata = self.GetGraphData(id)
+		x = graphdata[:,0]
+		y = graphdata[:,1]
+		axis_name = self.scan_axes[id]
+		mdata1 = graphdata[0:1,:]
+		mdata2 = graphdata[2:,:]
+		mdatapoint = graphdata[1,:]
+		marker1 = PolyMarker(mdata1, marker='circle', colour='blue', size=2)
+		marker2 = PolyMarker(mdata2, marker='circle', colour='blue', size=2)
+		markerp = PolyMarker(mdatapoint, marker='circle', colour='red', size=4)
+		line = PolyLine(graphdata, colour=self.c[id], width=2.5)
+		graphic = PlotGraphics([line,marker1,marker2,markerp],"", axis_name, "Intensity")
+		ymax = y.max()
+		ymin = y.min()
+		canvas.Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(ymin, ymax))
+		return [canvas,graphdata]
+	def DrawAllYLimits(self):
+		for i in range(self.n):
+			self.ylimits.append(self.DrawYLimit(i))
+			self.vbox.Add(self.ylimits[-1][0], 0, flag=wx.EXPAND|wx.ALL)
+	def DrawYLimit(self, id):
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		chkbox_enable = CheckBoxNew(self, -1, 'Y Limits')
+		chkbox_enable.SetToolTipNew("Enable max min")
+		chkbox_enable.SetValue(False)
+		chkbox_enable.draw_id = id
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, chkbox_enable)
+		plotymax = NumberObject(self,"y max:",1.0,40)
+		plotymax.Disable()
+		plotymax.draw_id = id
+		plotymin = NumberObject(self,"y min:",0.0,40)
+		plotymin.Disable()
+		plotymin.draw_id = id
+		hbox.Add(chkbox_enable,1, border=5)
+		hbox.Add(plotymax, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		hbox.Add(plotymin, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+		return hbox,plotymin,plotymax,chkbox_enable
+	def DrawAllSliders(self):
+		for i in range(self.n):
+			self.sliders.append(self.DrawSlider(i))
+			self.vbox.Add(self.sliders[-1], 0, flag=wx.EXPAND|wx.ALL)
+	def DrawSlider(self, id):
+		slider = wx.Slider(self, -1, pos=wx.DefaultPosition, size=(150, -1),style=wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
+		slider.SetRange(0, self.scan_dims[id] - 1)
+		slider.draw_id = id
+		self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScrollAxis, slider)
+		self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScrollAxis, slider)
+		return slider
+	def OnScrollAxis(self, event):
+		slider = event.GetEventObject()
+		pos = slider.GetValue()
+		id = slider.draw_id
+		self.p[id] = pos
+		idx = self.GetIdx(self.p)
+		if idx > self.data_sum.shape[0] - 1:
+			self.ancestor.GetPage(0).queue_info.put("Laxarus Viewer: Data missing from index %d"%idx)
+			self.ancestor.GetPage(4).UpdateLog(None)
+		else:
+			for id2 in range(self.n):
+				if id2 != id:
+					self.graphs[id2][1] = self.GetGraphData(id2)
+					self.UpdatePlot(id2)
+			self.UpdateVisual(id)
+			self.UpdatePlot(id)
+	def UpdatePlot(self, id):
+		axis_name = self.scan_axes[id]
+		graphdata = self.graphs[id][1]
+		pos = self.p[id]
+		mdata1 = graphdata[0:pos,:]
+		mdata2 = graphdata[pos+1:,:]
+		mdatapoint = graphdata[pos,:]
+		marker1 = PolyMarker(mdata1, marker='circle', colour='blue', size=2)
+		marker2 = PolyMarker(mdata2, marker='circle', colour='blue', size=2)
+		markerp = PolyMarker(mdatapoint, marker='circle', colour='red', size=4)
+		line = PolyLine(graphdata, colour=self.c[id], width=2.5)
+		graphic = PlotGraphics([line,marker1,marker2,markerp],"", axis_name, "Intensity")
+		x = graphdata[:,0]
+		y = graphdata[:,1]
+		self.graphs[id][0].Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(y.min(), y.max()))
+	def UpdateVisual(self, id):
+		idx = self.GetIdx(self.p)
+		imageraw = self.data[idx,:,:,numpy.newaxis].astype(numpy.double)
+		self.parent.panelvisual.flat_data[:] = (imageraw).transpose(2,1,0).flatten();
+		self.parent.panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(self.parent.panelvisual.flat_data)
+		points = self.parent.panelvisual.image_amp_real.GetPointData()
+		points.SetScalars(self.parent.panelvisual.vtk_data_array)
+		self.parent.panelvisual.image_amp_real.Modified()
+		if self.ylimits[id][3].GetValue() ==True:
+			min = float(self.ylimits[id][1].value.GetValue())
+			max = float(self.ylimits[id][2].value.GetValue())
+			if self.parent.panelvisual.lut_amp_real.GetScale() == vtk.VTK_SCALE_LOG10 and min <= 0.0:
+				min = 1.0
+			self.parent.panelvisual.lut_amp_real.SetTableRange([min, max])
+			self.parent.panelvisual.lut_amp_real.Modified()
+		else:
+			min = imageraw.min()
+			max = imageraw.max()
+			if self.parent.panelvisual.lut_amp_real.GetScale() == vtk.VTK_SCALE_LOG10:
+				old_range = self.parent.panelvisual.lut_amp_real.GetTableRange()
+				min = old_range[0]
+			self.ylimits[id][1].value.SetValue("%02.2f"%min)
+			self.ylimits[id][2].value.SetValue("%02.2f"%max)
+			self.parent.panelvisual.lut_amp_real.SetTableRange(min,max)
+			self.parent.panelvisual.lut_amp_real.Modified()
+		self.parent.panelvisual.lut_amp_real.Build()
+		self.parent.panelvisual.RefreshSceneFull()
+		self.parent.panelvisual.Layout()
+		self.parent.panelvisual.Show()
+	def OnChkbox(self, event):
+		chk = event.GetEventObject()
+		id = chk.draw_id
+		if chk.GetValue() == True:
+			self.ylimits[id][1].Enable()
+			self.ylimits[id][2].Enable()
+		else:
+			self.ylimits[id][1].Disable()
+			self.ylimits[id][2].Disable()
+	def UpdateImage(self, pos):
+		idx = self.GetIdx(pos)
+		image = self.data[idx,:,:,numpy.newaxis].astype(numpy.cdouble)
+		self.parent.SaveImage(image)
+		self.parent.ViewImage()
+	def GetIdx(self, pos):
+		idx = numpy.ravel_multi_index(pos, self.scan_dims)
+		return idx
+	def SetData(self):
+		try:
+			g = self.f['entry/data']
+			self.data = g['data'][...]
+			self.data_sum = numpy.sum( self.data , axis=(1,2) )
+		except:
+			self.ancestor.GetPage(0).queue_info.put("Laxarus Viewer: Could not set data.")
+			self.ancestor.GetPage(4).UpdateLog(None)
+	def SetScanDims(self):
+		try:
+			g = self.f['entry']
+			self.scan_dims = numpy.array(g['scan_dimensions'])
+			self.n = self.scan_dims.size
+			self.p = numpy.zeros(self.n, dtype=numpy.int32)
+		except:
+			self.ancestor.GetPage(0).queue_info.put("Laxarus Viewer: Could not load scan dimensions.")
+			self.ancestor.GetPage(4).UpdateLog(None)
+	def SetScanAxes(self):
+		try:
+			g = self.f['entry']
+			self.scan_axes = g['scan_axes']
+		except:
+			self.ancestor.GetPage(0).queue_info.put("Laxarus Viewer: Could not load scan axes.")
+			self.ancestor.GetPage(4).UpdateLog(None)
+	def SetScanAxesData(self):
+		try:
+			g = self.f['entry/sample/goniometer']
+			for name in self.scan_axes:
+				self.scan_axes_data.append(numpy.double(g[name]))
+		except:
+			self.ancestor.GetPage(0).queue_info.put("Laxarus Viewer: Could not load scan axes data.")
+			self.ancestor.GetPage(4).UpdateLog(None)
+	def OnSize(self, event):
+		self.Layout()
+		self.Refresh()
+	def OnExit(self,event):
+		self.panelphase.Enable(True)
+		self.panelvisual.button_start.Enable(True)
+		self.panelvisual.button_pause.Enable(True)
+		self.panelvisual.button_stop.Enable(True)
+		self.Destroy()
+		self.f.close()
 class SubPanel_NEXUSView(wx.ScrolledWindow):
 	treeitem = {'name':  'Nexus Viewer I16', 'type': 'operpreview'}
 	def sequence(self, selff, pipelineitem):
@@ -799,7 +1119,7 @@ class LoadNexusPlotDialog(wx.Dialog):
 			marker2 = PolyMarker(mdata2, marker='circle', colour='blue', size=2)
 			markerp = PolyMarker(mdatapoint, marker='circle', colour='red', size=4)
 			line = PolyLine(graphdata, colour=c[i], width=2.5)
-			graphic = PlotGraphics([line,marker1,marker2,markerp],"", knames[i], "Amplitude")
+			graphic = PlotGraphics([line,marker1,marker2,markerp],"", knames[i], "Intensity")
 			if self.chkbox_enables[i].GetValue():
 				try:
 					ymax = float(self.plotymaxs[i].value.GetValue())
@@ -2401,7 +2721,7 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		self.input_filename = TextPanelObject(self, "Input file: ", "",100,'*.npy')
 		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
-		self.rbampphase = wx.RadioBox(self, label="Type", choices=['Amplitude','Phase', 'Amplitude and Phase', 'Amplitude with Phase', 'Amplitude (cut plane)','Amplitude Clipped Phase'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
+		self.rbampphase = wx.RadioBox(self, label="Type", choices=['Amplitude','Phase', 'Amplitude and Phase', 'Amplitude with Phase', 'Amplitude (cut plane)','Amplitude Clipped Phase', 'Amplitude q-Colour'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
 		vbox.Add(self.rbampphase,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.Bind(wx.EVT_RADIOBOX, self.OnRadioSelect, self.rbampphase)
 		vbox.Add((-1, 5))
@@ -2566,6 +2886,14 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 			self.hbox4.ShowItems(True)
 			self.hbox5.ShowItems(True)
 			self.hbox7.ShowItems(True)
+			self.Layout()
+		elif rselect == 'Amplitude q-Colour':
+			self.sboxs1.ShowItems(True)
+			self.sboxs2.ShowItems(False)
+			self.hbox3.ShowItems(False)
+			self.hbox4.ShowItems(False)
+			self.hbox5.ShowItems(False)
+			self.hbox7.ShowItems(False)
 			self.Layout()
 class SubPanel_Random(wx.Panel):
 	treeitem = {'name':  'Random Start' , 'type': 'algsstart'}
@@ -3710,7 +4038,7 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 		self.coords_filename = TextPanelObject(self, "Co-ord's file: ", "",100,'*.npy')
 		vbox.Add(self.coords_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
-		self.rbampphase = wx.RadioBox(self, label="Type", choices=['Amplitude','Phase', 'Amplitude and Phase', 'Amplitude with Phase', 'Amplitude (cut plane)','Amplitude Clipped Phase'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
+		self.rbampphase = wx.RadioBox(self, label="Type", choices=['Amplitude','Phase', 'Amplitude and Phase', 'Amplitude with Phase', 'Amplitude (cut plane)','Amplitude Clipped Phase', 'Amplitude q-Colour'],  majorDimension=2, style=wx.RA_SPECIFY_COLS)
 		vbox.Add(self.rbampphase,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.Bind(wx.EVT_RADIOBOX, self.OnRadioSelect, self.rbampphase)
 		vbox.Add((-1, 10))
@@ -3857,6 +4185,13 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 			self.hbox3.ShowItems(True)
 			self.hbox4.ShowItems(True)
 			self.hbox5.ShowItems(True)
+			self.Layout()
+		elif rselect == 'Amplitude q-Colour':
+			self.sboxs1.ShowItems(True)
+			self.sboxs2.ShowItems(False)
+			self.hbox3.ShowItems(False)
+			self.hbox4.ShowItems(False)
+			self.hbox5.ShowItems(False)
 			self.Layout()
 class SubPanel_View_VTK(wx.ScrolledWindow):
 	treeitem = {'name':  'View VTK Array' , 'type': 'operpreview'}

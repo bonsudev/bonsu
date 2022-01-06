@@ -311,6 +311,8 @@ def SaveInstance(self):
 			object.append( panelphase.pipelineitems[i].feature_angle.value.GetValue() )
 			object.append( panelphase.pipelineitems[i].chkbox_axes.GetValue() )
 			object.append( panelphase.pipelineitems[i].axes_fontfactor.value.GetValue() )
+		if subpanelname == 'Laxarus Viewer':
+			object.append( panelphase.pipelineitems[i].filename.objectpath.GetValue() )
 		if subpanelname == 'View Array':
 			object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 			object.append( panelphase.pipelineitems[i].rbampphase.GetStringSelection() )
@@ -982,6 +984,11 @@ def RestoreInstance(self):
 			panelphase.pipelineitems[-1].chkbox_axes.SetValue(object[6])
 			panelphase.pipelineitems[-1].axes_fontfactor.value.SetValue(object[7])
 			DoListCheck(panelphase, object, -1)
+		if subpanelname == 'Laxarus Viewer':
+			panelphase.pipelineitems.append(SubPanel_LaxarusView(panelphase.panel2, panelphase.ancestor))
+			panelphase.pipelineitems[-1].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[-1], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[-1].filename.objectpath.SetValue(object[0])
 		if subpanelname == 'View Array':
 			panelphase.pipelineitems.append(SubPanel_View_Array(panelphase.panel2, panelphase.ancestor))
 			panelphase.pipelineitems[-1].Hide()
