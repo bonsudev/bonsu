@@ -45,6 +45,11 @@ Documentation is also available in the application.
 ## Version History
 
 
+#### Version 3.4.4 🗓 ️(15/02/2022)
+
+	🔧 Minor bug fixes.
+
+
 #### Version 3.4.3 🗓 ️(06/01/2022)
 
 	✨ View Array Amplitude q-contrast.
@@ -245,5 +250,5 @@ Documentation is also available in the application.
 
 ## Licence
 GNU GPLv3
-Copyright 2011 - 2021 - Marcus C. Newton
+Copyright 2011 - 2022 - Marcus C. Newton
 Registration number 284653218

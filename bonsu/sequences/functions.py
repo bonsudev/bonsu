@@ -2301,7 +2301,7 @@ def Sequence_View_Array(self, ancestor):
 			panelvisual.axis.SetYLabel("Y")
 			panelvisual.axis.SetZLabel("Z")
 			panelvisual.axis.Modified()
-			panelvisual.renderer_phase_real.AddViewProp( panelvisual.axis )
+			panelvisual.renderer_amp_real.AddViewProp( panelvisual.axis )
 	def ViewDataAmpQColour(self, ancestor, data, r, g, b):
 		self.ancestor.GetPage(0).queue_info.put("Preparing array visualisation...")
 		self.ancestor.GetPage(0).queue_info.put("Array Size: " + str(data.shape))

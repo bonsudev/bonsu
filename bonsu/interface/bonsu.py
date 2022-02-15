@@ -22,7 +22,7 @@ __author__ = "Marcus C. Newton"
 __copyright__ = "Copyright 2011-2022 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "3.4.3"
+__version__ = "3.4.4"
 __maintainer__ = "Marcus C. Newton"
 __email__ = "Bonsu.Devel@gmail.com"
 __status__ = "Production"
@@ -169,7 +169,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		info.SetName('Bonsu')
 		info.SetVersion(__version__)
 		info.SetDescription(description)
-		info.SetCopyright('Copyright (C) 2011-2021 Marcus C. Newton')
+		info.SetCopyright('Copyright (C) 2011-2022 Marcus C. Newton')
 		info.SetWebSite('github.com/bonsudev/bonsu')
 		info.SetLicence(licence)
 		info.AddDeveloper('Marcus C. Newton')

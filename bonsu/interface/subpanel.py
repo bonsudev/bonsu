@@ -121,7 +121,7 @@ class LaxarusPlotDialog(wx.Dialog):
 		self.p = [0]
 		self.data = None
 		self.data_sum = None
-		self.c = ['cyan','green','blue']
+		self.c = ['cyan','green','blue','red','purple','orange','black','yellow']
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.graphs = []
 		self.ylimits = []
@@ -166,10 +166,6 @@ class LaxarusPlotDialog(wx.Dialog):
 		graphdata = numpy.vstack((x,y)).T
 		return graphdata
 	def PlotGraphCanvas(self, id):
-		# FIX/DELETE ME!
-		if id == 1:
-			id = 0
-		#
 		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
 		canvas = PlotCanvas(self)
 		canvas.SetInitialSize(size=self.GetClientSize())
@@ -192,6 +188,7 @@ class LaxarusPlotDialog(wx.Dialog):
 			canvas.SetBackgroundColour(wx.Colour(wx.WHITE))
 			canvas.SetForegroundColour(wx.Colour(wx.BLACK))
 		graphdata = self.GetGraphData(id)
+		graphdata[:,1] -= graphdata[:,1].min()
 		x = graphdata[:,0]
 		y = graphdata[:,1]
 		axis_name = self.scan_axes[id]
@@ -202,7 +199,7 @@ class LaxarusPlotDialog(wx.Dialog):
 		marker2 = PolyMarker(mdata2, marker='circle', colour='blue', size=2)
 		markerp = PolyMarker(mdatapoint, marker='circle', colour='red', size=4)
 		line = PolyLine(graphdata, colour=self.c[id], width=2.5)
-		graphic = PlotGraphics([line,marker1,marker2,markerp],"", axis_name, "Intensity")
+		graphic = PlotGraphics([line,marker1,marker2,markerp],"", axis_name, "(zero offset) Intensity (a.u.)")
 		ymax = y.max()
 		ymin = y.min()
 		canvas.Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(ymin, ymax))
@@ -213,6 +210,8 @@ class LaxarusPlotDialog(wx.Dialog):
 			self.vbox.Add(self.ylimits[-1][0], 0, flag=wx.EXPAND|wx.ALL)
 	def DrawYLimit(self, id):
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		root = SpinnerObject(self,"Root:",10,1,1,1,100,60)
+		root.label.SetToolTipNew("Plot nth root of intensity")
 		chkbox_enable = CheckBoxNew(self, -1, 'Y Limits')
 		chkbox_enable.SetToolTipNew("Enable max min")
 		chkbox_enable.SetValue(False)
@@ -224,10 +223,12 @@ class LaxarusPlotDialog(wx.Dialog):
 		plotymin = NumberObject(self,"y min:",0.0,40)
 		plotymin.Disable()
 		plotymin.draw_id = id
+		hbox.Add(root,1, border=5)
+		hbox.Add(20, -1)
 		hbox.Add(chkbox_enable,1, border=5)
 		hbox.Add(plotymax, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
 		hbox.Add(plotymin, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
-		return hbox,plotymin,plotymax,chkbox_enable
+		return hbox,plotymin,plotymax,chkbox_enable,root
 	def DrawAllSliders(self):
 		for i in range(self.n):
 			self.sliders.append(self.DrawSlider(i))
@@ -257,7 +258,10 @@ class LaxarusPlotDialog(wx.Dialog):
 			self.UpdatePlot(id)
 	def UpdatePlot(self, id):
 		axis_name = self.scan_axes[id]
-		graphdata = self.graphs[id][1]
+		graphdata = self.graphs[id][1].copy()
+		graphdata[:,1] -= graphdata[:,1].min()
+		root = 1.0/float(self.ylimits[id][4].value.GetValue())
+		graphdata[:,1] = numpy.power(graphdata[:,1],root)
 		pos = self.p[id]
 		mdata1 = graphdata[0:pos,:]
 		mdata2 = graphdata[pos+1:,:]
@@ -266,10 +270,18 @@ class LaxarusPlotDialog(wx.Dialog):
 		marker2 = PolyMarker(mdata2, marker='circle', colour='blue', size=2)
 		markerp = PolyMarker(mdatapoint, marker='circle', colour='red', size=4)
 		line = PolyLine(graphdata, colour=self.c[id], width=2.5)
-		graphic = PlotGraphics([line,marker1,marker2,markerp],"", axis_name, "Intensity")
+		graphic = PlotGraphics([line,marker1,marker2,markerp],"", axis_name, "(zero offset) Intensity (a.u.)")
 		x = graphdata[:,0]
 		y = graphdata[:,1]
-		self.graphs[id][0].Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(y.min(), y.max()))
+		ymin = y.min()
+		ymax = y.max()
+		if self.ylimits[id][3].GetValue() == True:
+			ymin = float(self.ylimits[id][1].value.GetValue())
+			ymax = float(self.ylimits[id][2].value.GetValue())
+		else:
+			self.ylimits[id][1].value.SetValue("%02.2f"%y.min())
+			self.ylimits[id][2].value.SetValue("%02.2f"%y.max())
+		self.graphs[id][0].Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(ymin, ymax))
 	def UpdateVisual(self, id):
 		idx = self.GetIdx(self.p)
 		imageraw = self.data[idx,:,:,numpy.newaxis].astype(numpy.double)
@@ -278,23 +290,13 @@ class LaxarusPlotDialog(wx.Dialog):
 		points = self.parent.panelvisual.image_amp_real.GetPointData()
 		points.SetScalars(self.parent.panelvisual.vtk_data_array)
 		self.parent.panelvisual.image_amp_real.Modified()
-		if self.ylimits[id][3].GetValue() ==True:
-			min = float(self.ylimits[id][1].value.GetValue())
-			max = float(self.ylimits[id][2].value.GetValue())
-			if self.parent.panelvisual.lut_amp_real.GetScale() == vtk.VTK_SCALE_LOG10 and min <= 0.0:
-				min = 1.0
-			self.parent.panelvisual.lut_amp_real.SetTableRange([min, max])
-			self.parent.panelvisual.lut_amp_real.Modified()
-		else:
-			min = imageraw.min()
-			max = imageraw.max()
-			if self.parent.panelvisual.lut_amp_real.GetScale() == vtk.VTK_SCALE_LOG10:
-				old_range = self.parent.panelvisual.lut_amp_real.GetTableRange()
-				min = old_range[0]
-			self.ylimits[id][1].value.SetValue("%02.2f"%min)
-			self.ylimits[id][2].value.SetValue("%02.2f"%max)
-			self.parent.panelvisual.lut_amp_real.SetTableRange(min,max)
-			self.parent.panelvisual.lut_amp_real.Modified()
+		min = imageraw.min()
+		max = imageraw.max()
+		if self.parent.panelvisual.lut_amp_real.GetScale() == vtk.VTK_SCALE_LOG10:
+			old_range = self.parent.panelvisual.lut_amp_real.GetTableRange()
+			min = old_range[0]
+		self.parent.panelvisual.lut_amp_real.SetTableRange(min,max)
+		self.parent.panelvisual.lut_amp_real.Modified()
 		self.parent.panelvisual.lut_amp_real.Build()
 		self.parent.panelvisual.RefreshSceneFull()
 		self.parent.panelvisual.Layout()
@@ -405,6 +407,7 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 		hboxscan = wx.BoxSizer(wx.HORIZONTAL)
 		self.scanlabel = StaticTextNew(self, label="Scan No.:", style=wx.ALIGN_RIGHT, size=(-1,-1) )
 		self.scanno = TextCtrlNew(self, value="",size=(150, -1), style=wx.TE_PROCESS_ENTER)
+		self.scanno.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
 		self.scanspin = wx.SpinButton(self, size=(-1,-1))
 		self.scanspin.SetRange(MIN_INT, MAX_INT)
 		self.Bind(wx.EVT_SPIN, self.OnScanSpinUp, self.scanspin)
@@ -644,7 +647,7 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 				else:
 					d['energy'] = energy
 			with trial: d['temp'] = self.IterateKey("/,entry1,before_scan,lakeshore,Tset",f)[()]
-			with trial: d['atten'] = self.IterateKey("/,entry1,instrument,attenuator,attenuator_transmission",f)[()]
+			with trial: d['atten'] = self.IterateKey("/,entry1,before_scan,gains_atten,Transmission",f)[()]
 			with trial: d['minimirrors'] = self.IterateKey("/,entry1,before_scan,mirrors,m4pitch",f)[()]
 			with trial: d['detoffset'] = self.IterateKey("/,entry1,before_scan,delta_offset,delta_offset",f)[()]
 			with trial: d['thp'] = self.IterateKey("/,entry1,before_scan,pa,thp",f)[()]
@@ -749,6 +752,16 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 			self.fnamesidx = self.fnamesidx + updown
 			self.LoadRecordID()
 		self.scanspin.SetValue(0)
+	def OnEnter(self, event):
+		n = self.scanno.GetValue()
+		try:
+			idx = self.fnames.index(n+".nxs")
+		except:
+			pass
+		else:
+			self.fnamesidx = idx
+			self.LoadRecordID()
+			self.OnClickLoad(None)
 	def OnClickFresh(self, event):
 		self.LoadFnames()
 		self.LoadRecordID()

@@ -808,9 +808,9 @@ class Sequence_RAAR(SequenceBaseMask):
 		self.parent.thread_register.put(1)
 		RAAR(self.parent, self.beta, self.startiter, self.numiter, self.numiter_relax)
 		self.parent.thread_register.get()
-class Sequence_POER(SequenceBase):
+class Sequence_POER(SequenceBaseMask):
 	def __init__(self, parent, pipelineitem):
-		SequenceBase.__init__(self, parent, pipelineitem)
+		SequenceBaseMask.__init__(self, parent, pipelineitem)
 		if parent.pipeline_started == True:
 			if parent.citer_flow[1] == 2: return;
 			self.StartPhasing()
