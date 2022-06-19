@@ -867,16 +867,135 @@ def OptIconSize():
 	if iconsize > 60:
 		iconsize = 60
 	return iconsize
-from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
-class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ListCtrlAutoWidthMixin):
+class CheckListCtrlAutoWidth:
+	def __init__(self):
+		self._resizeColMinWidth = None
+		self._resizeColStyle = "LAST"
+		self._resizeCol = 0
+		self.Bind(wx.EVT_SIZE, self._onResize)
+		self.Bind(wx.EVT_LIST_COL_END_DRAG, self._onResize, self)
+	def setResizeColumn(self, col):
+		if col == "LAST":
+			self._resizeColStyle = "LAST"
+		else:
+			self._resizeColStyle = "COL"
+			self._resizeCol = col
+	def resizeLastColumn(self, minWidth):
+		self.resizeColumn(minWidth)
+	def resizeColumn(self, minWidth):
+		self._resizeColMinWidth = minWidth
+		self._doResize()
+	def _onResize(self, event):
+		if 'gtk2' in wx.PlatformInfo or 'gtk3' in wx.PlatformInfo:
+			self._doResize()
+		else:
+			wx.CallAfter(self._doResize)
+		event.Skip()
+	def _doResize(self):
+		if not self:
+			return
+		if self.GetSize().height < 32:
+			return
+		numCols = self.GetColumnCount()
+		if numCols == 0: return
+		if(self._resizeColStyle == "LAST"):
+			resizeCol = self.GetColumnCount()
+		else:
+			resizeCol = self._resizeCol
+		resizeCol = max(1, resizeCol)
+		if self._resizeColMinWidth is None:
+			self._resizeColMinWidth = self.GetColumnWidth(resizeCol - 1)
+		listWidth = self.GetClientSize().width
+		totColWidth = 0
+		for col in range(numCols):
+			if col != (resizeCol-1):
+				totColWidth = totColWidth + self.GetColumnWidth(col)
+		resizeColWidth = self.GetColumnWidth(resizeCol - 1)
+		if totColWidth + self._resizeColMinWidth > listWidth:
+			self.SetColumnWidth(resizeCol-1, self._resizeColMinWidth)
+			return
+		self.SetColumnWidth(resizeCol-1, listWidth - totColWidth)
+class CheckListCtrlImg(object):
+	def __init__(self, check_image=None, uncheck_image=None, imgsz=(16,16)):
+		if check_image is not None:
+			imgsz = check_image.GetSize()
+		elif uncheck_image is not None:
+			imgsz = check_image.GetSize()
+		self.__imagelist_ = wx.ImageList(*imgsz)
+		if check_image is None:
+			check_image = self.__CreateBitmap(wx.CONTROL_CHECKED, imgsz)
+		if uncheck_image is None:
+			uncheck_image = self.__CreateBitmap(0, imgsz)
+		self.uncheck_image = self.__imagelist_.Add(uncheck_image)
+		self.check_image = self.__imagelist_.Add(check_image)
+		self.AssignImageList(self.__imagelist_, wx.IMAGE_LIST_SMALL)
+		self.__last_check_ = None
+		self.Bind(wx.EVT_LEFT_DOWN, self.__OnLeftDown_)
+		self._origInsertItem = self.InsertItem
+		self.InsertItem = self.__InsertItem_
+	def __InsertItem_(self, *args, **kw):
+		index = self._origInsertItem(*args, **kw)
+		self.SetItemImage(index, self.uncheck_image)
+		return index
+	def __CreateBitmap(self, flag=0, size=(16, 16)):
+		bmp = wx.Bitmap(*size)
+		dc = wx.MemoryDC(bmp)
+		dc.SetBackground(wx.WHITE_BRUSH)
+		dc.Clear()
+		wx.RendererNative.Get().DrawCheckBox(self, dc,
+											 (0, 0, size[0], size[1]), flag)
+		dc.SelectObject(wx.NullBitmap)
+		return bmp
+	def __OnLeftDown_(self, evt):
+		(index, flags) = self.HitTest(evt.GetPosition())
+		if flags == wx.LIST_HITTEST_ONITEMICON:
+			img_idx = self.GetItem(index).GetImage()
+			flag_check = img_idx == 0
+			begin_index = index
+			end_index = index
+			if self.__last_check_ is not None \
+					and wx.GetKeyState(wx.WXK_SHIFT):
+				last_index, last_flag_check = self.__last_check_
+				if last_flag_check == flag_check:
+					item_count = self.GetItemCount()
+					if last_index < item_count:
+						if last_index < index:
+							begin_index = last_index
+							end_index = index
+						elif last_index > index:
+							begin_index = index
+							end_index = last_index
+						else:
+							assert False
+			while begin_index <= end_index:
+				self.CheckItem(begin_index, flag_check)
+				begin_index += 1
+			self.__last_check_ = (index, flag_check)
+		else:
+			evt.Skip()
+	def OnCheckItem(self, index, flag):
+		pass
+	def IsChecked(self, index):
+		return self.GetItem(index).GetImage() == 1
+	def CheckItem(self, index, check=True):
+		img_idx = self.GetItem(index).GetImage()
+		if img_idx == 0 and check:
+			self.SetItemImage(index, 1)
+			self.OnCheckItem(index, True)
+		elif img_idx == 1 and not check:
+			self.SetItemImage(index, 0)
+			self.OnCheckItem(index, False)
+	def ToggleItem(self, index):
+		self.CheckItem(index, not self.IsChecked(index))
+class CheckListCtrl(wx.ListCtrl, CheckListCtrlImg, CheckListCtrlAutoWidth):
 	def __init__(self, parent, id, bmpsize=(24,24), size=(180,1)):
 		wx.ListCtrl.__init__(self, parent, id, style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.LC_HRULES|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL, size=(180,1))
-		ListCtrlAutoWidthMixin.__init__(self)
+		CheckListCtrlAutoWidth.__init__(self)
 		bmpchk = getpipelineok24Bitmap()
 		bmpunchk = getpipelineignore24Bitmap()
-		CheckListCtrlMixin.__init__(self,check_image=bmpchk,uncheck_image=bmpunchk, imgsz=bmpsize)
+		CheckListCtrlImg.__init__(self,check_image=bmpchk,uncheck_image=bmpunchk, imgsz=bmpsize)
 	def CheckItem(self, idx, check=True):
-		CheckListCtrlMixin.CheckItem(self, idx, check)
+		CheckListCtrlImg.CheckItem(self, idx, check)
 class CustomAboutDialog(wx.Dialog):
 	def __init__(self, parent, info):
 		wx.Dialog.__init__(self, parent, title="About Bonsu", size=(460,300))

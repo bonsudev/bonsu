@@ -1,4 +1,4 @@
-![Build Status](https://github.com/bonsudev/bonsu/actions/workflows/build_wheels.yml/badge.svg) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) ![Python Versions](https://img.shields.io/badge/Python-3.7%7C3.8%7C3.9-brightgreen) ![PyPI](https://img.shields.io/pypi/v/bonsu) ![PyPI - Wheel](https://img.shields.io/pypi/wheel/bonsu)
+![Build Status](https://github.com/bonsudev/bonsu/actions/workflows/build_wheels.yml/badge.svg) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) ![Python Versions](https://img.shields.io/badge/Python-3.7%7C3.8%7C3.9%7C3.10-brightgreen) ![PyPI](https://img.shields.io/pypi/v/bonsu) ![PyPI - Wheel](https://img.shields.io/pypi/wheel/bonsu)
 
 
 # ![Bonsu Logo](/bonsu/image/bonsu.png) Bonsu - The Interactive Phase Retrieval Suite
@@ -43,6 +43,13 @@ A PDF version of the documentation is available [here](/bonsu/docs/Bonsu.pdf).
 Documentation is also available in the application. 
 
 ## Version History
+
+
+#### Version 3.4.5 🗓 ️(20/06/2022)
+
+	✨ Compatibility with Python 3.10.
+	✨ Colour scale in HDF data viewer.
+	🔧 Minor interface improvements.
 
 
 #### Version 3.4.4 🗓 ️(15/02/2022)

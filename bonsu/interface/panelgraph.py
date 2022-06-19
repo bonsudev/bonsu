@@ -31,13 +31,20 @@ else:
 	from wx.lib.plot import PlotCanvas
 	from wx.lib.plot.polyobjects import PolyLine
 	from wx.lib.plot.polyobjects import PlotGraphics
+	from .plotcanvas import PlotCanvas as PlotCanvas2
+	from .plotcanvas import PolyLine as PolyLine2
 class PanelGraph(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 		self.ancestor = parent
 		self.fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
 		self.colour = wx.Colour(30,70,115, alpha=wx.ALPHA_OPAQUE)
-		self.canvas = PlotCanvas(self)
+		try:
+			self.canvas = PlotCanvas(self)
+			self.PolyLine = PolyLine
+		except TypeError:
+			self.canvas = PlotCanvas2(self)
+			self.PolyLine = PolyLine2
 		if IsNotWX4():
 			self.canvas.SetInitialSize(size=self.GetClientSize())
 			self.canvas.SetShowScrollbars(True)
@@ -180,7 +187,7 @@ class PanelGraph(wx.Panel):
 		x = numpy.arange(xmax-xmin)
 		y = self.ancestor.GetPage(0).residual[xmin:xmax]
 		data = numpy.vstack((x,y)).T
-		line = PolyLine(data, colour=self.colour, width=2.5)
+		line = self.PolyLine(data, colour=self.colour, width=2.5)
 		graphic = PlotGraphics([line],"Error Residual", " Iteration", "Residual")
 		self.canvas.Draw(graphic, xAxis=(xmin, xmax), yAxis=(ymin, ymax))
 	def UpdateGraph(self,event):

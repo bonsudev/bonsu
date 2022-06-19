@@ -1316,6 +1316,7 @@ class SubPanel_BlankLineFill(wx.Panel):
 class ROIDialog(wx.Dialog):
 	def __init__(self,parent):
 		wx.Dialog.__init__(self, parent, style=wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION| wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.CLOSE_BOX ,title="ROI Voxel Fill", size=(700,480))
+		self.parent = parent
 		self.SetSizeHints(700,480,-1,-1)
 		self.Bind(wx.EVT_SIZE, self.OnSize)
 		self.object = parent.arrayobject
@@ -1436,15 +1437,8 @@ class ROIDialog(wx.Dialog):
 	def ClearROI(self):
 		self.image.SetBitmap(self.bmp)
 		self.Layout()
-	def UpdateImage(self, axis, position):
-		object = self.object
-		idx = position - 1
-		if axis == 1:
-			imagedata = object[idx,:,:]
-		elif axis == 2:
-			imagedata = object[:,idx,:]
-		else:
-			imagedata = object[:,:,idx]
+	def _UpdateImage(self,imagedata):
+		cm = self.parent.panelphase.cms[65][1]
 		imagedata[imagedata < 1e-6] = 1.0
 		imagedata = numpy.log(imagedata)
 		imagedata = imagedata - imagedata.min()
@@ -1452,22 +1446,33 @@ class ROIDialog(wx.Dialog):
 			imagedata = (255.0/imagedata.max())*imagedata
 		else:
 			imagedata = 255.0*imagedata
-		imagedatalow = numpy.uint8(imagedata)
-		self.impil = Image.fromarray(imagedatalow, 'L').resize((self.sx,self.sy))
+		imagedatalow = numpy.uint8(imagedata).reshape(-1)
+		shp = imagedata.shape
+		imagedatanew = numpy.zeros((shp[0]*shp[1], 3), dtype=numpy.uint8)
 		if IsNotWX4():
-			self.imwx = wx.EmptyImage( self.impil.size[0], self.impil.size[1] )
+			self.imwx = wx.EmptyImage( *shp[::-1] )
 		else:
-			self.imwx = wx.Image( self.impil.size[0], self.impil.size[1] )
-		self.imwx.SetData( self.impil.convert( 'RGB' ).tobytes() )
-		if IsNotWX4():
-			bitmap = wx.BitmapFromImage(self.imwx)
+			self.imwx = wx.Image( *shp[::-1] )
+		imagedatanew[:,0] = numpy.uint8(255.0*numpy.take(cm[:,0], imagedatalow[:]))
+		imagedatanew[:,1] = numpy.uint8(255.0*numpy.take(cm[:,1], imagedatalow[:]))
+		imagedatanew[:,2] = numpy.uint8(255.0*numpy.take(cm[:,2], imagedatalow[:]))
+		self.imwx.SetData(imagedatanew.reshape(*shp, 3).tostring())
+		self.imwx.Rescale(self.sx, self.sy)
+		self.bmp = self.imwx.ConvertToBitmap()
+		self.image.SetBitmap(self.bmp)
+	def UpdateImage(self, axis, position):
+		object = self.object
+		shp = object.shape
+		idx = position - 1
+		if idx > shp[axis-1] - 1:
+			idx = shp[axis-1] - 1
+		if axis == 1:
+			imagedata = object[idx,:,:]
+		elif axis == 2:
+			imagedata = object[:,idx,:]
 		else:
-			bitmap = wx.Bitmap(self.imwx)
-		if IsNotWX4():
-			self.bmp = wx.BitmapFromImage(self.imwx)
-		else:
-			self.bmp = wx.Bitmap(self.imwx)
-		self.image.SetBitmap(bitmap)
+			imagedata = object[:,:,idx]
+		self._UpdateImage(imagedata)
 		self.Refresh()
 		self.Layout()
 	def OnScrollAxis(self, event):
@@ -1650,6 +1655,7 @@ class KeyDialog(wx.Dialog):
 	def __init__(self,parent):
 		wx.Dialog.__init__(self, parent, style=wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.MAXIMIZE_BOX | wx.CLOSE_BOX ,title="HDF5 Import", size=(700,480))
 		self.SetSizeHints(700,480,-1,-1)
+		self.parent = parent
 		self.Bind(wx.EVT_SIZE, self.OnSize)
 		self.Bind(wx.EVT_CLOSE, self.OnExit)
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1689,13 +1695,23 @@ class KeyDialog(wx.Dialog):
 		self.vbox2 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox3 = wx.BoxSizer(wx.VERTICAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-		self.scrollaxis = SpinnerObject(self,"Axis",3,1,1,1,50,40)
+		self.hbox22 = wx.BoxSizer(wx.HORIZONTAL)
+		self.scrollaxis = SpinnerObject(self,"Axis (First) ",3,1,1,1,50,40)
+		self.scrollaxis.label.SetToolTipNew("Primary axis.")
 		self.scrollaxis.spin.SetEventFunc(self.OnAxisSpin)
+		self.scrollaxis2 = SpinnerObject(self,"Axis (Others) ",3,1,1,1,50,40)
+		self.scrollaxis2.label.SetToolTipNew("Remaining axes. Indexed sequentially from 1.")
+		self.scrollaxis2.spin.SetEventFunc(self.OnAxisSpin)
 		self.hbox2.Add(self.scrollaxis, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		self.hbox22.Add(self.scrollaxis2, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		self.slider = wx.Slider(self, -1, pos=wx.DefaultPosition, size=(150, -1),style=wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
+		self.slider2 = wx.Slider(self, -1, pos=wx.DefaultPosition, size=(150, -1),style=wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
 		self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScrollAxis, self.slider)
 		self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScrollAxis, self.slider)
+		self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScrollAxis, self.slider2)
+		self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScrollAxis, self.slider2)
 		self.hbox2.Add(self.slider, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		self.hbox22.Add(self.slider2, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
 		self.vbox41 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox42 = wx.BoxSizer(wx.VERTICAL)
@@ -1740,8 +1756,10 @@ class KeyDialog(wx.Dialog):
 		self.vbox3.Add(self.image, 1, wx.EXPAND | wx.ALL, border=0)
 		self.vbox2.Add(self.vbox3, 1, wx.EXPAND | wx.ALL, border=2)
 		self.vbox2.Add(self.hbox2, 0, wx.EXPAND | wx.ALL, border=2)
+		self.vbox2.Add(self.hbox22, 0, wx.EXPAND | wx.ALL, border=2)
 		self.vbox2.Add(self.hbox3, 0, wx.EXPAND | wx.ALL, border=2)
 		self.hbox2.ShowItems(False)
+		self.hbox22.ShowItems(False)
 		self.hbox3.ShowItems(False)
 		self.vbox2.ShowItems(False)
 		self.vbox1.Add(self.vbox2, 1, wx.EXPAND | wx.ALL, border=2)
@@ -1829,31 +1847,11 @@ class KeyDialog(wx.Dialog):
 	def UpdateImage2D(self):
 		object = self.object
 		imagedata = numpy.array(object, dtype=numpy.double)
-		imagedata[imagedata < 1e-6] = 1.0
-		imagedata = numpy.log(imagedata)
-		imagedata = imagedata - imagedata.min()
-		if imagedata.max() > 0:
-			imagedata = (255.0/imagedata.max())*imagedata
-		else:
-			imagedata = 255.0*imagedata
-		imagedatalow = numpy.uint8(imagedata)
-		self.impil = Image.fromarray(imagedatalow, 'L').resize((self.sx,self.sy))
-		self.imwx = wx.EmptyImage( self.impil.size[0], self.impil.size[1] )
-		self.imwx.SetData( self.impil.convert( 'RGB' ).tobytes() )
-		bitmap = wx.BitmapFromImage(self.imwx)
-		self.bmp = bitmap
-		self.image.SetBitmap(bitmap)
+		self._UpdateImage(imagedata)
 		self.Refresh()
 		self.Layout()
-	def UpdateImage(self, axis, position):
-		object = self.object
-		idx = position - 1
-		if axis == 1:
-			imagedata = numpy.array(object[idx,:,:])
-		elif axis == 2:
-			imagedata = numpy.array(object[:,idx,:])
-		else:
-			imagedata = numpy.array(object[:,:,idx])
+	def _UpdateImage(self,imagedata):
+		cm = self.parent.panelphase.cms[65][1]
 		imagedata[imagedata < 1e-6] = 1.0
 		imagedata = numpy.log(imagedata)
 		imagedata = imagedata - imagedata.min()
@@ -1861,31 +1859,55 @@ class KeyDialog(wx.Dialog):
 			imagedata = (255.0/imagedata.max())*imagedata
 		else:
 			imagedata = 255.0*imagedata
-		imagedatalow = numpy.uint8(imagedata)
-		self.impil = Image.fromarray(imagedatalow, 'L').resize((self.sx,self.sy))
+		imagedatalow = numpy.uint8(imagedata).reshape(-1)
+		shp = imagedata.shape
+		imagedatanew = numpy.zeros((shp[0]*shp[1], 3), dtype=numpy.uint8)
 		if IsNotWX4():
-			self.imwx = wx.EmptyImage( self.impil.size[0], self.impil.size[1] )
+			self.imwx = wx.EmptyImage( *shp[::-1] )
 		else:
-			self.imwx = wx.Image( self.impil.size[0], self.impil.size[1] )
-		self.imwx.SetData( self.impil.convert( 'RGB' ).tobytes() )
-		if IsNotWX4():
-			bitmap = wx.BitmapFromImage(self.imwx)
-		else:
-			bitmap = wx.Bitmap(self.imwx)
-		self.bmp = bitmap
-		self.image.SetBitmap(bitmap)
+			self.imwx = wx.Image( *shp[::-1] )
+		imagedatanew[:,0] = numpy.uint8(255.0*numpy.take(cm[:,0], imagedatalow[:]))
+		imagedatanew[:,1] = numpy.uint8(255.0*numpy.take(cm[:,1], imagedatalow[:]))
+		imagedatanew[:,2] = numpy.uint8(255.0*numpy.take(cm[:,2], imagedatalow[:]))
+		self.imwx.SetData(imagedatanew.reshape(*shp, 3).tostring())
+		self.imwx.Rescale(self.sx, self.sy)
+		self.bmp = self.imwx.ConvertToBitmap()
+		self.image.SetBitmap(self.bmp)
+	def UpdateImage(self, axis1, axis2, position1, position2):
+		object = self.object
+		shp = object.shape
+		idx1 = position1 - 1
+		idx2 = position2 - 1
+		if idx1 > shp[axis1-1] - 1:
+			idx1 = shp[axis1-1] - 1
+		if len(shp) == 3:
+			imagedata = numpy.array(object).take(indices=idx1, axis=(axis1-1))
+		elif len(shp) == 4:
+			if idx2 > shp[axis2-1] - 1:
+				idx2 = shp[axis2-1] - 1
+			imagedata = numpy.array(object).take(indices=idx1, axis=(axis1-1)).take(indices=idx2, axis=(axis2-1))
+		self._UpdateImage(imagedata)
 		self.Refresh()
 		self.Layout()
 	def OnScrollAxis(self, event):
-		pos = self.slider.GetValue()
-		axis = int(self.scrollaxis.value.GetValue())
-		self.UpdateImage(axis,pos)
+		pos1 = self.slider.GetValue()
+		pos2 = self.slider2.GetValue()
+		axis1 = int(self.scrollaxis.value.GetValue())
+		axis2 = int(self.scrollaxis2.value.GetValue())
+		self.UpdateImage(axis1,axis2, pos1,pos2)
 		self.UpdateROI()
 	def OnAxisSpin(self, event):
-		axis = int(self.scrollaxis.value.GetValue())
 		object = self.object
-		self.slider.SetRange(1,object.shape[axis - 1])
-		self.UpdateImage(axis,1)
+		shp = list(object.shape)
+		axis1 = int(self.scrollaxis.value.GetValue())
+		self.slider.SetRange(1,shp[axis1 - 1])
+		if len(shp) == 4:
+			axis2 = int(self.scrollaxis2.value.GetValue())
+			shp.pop(axis1 - 1)
+			self.slider2.SetRange(1,shp[axis2 - 1])
+		else:
+			axis2 = 1
+		self.UpdateImage(axis1, axis2, 1, 1)
 		self.UpdateROI()
 	def MakeBranch(self, item, limb):
 		try:
@@ -1988,27 +2010,37 @@ class KeyDialog(wx.Dialog):
 			byteorder = byteorder.replace("|","built-in")
 			self.info.AppendText("Data type: "+str(object.dtype.name)+" ,    Byte order: "+byteorder+os.linesep)
 			self.info.AppendText("Element size: "+str(object.dtype.itemsize)+" ,    Data shape: "+str(object.shape))
+			elements = 0
+			maxelements = 10**4
+			try:
+				elements = numpy.prod(numpy.array(object.shape))
+			except Exception as e:
+				pass
 			if self.rb.GetStringSelection() == 'Array':
 				self.dataview.Clear()
-				if str(object.dtype.name).startswith('string'):
-					self.dataview.AppendText(str(numpy.char.mod('%s',object)))
-				if str(object.dtype.name).startswith('object'):
-					try:
-						self.dataview.AppendText(str(numpy.char.mod('%s',object[()])))
-					except:
-						pass
-				elif str(object.dtype.name).startswith('uint') or str(object.dtype.name).startswith('int'):
-					self.dataview.AppendText(str(numpy.char.mod('%d',object)))
-				elif str(object.dtype.name).startswith('float'):
-					self.dataview.AppendText(str(numpy.char.mod('%e',object)))
-				elif str(object.dtype.name).startswith('byte'):
-					self.dataview.AppendText(str(numpy.char.mod('%s',numpy.array(object))))
+				if elements > maxelements:
+					self.dataview.AppendText("Too many elements (>10^4) to display (in a reasonable time).")
 				else:
-					self.dataview.AppendText("Cannot display this data type.")
+					if str(object.dtype.name).startswith('string'):
+						self.dataview.AppendText(str(numpy.char.mod('%s',object)))
+					if str(object.dtype.name).startswith('object'):
+						try:
+							self.dataview.AppendText(str(numpy.char.mod('%s',object[()])))
+						except:
+							pass
+					elif str(object.dtype.name).startswith('uint') or str(object.dtype.name).startswith('int'):
+						self.dataview.AppendText(str(numpy.char.mod('%d',object)))
+					elif str(object.dtype.name).startswith('float'):
+						self.dataview.AppendText(str(numpy.char.mod('%e',object)))
+					elif str(object.dtype.name).startswith('byte'):
+						self.dataview.AppendText(str(numpy.char.mod('%s',numpy.array(object))))
+					else:
+						self.dataview.AppendText("Cannot display this data type.")
 			elif self.rb.GetStringSelection() == 'Image':
 				if (not str(object.dtype.name).startswith('string')):
 						if len(object.shape) == 2:
 							self.hbox2.ShowItems(False)
+							self.hbox22.ShowItems(False)
 							self.hbox3.ShowItems(False)
 							self.Layout()
 							sx,sy = self.vbox3.GetSize()
@@ -2017,6 +2049,7 @@ class KeyDialog(wx.Dialog):
 							self.UpdateImage2D()
 						elif len(object.shape) == 3:
 							self.hbox2.ShowItems(True)
+							self.hbox22.ShowItems(False)
 							self.hbox3.ShowItems(True)
 							self.Layout()
 							sx,sy = self.vbox3.GetSize()
@@ -2024,6 +2057,22 @@ class KeyDialog(wx.Dialog):
 							self.sy = sy - 1
 							axis = int(self.scrollaxis.value.GetValue())
 							self.slider.SetRange(1,object.shape[axis - 1])
+							self.OnScrollAxis(None)
+						elif len(object.shape) == 4:
+							self.hbox2.ShowItems(True)
+							self.hbox22.ShowItems(True)
+							self.hbox3.ShowItems(False)
+							self.Layout()
+							sx,sy = self.vbox3.GetSize()
+							self.sx = sx - 1
+							self.sy = sy - 1
+							axis1 = int(self.scrollaxis.value.GetValue())
+							self.scrollaxis.spin.SetRange(1, 4)
+							self.slider.SetRange(1,object.shape[axis1 - 1])
+							axis2 = int(self.scrollaxis2.value.GetValue())
+							shp = list(object.shape)
+							shp.pop(axis1 - 1)
+							self.slider2.SetRange(1,shp[axis2 - 1])
 							self.OnScrollAxis(None)
 			else:
 				self.dataview.Clear()
@@ -2072,7 +2121,7 @@ class KeyDialog(wx.Dialog):
 			object = self.object
 			if len(object.shape) == 2:
 				self.UpdateImage2D()
-			elif len(object.shape) == 3:
+			elif len(object.shape) == 3 or len(object.shape) == 4:
 				self.OnScrollAxis(None)
 			self.Layout()
 		self.Refresh()
