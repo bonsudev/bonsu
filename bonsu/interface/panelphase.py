@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelphase.py
 ##
-##    Copyright (C) 2011 - 2012 Marcus C. Newton
+##    Copyright (C) 2011 - 2022 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -193,9 +193,9 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		rstextw,rstexth = dc.GetTextExtent(rstext)
 		fstextw,fstexth = dc.GetTextExtent(fstext)
 		sstextw,sstexth = dc.GetTextExtent(sstext)
-		rschkw =140
-		fschkw =140
-		sschkw =140
+		rschkw =120
+		fschkw =120
+		sschkw =120
 		if rstextw > rschkw-25: rschkw = rstextw+35;
 		if fstextw > fschkw-25: fschkw = fstextw+35;
 		if sstextw > sschkw-25: sschkw = sstextw+35;
@@ -216,6 +216,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.hbox_chk1.Add((20, -1))
 		self.hbox_chk1.Add(self.chkbox_amp_recip , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add(self.amp_recip_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
+		self.hbox_chk1.Add((5,-1))
 		self.chkbox_support = CheckBoxNew(self.panel3, -1, sstext, size=(sschkw , 25))
 		self.chkbox_support.SetFont(self.font)
 		self.chkbox_support.SetToolTipNew("Visualise")
@@ -237,11 +238,12 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.nthreads = SpinnerObject(self.panel3,"",65535,1,1,1,5,90)
 		self.nthreads.value.SetToolTipNew("Maximum number of FFTW threads")
 		self.nthreads.label.SetToolTipNew("Maximum number of FFTW threads")
-		self.vbox_thrd.Add(self.nthreads , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
-		self.vbox_thrd.Add((-1,25))
+		self.vbox_thrd.Add(self.nthreads , flag=wx.ALIGN_LEFT |wx.LEFT|wx.RIGHT, border=5)
+		self.vbox_thrd.Add((-1,35))
 		self.vbox_chk.Add(self.hbox_chk1)
 		self.vbox_chk.Add(self.hbox_chk2)
-		self.hbox_btn.Add(self.vbox_chk, flag=wx.ALIGN_LEFT |wx.LEFT, border=50)
+		self.vbox_chk.Add((-1,5))
+		self.hbox_btn.Add(self.vbox_chk, flag=wx.ALIGN_LEFT |wx.LEFT, border=40)
 		self.hbox_btn.Add(self.vbox_thrd, flag=wx.ALIGN_LEFT |wx.LEFT|wx.RIGHT, border=5)
 		self.panel3.SetSizer(self.hbox_btn)
 		self.panel3.font = self.font

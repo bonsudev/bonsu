@@ -45,6 +45,12 @@ Documentation is also available in the application.
 ## Version History
 
 
+#### Version 3.4.6 🗓 ️(12/08/2022)
+
+	✨ Compatibility with Python 3.10.
+	🔧 Minor interface improvements.
+
+
 #### Version 3.4.5 🗓 ️(20/06/2022)
 
 	✨ Compatibility with Python 3.10.

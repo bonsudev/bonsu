@@ -2,7 +2,7 @@
 #############################################
 ##   Filename: setup.py
 ##
-##    Copyright (C) 2021 Marcus C. Newton
+##    Copyright (C) 2011 - 2022 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -188,7 +188,7 @@ def Build( type=args[0] ):
 		sources = sourcelist)
 	setup(
 		name = 'Bonsu',
-		version = "3.4.5",
+		version = "3.4.6",
 		license = 'GPL3',
 		description = 'Bonsu - The Interactive Phase Retrieval Suite',
 		author = 'Marcus C. Newton',

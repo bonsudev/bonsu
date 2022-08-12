@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelvisual.py
 ##
-##    Copyright (C) 2011 Marcus C. Newton
+##    Copyright (C) 2011 - 2022 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -879,7 +879,9 @@ class ContourDialog(wx.Dialog):
 		self.panelvisual = self.GetParent()
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add((-1, 5))
-		ivalue = int(self.panelvisual.filter_amp_real.GetValue(0))
+		ivalue = float(self.panelvisual.filter_amp_real.GetValue(0))
+		if (ivalue).is_integer():
+			ivalue = int(ivalue)
 		self.contour_real = SpinnerObject(self,"RSI:",MAX_INT,0,1,ivalue,50,90)
 		self.contour_real.label.SetToolTipNew("Real space isosurface")
 		self.contour_real.GetItem(self.contour_real.value, recursive=False).SetFlag(wx.EXPAND)
@@ -888,7 +890,9 @@ class ContourDialog(wx.Dialog):
 		self.contour_real.value.Bind(wx.EVT_KEY_UP, self.OnContourRealKey)
 		self.vbox.Add(self.contour_real,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.vbox.Add((-1, 5))
-		ivalue = int(self.panelvisual.filter_amp_recip.GetValue(0))
+		ivalue = float(self.panelvisual.filter_amp_recip.GetValue(0))
+		if (ivalue).is_integer():
+			ivalue = int(ivalue)
 		self.contour_recip = SpinnerObject(self,"FSI:",MAX_INT,0,1,ivalue,50,90)
 		self.contour_recip.label.SetToolTipNew("Fourier space isosurface")
 		self.contour_recip.GetItem(self.contour_recip.value, recursive=False).SetFlag(wx.EXPAND)
