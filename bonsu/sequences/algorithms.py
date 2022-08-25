@@ -21,7 +21,6 @@
 import sys
 import wx
 import numpy
-from numpy.distutils.system_info import get_info
 import vtk
 from ..interface.render import wxVTKRenderWindowInteractor
 from vtk.util import numpy_support

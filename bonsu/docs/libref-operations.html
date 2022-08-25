@@ -1,18 +1,19 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Library Reference - Phasing Operations &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4.6 documentation</title>
+    <title>Library Reference - Phasing Operations &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
@@ -36,7 +37,7 @@
         <li class="right" >
           <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Library Reference - Phasing Operations</a></li> 
       </ul>
@@ -48,9 +49,9 @@
           <div class="body" role="main">
             
   <section id="library-reference-phasing-operations">
-<span id="libref-operations"></span><h1>Library Reference - Phasing Operations<a class="headerlink" href="#library-reference-phasing-operations" title="Permalink to this headline">¶</a></h1>
+<span id="libref-operations"></span><h1>Library Reference - Phasing Operations<a class="headerlink" href="#library-reference-phasing-operations" title="Permalink to this heading">¶</a></h1>
 <section id="save-sequence">
-<h2>Save Sequence<a class="headerlink" href="#save-sequence" title="Permalink to this headline">¶</a></h2>
+<h2>Save Sequence<a class="headerlink" href="#save-sequence" title="Permalink to this heading">¶</a></h2>
 <p id="index-0">Save <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">data</span></code> to a NumPy file.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
@@ -59,7 +60,7 @@
 </dl>
 </section>
 <section id="save-support">
-<h2>Save Support<a class="headerlink" href="#save-support" title="Permalink to this headline">¶</a></h2>
+<h2>Save Support<a class="headerlink" href="#save-support" title="Permalink to this heading">¶</a></h2>
 <p id="index-1">Save <code class="docutils literal notranslate"><span class="pre">Support</span></code> data to a NumPy file.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
@@ -68,7 +69,7 @@
 </dl>
 </section>
 <section id="save-residual">
-<span id="libref-operations-res"></span><h2>Save Residual<a class="headerlink" href="#save-residual" title="Permalink to this headline">¶</a></h2>
+<span id="libref-operations-res"></span><h2>Save Residual<a class="headerlink" href="#save-residual" title="Permalink to this heading">¶</a></h2>
 <p id="index-2">Save <code class="docutils literal notranslate"><span class="pre">Residual</span></code> data to a NumPy file.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
@@ -77,7 +78,7 @@
 </dl>
 </section>
 <section id="save-psf">
-<h2>Save PSF<a class="headerlink" href="#save-psf" title="Permalink to this headline">¶</a></h2>
+<h2>Save PSF<a class="headerlink" href="#save-psf" title="Permalink to this heading">¶</a></h2>
 <p id="index-3">Saves the internally stored <code class="docutils literal notranslate"><span class="pre">Point</span> <span class="pre">Spread</span> <span class="pre">Function</span> <span class="pre">data</span></code> to a NumPy file.</p>
 <p><strong>Parameters</strong>:</p>
 <dl class="simple">
@@ -86,7 +87,7 @@
 </dl>
 </section>
 <section id="co-ordinate-transformation">
-<span id="libref-operations-coord"></span><h2>Co-ordinate Transformation<a class="headerlink" href="#co-ordinate-transformation" title="Permalink to this headline">¶</a></h2>
+<span id="libref-operations-coord"></span><h2>Co-ordinate Transformation<a class="headerlink" href="#co-ordinate-transformation" title="Permalink to this heading">¶</a></h2>
 <p id="index-4">Perform a co-ordinate transformation on either <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">data</span></code> or an input array.  The transformation is derived using the principles as demonstrated by <a class="reference external" href="https://www.ideals.illinois.edu/handle/2142/34830">Pfeifer, M.A.</a> .
 The generated co-ordinate array is stored internally and is accessible for  <a class="reference internal" href="libref-visualtools.html#libref-visualtools-viewobject"><span class="std std-ref">viewing</span></a> with the <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">memory array</span></a> keyword <code class="docutils literal notranslate"><span class="pre">memorycoords</span></code>.</p>
 <p><strong>Parameters</strong>:</p>
@@ -133,7 +134,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
 <p>Curved arrows show the direction of rotation of object (as opposed to the axis). The beam is assumed to travel along the positive <img class="math" src="_images/math/888f7c323ac0341871e867220ae2d76467d74d6e.png" alt="x"/> direction.</p>
 </section>
 <section id="save-co-ordinates">
-<h2>Save Co-ordinates<a class="headerlink" href="#save-co-ordinates" title="Permalink to this headline">¶</a></h2>
+<h2>Save Co-ordinates<a class="headerlink" href="#save-co-ordinates" title="Permalink to this heading">¶</a></h2>
 <p id="index-5">Save <code class="docutils literal notranslate"><span class="pre">Co-ordinates</span></code> data to a NumPy file.</p>
 <dl class="simple">
 <dt><strong>Output file</strong></dt><dd><p>User provided path string for the output NumPy file.</p>
@@ -190,7 +191,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -210,7 +211,7 @@ The generated co-ordinate array is stored internally and is accessible for  <a c
         <li class="right" >
           <a href="libref-algorithms.html" title="Library Reference – Phasing Algorithms"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.7 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Library Reference - Phasing Operations</a></li> 
       </ul>

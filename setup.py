@@ -24,6 +24,8 @@ import os, datetime
 from sys import argv
 from sys import platform
 from sys import modules as sysmodules
+from sys import prefix
+import numpy
 args = argv[1:]
 def CheckPython():
 	from sys import version_info
@@ -44,24 +46,6 @@ def SetBuildDate():
 	f2_bonsu.writelines(lines)
 	f1_bonsu.close()
 	f2_bonsu.close()
-def SetBuiltin(name, value):
-	if isinstance(__builtins__, dict):
-		__builtins__[name] = value
-	else:
-		setattr(__builtins__, name, value)
-def ExtInclude(pars):
-	from setuptools.command.build_ext import build_ext as _build_ext
-	class build_ext(_build_ext):
-		def finalize_options(self):
-			_build_ext.finalize_options(self)
-			SetBuiltin("__NUMPY_SETUP__",False)
-			import numpy
-			from numpy.distutils.system_info import get_info
-			self.include_dirs.append(numpy.get_include())
-			self.include_dirs.append(os.path.join(numpy.get_include(), 'numpy'))
-			fftw_include_path = get_info('fftw3')['include_dirs'][0]
-			self.include_dirs.append(fftw_include_path)
-	return build_ext(pars)
 def Build( type=args[0] ):
 	bonsu_description = """ Bonsu is a collection of tools and algorithms primarily for
 	the reconstruction of phase information from diffraction intensity measurements.
@@ -180,6 +164,9 @@ def Build( type=args[0] ):
 			sourcelist.append('bonsu/lib/libphase-pthread.cxx')
 			sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
 	include_dirs = ['include']
+	include_dirs.append(numpy.get_include())
+	include_dirs.append(os.path.join(numpy.get_include(), 'numpy'))
+	include_dirs.append(os.path.join(prefix,'include'))
 	modprfftw = Extension(
 		'prfftw',
 		include_dirs = include_dirs,
@@ -188,7 +175,7 @@ def Build( type=args[0] ):
 		sources = sourcelist)
 	setup(
 		name = 'Bonsu',
-		version = "3.4.6",
+		version = "3.4.7",
 		license = 'GPL3',
 		description = 'Bonsu - The Interactive Phase Retrieval Suite',
 		author = 'Marcus C. Newton',
@@ -210,7 +197,6 @@ def Build( type=args[0] ):
 		scripts = scripts,
 		package_data = package_data_dict,
 		data_files = data_files,
-		cmdclass={'build_ext' : ExtInclude},
 		requires = SETUP_REQUIRES,
 		install_requires = INSTALL_REQUIRES,
 		python_requires = '>=3.7',

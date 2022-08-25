@@ -45,6 +45,11 @@ Documentation is also available in the application.
 ## Version History
 
 
+#### Version 3.4.7 🗓 ️(25/08/2022)
+
+	🔧 Remove dependence on distutils module (PEP 632).
+
+
 #### Version 3.4.6 🗓 ️(12/08/2022)
 
 	✨ Compatibility with Python 3.10.

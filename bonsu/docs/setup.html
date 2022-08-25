@@ -1,25 +1,26 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Installation &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4.6 documentation</title>
+    <title>Installation &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.4.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     
     <link rel="shortcut icon" href="_static/bonsu.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Introduction" href="intro.html" />
-    <link rel="prev" title="Bonsu 3.4.6 documentation" href="bonsu.html" /> 
+    <link rel="prev" title="Bonsu 3.4.7 documentation" href="bonsu.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,9 +35,9 @@
           <a href="intro.html" title="Introduction"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="bonsu.html" title="Bonsu 3.4.6 documentation"
+          <a href="bonsu.html" title="Bonsu 3.4.7 documentation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.7 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>  
@@ -47,9 +48,9 @@
           <div class="body" role="main">
             
   <section id="installation">
-<span id="setup"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<span id="setup"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h1>
 <section id="installation-on-mac-os-x">
-<h2>Installation on Mac OS X<a class="headerlink" href="#installation-on-mac-os-x" title="Permalink to this headline">¶</a></h2>
+<h2>Installation on Mac OS X<a class="headerlink" href="#installation-on-mac-os-x" title="Permalink to this heading">¶</a></h2>
 <p>If a native Python environment is used, ensure that all dependencies are installed, ideally from the <a class="reference external" href="https://pypi.org">Python Package Index</a> using <a class="reference external" href="https://pypi.python.org/pypi">pip</a>. They are listed below.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/wxPython/">wxPython</a></p></li>
@@ -69,7 +70,7 @@
 </div>
 </section>
 <section id="installation-on-windows">
-<h2>Installation on Windows<a class="headerlink" href="#installation-on-windows" title="Permalink to this headline">¶</a></h2>
+<h2>Installation on Windows<a class="headerlink" href="#installation-on-windows" title="Permalink to this heading">¶</a></h2>
 <p>Download 64-bit <a class="reference external" href="http://www.python.org">Python</a> <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 3.7 for Microsoft Windows from the Python website and follow the installation instructions.  Ensure that <a class="reference external" href="https://pypi.org/project/pip/">pip</a> is included in the installation.  Prerequisite binaries are available for download in the <a class="reference external" href="https://pypi.org">Python Package Index</a>. They are also listed below.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/wxPython/">wxPython</a></p></li>
@@ -93,9 +94,9 @@
 </div>
 </section>
 <section id="installation-on-linux-unix">
-<h2>Installation on Linux/Unix<a class="headerlink" href="#installation-on-linux-unix" title="Permalink to this headline">¶</a></h2>
+<h2>Installation on Linux/Unix<a class="headerlink" href="#installation-on-linux-unix" title="Permalink to this heading">¶</a></h2>
 <section id="system-preparation">
-<h3>System Preparation<a class="headerlink" href="#system-preparation" title="Permalink to this headline">¶</a></h3>
+<h3>System Preparation<a class="headerlink" href="#system-preparation" title="Permalink to this heading">¶</a></h3>
 <p>Before Bonsu can be installed from source, a number of software packages are required. They are namely:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="http://www.python.org">Python</a></p></li>
@@ -116,7 +117,7 @@ $ <span class="nb">export</span> <span class="nv">PREFIX</span><span class="o">=
 </div>
 </section>
 <section id="note-on-building-fftw">
-<h3>Note on Building FFTW<a class="headerlink" href="#note-on-building-fftw" title="Permalink to this headline">¶</a></h3>
+<h3>Note on Building FFTW<a class="headerlink" href="#note-on-building-fftw" title="Permalink to this heading">¶</a></h3>
 <p>To build FFTW into a stand alone python distribution such as that provided by <a class="reference external" href="http://www.enthought.com/products/epd.php">Enthought</a> , use the following sequence of commands:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ ./configure --prefix<span class="o">=</span><span class="si">${</span><span class="nv">PREFIX</span><span class="si">}</span> --enable-threads --enable-shared
 $ make
@@ -125,7 +126,7 @@ $ make install
 </div>
 </section>
 <section id="installing-bonsu">
-<h3>Installing Bonsu<a class="headerlink" href="#installing-bonsu" title="Permalink to this headline">¶</a></h3>
+<h3>Installing Bonsu<a class="headerlink" href="#installing-bonsu" title="Permalink to this heading">¶</a></h3>
 <p>Source code for Bonsu is available for download <a class="reference external" href="https://github.com/bonsudev/bonsu">here</a>.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
@@ -159,7 +160,7 @@ $ make install
 </div>
 </section>
 <section id="remote-access">
-<h3>Remote Access<a class="headerlink" href="#remote-access" title="Permalink to this headline">¶</a></h3>
+<h3>Remote Access<a class="headerlink" href="#remote-access" title="Permalink to this heading">¶</a></h3>
 <p>If Bonsu is used remotely via X11 fowarding or X2Go (NX technology), errors with rendering might occur dependent on the available graphics hardware.  A possible workaround is to add the following environment variables to your .bashrc script:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">export</span> <span class="nv">LIBGL_ALWAYS_SOFTWARE</span><span class="o">=</span><span class="nb">true</span>
 $ <span class="nb">export</span> <span class="nv">MESA_GL_VERSION_OVERRIDE</span><span class="o">=</span><span class="m">3</span>.2
@@ -201,7 +202,7 @@ $ <span class="nb">export</span> <span class="nv">MESA_GLSL_VERSION_OVERRIDE</sp
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="bonsu.html"
-                          title="previous chapter">Bonsu 3.4.6 documentation</a></p>
+                          title="previous chapter">Bonsu 3.4.7 documentation</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
@@ -217,7 +218,7 @@ $ <span class="nb">export</span> <span class="nv">MESA_GLSL_VERSION_OVERRIDE</sp
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -235,9 +236,9 @@ $ <span class="nb">export</span> <span class="nv">MESA_GLSL_VERSION_OVERRIDE</sp
           <a href="intro.html" title="Introduction"
              >next</a> |</li>
         <li class="right" >
-          <a href="bonsu.html" title="Bonsu 3.4.6 documentation"
+          <a href="bonsu.html" title="Bonsu 3.4.7 documentation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.4.7 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>
