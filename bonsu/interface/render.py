@@ -5,7 +5,7 @@
 ## Prabhu Ramachandran, April 2002, Charl P. Botha 2003-2008,
 ## Andrea Gavana December 2006.
 ##
-## Marcus C. Newton 2011
+## Marcus C. Newton 2022
 ##
 ##
 ##
@@ -25,7 +25,12 @@ from .common import IsNotWX4
 baseClass = wx.Window
 if wx.Platform == "__WXGTK__":
 	import wx.glcanvas
-	baseClass = wx.glcanvas.GLCanvas
+	try:
+		wx.glcanvas.GLAttributes()
+	except:
+		pass
+	else:
+		baseClass = wx.glcanvas.GLCanvas
 _useCapture = (wx.Platform == "__WXMSW__")
 class EventTimer(wx.Timer):
 	def __init__(self, iren):

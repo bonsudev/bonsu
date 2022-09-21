@@ -45,6 +45,12 @@ Documentation is also available in the application.
 ## Version History
 
 
+#### Version 3.4.8 🗓 ️(21/09/2022)
+
+	🔧 Remote desktop GL rendering issue.
+	🔧 Concurrent phasing with 3 datasets.
+	
+
 #### Version 3.4.7 🗓 ️(25/08/2022)
 
 	🔧 Remove dependence on distutils module (PEP 632).

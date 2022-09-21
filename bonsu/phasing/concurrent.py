@@ -109,7 +109,7 @@ class PhaseConcurrent(Bifurcate):
 			self.seqdata_angle_bundle[:,:,:,i] = numpy.angle(self.base_insts[i].seqdata)
 		phimat = numpy.asmatrix(self.seqdata_angle_bundle.reshape(self.dims[0]*self.dims[1]*self.dims[2],self.NQ))
 		if self.NQ == 3:
-			vector_mat = phimat * self.QmatInv
+			vector_mat = (phimat * self.QmatInv).T
 		else:
 			phimatT = phimat.T
 			vector_mat = self.QmatInv * (self.Qmat * phimatT)
