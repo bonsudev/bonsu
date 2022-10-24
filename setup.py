@@ -175,7 +175,7 @@ def Build( type=args[0] ):
 		sources = sourcelist)
 	setup(
 		name = 'Bonsu',
-		version = "3.4.8",
+		version = "3.5.0",
 		license = 'GPL3',
 		description = 'Bonsu - The Interactive Phase Retrieval Suite',
 		author = 'Marcus C. Newton',

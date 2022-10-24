@@ -40,6 +40,7 @@ def Sequence_PyScript(\
 	pipelineitem
 	):
 	if self.pipeline_started == True:
+		self.thread_register.put(1)
 		title = "Sequence " + pipelineitem.treeitem['name']
 		self.ancestor.GetPage(0).queue_info.put("Executing Python Script...")
 		panelvisual = self.ancestor.GetPage(1)
@@ -95,7 +96,10 @@ def Sequence_PyScript(\
 				tb = tbold
 				self.ancestor.GetPage(0).queue_info.put("  line "+str(tb.tb_lineno))
 				self.ancestor.GetPage(0).queue_info.put("  "+str(e))
-		wx.CallAfter(run_proc)
+			self.thread_register.get()
+		thd = threading.Thread(target=run_proc)
+		thd.daemon = True
+		thd.start()
 def Sequence_BlankLineFill(\
 	self,
 	pipelineitem
@@ -354,14 +358,20 @@ def Sequence_HDF_to_Numpy(\
 			self.pipeline_started = False
 			return
 		else:
-			if roi == None:
-				array = numpy.array(newitem, dtype=numpy.double) + 0j
-			else:
-				roiids[0][1] +=1
-				roiids[1][1] +=1
-				roiids[2][1] +=1
-				array = numpy.array(newitem[roiids[0][0]:roiids[0][1],roiids[1][0]:roiids[1][1],roiids[2][0]:roiids[2][1]], dtype=numpy.double) + 0j
-			SaveArray(self, filename_npy, array)
+			try:
+				if roi == None:
+					array = numpy.array(newitem, dtype=numpy.double) + 0j
+				else:
+					n = len(roiids)
+					if n == 3:
+						array = numpy.array(newitem[roiids[0][0]:roiids[0][1],roiids[1][0]:roiids[1][1],roiids[2][0]:roiids[2][1]], dtype=numpy.double) + 0j
+					elif n == 4:
+						array = numpy.array(newitem[roiids[0][0]:roiids[0][1],roiids[1][0]:roiids[1][1],roiids[2][0]:roiids[2][1],roiids[3][0]:roiids[3][1]], dtype=numpy.double) + 0j
+					else:
+						array = numpy.array(newitem, dtype=numpy.double) + 0j
+				SaveArray(self, filename_npy, numpy.squeeze(array))
+			except Exception as e:
+				self.ancestor.GetPage(0).queue_info.put(str(e))
 			HDF_file.close()
 			return
 def Sequence_SPE_to_Numpy(\
@@ -1428,7 +1438,7 @@ def Sequence_InterpolateObject(\
 			array_phase = numpy.reshape(array_phase_flat, dims[::-1]).transpose(2,1,0)
 			array = array_amp * (numpy.cos(array_phase) + 1j * numpy.sin(array_phase))
 			try:
-				SaveArray(self, output_filename,array)
+				SaveArray(self, output_filename, array.astype(numpy.cdouble))
 			except:
 				msg = "Could not save array."
 				wx.CallAfter(self.UserMessage, title, msg)
@@ -1446,7 +1456,7 @@ def Sequence_InterpolateObject(\
 			del test_array
 		try:
 			data = LoadArray(self, input_filename)
-			coords = LoadCoordsArray(self, coords_filename)
+			coords = LoadCoordsArray(self, coords_filename, data)
 		except:
 			msg = "Could not load array."
 			wx.CallAfter(self.UserMessage, title, msg)
@@ -4101,7 +4111,7 @@ def Sequence_View_Object(self, ancestor):
 	try:
 		panelvisual.data = LoadArray(self.ancestor.GetPage(0), data_file)
 		panelvisual.data_max = numpy.abs(panelvisual.data).max()
-		panelvisual.coords = LoadCoordsArray(self.ancestor.GetPage(0), coords_file)
+		panelvisual.coords = LoadCoordsArray(self.ancestor.GetPage(0), coords_file, panelvisual.data)
 	except:
 		msg = "Could not load array."
 		dlg = wx.MessageDialog(self, msg, "Sequence View Object", wx.OK)

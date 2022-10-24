@@ -1696,10 +1696,10 @@ class KeyDialog(wx.Dialog):
 		self.vbox3 = wx.BoxSizer(wx.VERTICAL)
 		self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox22 = wx.BoxSizer(wx.HORIZONTAL)
-		self.scrollaxis = SpinnerObject(self,"Axis (First) ",3,1,1,1,50,40)
+		self.scrollaxis = SpinnerObject(self,"Axis ( [1,n] ) ",3,1,1,1,50,40)
 		self.scrollaxis.label.SetToolTipNew("Primary axis.")
 		self.scrollaxis.spin.SetEventFunc(self.OnAxisSpin)
-		self.scrollaxis2 = SpinnerObject(self,"Axis (Others) ",3,1,1,1,50,40)
+		self.scrollaxis2 = SpinnerObject(self,"Axis ( [1,n-1] ) ",3,1,1,1,50,40)
 		self.scrollaxis2.label.SetToolTipNew("Remaining axes. Indexed sequentially from 1.")
 		self.scrollaxis2.spin.SetEventFunc(self.OnAxisSpin)
 		self.hbox2.Add(self.scrollaxis, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
@@ -1716,23 +1716,28 @@ class KeyDialog(wx.Dialog):
 		self.vbox41 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox42 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox43 = wx.BoxSizer(wx.VERTICAL)
+		self.vbox44 = wx.BoxSizer(wx.VERTICAL)
 		self.roi_enable = CheckBoxNew(self, -1, 'ROI', size=(-1, 20))
 		self.roi_enable.SetValue(False)
 		self.Bind(wx.EVT_CHECKBOX, self.OnROI, self.roi_enable)
 		self.roi_enable.SetToolTipNew("Enable ROI")
-		self.roi = [None]*6
-		self.roi[0] = SpinnerObject(self,"x:",1,1,1,1,40,60)
-		self.roi[0].label.SetToolTipNew("x, start index")
+		self.roi = [None]*8
+		self.roi[0] = SpinnerObject(self,"i:",1,1,1,1,40,60)
+		self.roi[0].label.SetToolTipNew("i, start index")
 		self.roi[1] = SpinnerObject(self,"",1,1,1,1,40,60)
-		self.roi[1].label.SetToolTipNew("x, end index")
-		self.roi[2] = SpinnerObject(self,"y:",1,1,1,1,40,60)
-		self.roi[2].label.SetToolTipNew("y, start index")
+		self.roi[1].label.SetToolTipNew("i, end index")
+		self.roi[2] = SpinnerObject(self,"j:",1,1,1,1,40,60)
+		self.roi[2].label.SetToolTipNew("j, start index")
 		self.roi[3] = SpinnerObject(self,"",1,1,1,1,40,60)
-		self.roi[3].label.SetToolTipNew("y, end index")
-		self.roi[4] = SpinnerObject(self,"z:",1,1,1,1,40,60)
-		self.roi[4].label.SetToolTipNew("z, start index")
+		self.roi[3].label.SetToolTipNew("j, end index")
+		self.roi[4] = SpinnerObject(self,"k:",1,1,1,1,40,60)
+		self.roi[4].label.SetToolTipNew("k, start index")
 		self.roi[5] = SpinnerObject(self,"",1,1,1,1,40,60)
-		self.roi[5].label.SetToolTipNew("z, end index")
+		self.roi[5].label.SetToolTipNew("k, end index")
+		self.roi[6] = SpinnerObject(self,"l:",1,1,1,1,40,60)
+		self.roi[6].label.SetToolTipNew("l, start index")
+		self.roi[7] = SpinnerObject(self,"",1,1,1,1,40,60)
+		self.roi[7].label.SetToolTipNew("l, end index")
 		for i in range(len(self.roi)):
 			self.roi[i].Disable()
 		for i in range(len(self.roi)):
@@ -1744,11 +1749,14 @@ class KeyDialog(wx.Dialog):
 			self.vbox41.Add(self.roi[i], 0, flag=wx.ALIGN_RIGHT, border=2)
 			self.vbox42.Add(self.roi[2+i], 0, flag=wx.ALIGN_RIGHT, border=2)
 			self.vbox43.Add(self.roi[4+i], 0, flag=wx.ALIGN_RIGHT, border=2)
+			self.vbox44.Add(self.roi[6+i], 0, flag=wx.ALIGN_RIGHT, border=2)
 		self.hbox3.Add(self.vbox41, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
 		self.hbox3.Add((20, -1))
 		self.hbox3.Add(self.vbox42, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
 		self.hbox3.Add((20, -1))
 		self.hbox3.Add(self.vbox43, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
+		self.hbox3.Add((20, -1))
+		self.hbox3.Add(self.vbox44, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
 		if IsNotWX4():
 			self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(1,1))
 		else:
@@ -1782,11 +1790,15 @@ class KeyDialog(wx.Dialog):
 		self.Fit()
 	def OnROI(self, event):
 		if(event.GetEventObject().GetValue() == True):
+			object = self.object
+			n = len(object.shape)
 			for i in range(len(self.roi)):
 				self.roi[i].Enable()
-			axis = int(self.scrollaxis.value.GetValue())
-			object = self.object
-			for i in range(3):
+				if i > 2*n-1:
+					self.roi[i].Hide()
+				else:
+					self.roi[i].Show()
+			for i in range(n):
 				self.roi[2*i].spin.SetRange(1,object.shape[i])
 				self.roi[2*i].spin.SetValue(1)
 				self.roi[2*i].value.ChangeValue(str(1))
@@ -1806,29 +1818,48 @@ class KeyDialog(wx.Dialog):
 		self.DrawROI()
 	def DrawROI(self):
 		object = self.object
+		n = len(object.shape)
 		bmp = self.image.GetBitmap()
 		w =  bmp.GetWidth()
 		h =  bmp.GetHeight()
-		roi = [0]*6
-		for i in range(3):
+		roi = [0]*8
+		for i in range(4):
 			roi[2*i] = int(self.roi[2*i].value.GetValue()) - 1
 			roi[2*i+1] = int(self.roi[2*i+1].value.GetValue()) - 1
-		axis = int(self.scrollaxis.value.GetValue())
-		if axis == 1:
-			rx = int(float(w*roi[4])/float(object.shape[2]) +0.5)
-			rw = int(float(w*(roi[5] - roi[4] +1.0))/float(object.shape[2]) +0.5)
-			ry = int(float(h*roi[2])/float(object.shape[1]) +0.5)
-			rh = int(float(h*(roi[3] - roi[2] +1.0))/float(object.shape[1]) +0.5)
-		elif axis == 2:
-			rx = int(float(w*roi[4])/float(object.shape[2]) +0.5)
-			rw = int(float(w*(roi[5] - roi[4] +1.0))/float(object.shape[2]) +0.5)
-			ry = int(float(h*roi[0])/float(object.shape[0]) +0.5)
-			rh = int(float(h*(roi[1] - roi[0] +1.0))/float(object.shape[0]) +0.5)
-		elif axis == 3:
-			rx = int(float(w*roi[2])/float(object.shape[1]) +0.5)
-			rw = int(float(w*(roi[3] - roi[2] +1.0))/float(object.shape[1]) +0.5)
-			ry = int(float(h*roi[0])/float(object.shape[0]) +0.5)
-			rh = int(float(h*(roi[1] - roi[0] +1.0))/float(object.shape[0]) +0.5)
+		axis1 = int(self.scrollaxis.value.GetValue())
+		axis2 = int(self.scrollaxis2.value.GetValue())
+		if n ==3:
+			if axis1 == 1:
+				rx = int(float(w*roi[4])/float(object.shape[2]) +0.5)
+				rw = int(float(w*(roi[5] - roi[4] +1.0))/float(object.shape[2]) +0.5)
+				ry = int(float(h*roi[2])/float(object.shape[1]) +0.5)
+				rh = int(float(h*(roi[3] - roi[2] +1.0))/float(object.shape[1]) +0.5)
+			elif axis1 == 2:
+				rx = int(float(w*roi[4])/float(object.shape[2]) +0.5)
+				rw = int(float(w*(roi[5] - roi[4] +1.0))/float(object.shape[2]) +0.5)
+				ry = int(float(h*roi[0])/float(object.shape[0]) +0.5)
+				rh = int(float(h*(roi[1] - roi[0] +1.0))/float(object.shape[0]) +0.5)
+			elif axis1 == 3:
+				rx = int(float(w*roi[2])/float(object.shape[1]) +0.5)
+				rw = int(float(w*(roi[3] - roi[2] +1.0))/float(object.shape[1]) +0.5)
+				ry = int(float(h*roi[0])/float(object.shape[0]) +0.5)
+				rh = int(float(h*(roi[1] - roi[0] +1.0))/float(object.shape[0]) +0.5)
+		elif n ==4:
+			axes = list(range(n))
+			breakout = False
+			for i in range(n):
+				if breakout:
+					break
+				for j in range(n-1):
+					if axis1-1 == i and axis2-1 == j:
+						axes.pop(i)
+						axes.pop(j)
+						rx = int(float(w*roi[2*axes[1]])/float(object.shape[axes[1]]) +0.5)
+						rw = int(float(w*(roi[2*axes[1]+1] - roi[2*axes[1]] +1.0))/float(object.shape[axes[1]]) +0.5)
+						ry = int(float(h*roi[2*axes[0]])/float(object.shape[axes[0]]) +0.5)
+						rh = int(float(h*(roi[2*axes[0]+1] - roi[2*axes[0]] +1.0))/float(object.shape[axes[0]]) +0.5)
+						breakout = True
+						break
 		self.dc = wx.MemoryDC(bmp)
 		self.dc.SelectObject(bmp)
 		self.dc.SetPen(wx.Pen(wx.RED, 1))
@@ -1881,11 +1912,41 @@ class KeyDialog(wx.Dialog):
 		if idx1 > shp[axis1-1] - 1:
 			idx1 = shp[axis1-1] - 1
 		if len(shp) == 3:
-			imagedata = numpy.array(object).take(indices=idx1, axis=(axis1-1))
+			if axis1 == 1:
+				imagedata = numpy.array(object[idx1,:,:])
+			elif axis1 ==2:
+				imagedata = numpy.array(object[:,idx1,:])
+			elif axis1 == 3:
+				imagedata = numpy.array(object[:,:,idx1])
 		elif len(shp) == 4:
-			if idx2 > shp[axis2-1] - 1:
-				idx2 = shp[axis2-1] - 1
-			imagedata = numpy.array(object).take(indices=idx1, axis=(axis1-1)).take(indices=idx2, axis=(axis2-1))
+			axes2 = list(range(len(shp)))
+			axes2.pop(axis1-1)
+			if idx2 > shp[axes2[axis2-1]] - 1:
+				idx2 = shp[axes2[axis2-1]] - 1
+			if axis1 == 1 and axis2 == 1:
+				imagedata = numpy.array(object[idx1,idx2,:,:])
+			elif axis1 == 1 and axis2 == 2:
+				imagedata = numpy.array(object[idx1,:,idx2,:])
+			elif axis1 == 1 and axis2 == 3:
+				imagedata = numpy.array(object[idx1,:,:,idx2])
+			elif axis1 == 2 and axis2 == 1:
+				imagedata = numpy.array(object[idx2,idx1,:,:])
+			elif axis1 == 2 and axis2 == 2:
+				imagedata = numpy.array(object[:,idx1,idx2,:])
+			elif axis1 == 2 and axis2 == 3:
+				imagedata = numpy.array(object[:,idx1,:,idx2])
+			elif axis1 == 3 and axis2 == 1:
+				imagedata = numpy.array(object[idx2,:,idx1,:])
+			elif axis1 == 3 and axis2 == 2:
+				imagedata = numpy.array(object[:,idx2,idx1,:])
+			elif axis1 == 3 and axis2 == 3:
+				imagedata = numpy.array(object[:,:,idx1,idx2])
+			elif axis1 == 4 and axis2 == 1:
+				imagedata = numpy.array(object[idx2,:,:,idx1])
+			elif axis1 == 4 and axis2 == 2:
+				imagedata = numpy.array(object[:,idx2,:,idx1])
+			elif axis1 == 4 and axis2 == 3:
+				imagedata = numpy.array(object[:,:,idx2,idx1])
 		self._UpdateImage(imagedata)
 		self.Refresh()
 		self.Layout()
@@ -1955,13 +2016,14 @@ class KeyDialog(wx.Dialog):
 		return hdfpath
 	def GetROIString(self):
 		if hasattr(self.object, 'shape'):
-			if ( len(self.object.shape) == 3 and self.roi_enable.GetValue() == True):
-				roi = [0]*6
-				for i in range(3):
+			n = len(self.object.shape)
+			if ((n == 3 or n==4) and self.roi_enable.GetValue() == True):
+				roi = [0]*(n*2)
+				for i in range(n):
 					roi[2*i] = str(int(self.roi[2*i].value.GetValue()) - 1)
-					roi[2*i+1] = str(int(self.roi[2*i+1].value.GetValue()) - 1)
+					roi[2*i+1] = str(int(self.roi[2*i+1].value.GetValue()))
 				roistr = "["
-				for i in range(3):
+				for i in range(n):
 					roistr += roi[2*i]+":"+roi[2*i+1]+","
 				roistr = roistr[:-1] +"]"
 				return roistr
@@ -2000,8 +2062,8 @@ class KeyDialog(wx.Dialog):
 			object = self.file
 			for key in hdfpath:
 				object = object.get(key)
-			#object = object[()]
 			self.object = object
+			n = len(object.shape)
 			self.info.Clear()
 			byteorder = str(object.dtype.byteorder)
 			byteorder = byteorder.replace("=","native")
@@ -2021,24 +2083,27 @@ class KeyDialog(wx.Dialog):
 				if elements > maxelements:
 					self.dataview.AppendText("Too many elements (>10^4) to display (in a reasonable time).")
 				else:
-					if str(object.dtype.name).startswith('string'):
-						self.dataview.AppendText(str(numpy.char.mod('%s',object)))
-					if str(object.dtype.name).startswith('object'):
-						try:
-							self.dataview.AppendText(str(numpy.char.mod('%s',object[()])))
-						except:
-							pass
-					elif str(object.dtype.name).startswith('uint') or str(object.dtype.name).startswith('int'):
-						self.dataview.AppendText(str(numpy.char.mod('%d',object)))
-					elif str(object.dtype.name).startswith('float'):
-						self.dataview.AppendText(str(numpy.char.mod('%e',object)))
-					elif str(object.dtype.name).startswith('byte'):
-						self.dataview.AppendText(str(numpy.char.mod('%s',numpy.array(object))))
-					else:
-						self.dataview.AppendText("Cannot display this data type.")
+					try:
+						if str(object.dtype.name).startswith('string'):
+							self.dataview.AppendText(str(numpy.char.mod('%s',object)))
+						if str(object.dtype.name).startswith('object'):
+							try:
+								self.dataview.AppendText(str(numpy.char.mod('%s',object[()])))
+							except:
+								pass
+						elif str(object.dtype.name).startswith('uint') or str(object.dtype.name).startswith('int'):
+							self.dataview.AppendText(str(numpy.char.mod('%d',object)))
+						elif str(object.dtype.name).startswith('float'):
+							self.dataview.AppendText(str(numpy.char.mod('%e',object)))
+						elif str(object.dtype.name).startswith('byte'):
+							self.dataview.AppendText(str(numpy.char.mod('%s',numpy.array(object))))
+						else:
+							self.dataview.AppendText("Cannot display this data type.")
+					except Exception as e:
+						self.dataview.AppendText(str(e))
 			elif self.rb.GetStringSelection() == 'Image':
 				if (not str(object.dtype.name).startswith('string')):
-						if len(object.shape) == 2:
+						if n == 2:
 							self.hbox2.ShowItems(False)
 							self.hbox22.ShowItems(False)
 							self.hbox3.ShowItems(False)
@@ -2046,22 +2111,35 @@ class KeyDialog(wx.Dialog):
 							sx,sy = self.vbox3.GetSize()
 							self.sx = sx - 1
 							self.sy = sy - 1
-							self.UpdateImage2D()
-						elif len(object.shape) == 3:
+							try:
+								self.UpdateImage2D()
+							except Exception as e:
+								self.vbox2.ShowItems(False)
+								self.dataview.Show()
+								self.dataview.Clear()
+								self.dataview.AppendText(str(e))
+						elif n == 3:
 							self.hbox2.ShowItems(True)
 							self.hbox22.ShowItems(False)
 							self.hbox3.ShowItems(True)
+							self.vbox44.ShowItems(False)
 							self.Layout()
 							sx,sy = self.vbox3.GetSize()
 							self.sx = sx - 1
 							self.sy = sy - 1
 							axis = int(self.scrollaxis.value.GetValue())
 							self.slider.SetRange(1,object.shape[axis - 1])
-							self.OnScrollAxis(None)
-						elif len(object.shape) == 4:
+							try:
+								self.OnScrollAxis(None)
+							except Exception as e:
+								self.vbox2.ShowItems(False)
+								self.dataview.Show()
+								self.dataview.Clear()
+								self.dataview.AppendText(str(e))
+						elif n == 4:
 							self.hbox2.ShowItems(True)
 							self.hbox22.ShowItems(True)
-							self.hbox3.ShowItems(False)
+							self.hbox3.ShowItems(True)
 							self.Layout()
 							sx,sy = self.vbox3.GetSize()
 							self.sx = sx - 1
@@ -2073,7 +2151,13 @@ class KeyDialog(wx.Dialog):
 							shp = list(object.shape)
 							shp.pop(axis1 - 1)
 							self.slider2.SetRange(1,shp[axis2 - 1])
-							self.OnScrollAxis(None)
+							try:
+								self.OnScrollAxis(None)
+							except Exception as e:
+								self.vbox2.ShowItems(False)
+								self.dataview.Show()
+								self.dataview.Clear()
+								self.dataview.AppendText(str(e))
 			else:
 				self.dataview.Clear()
 		self.Refresh()

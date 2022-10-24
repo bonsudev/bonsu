@@ -161,7 +161,7 @@ def LoadArray(self, filename):
 					raise MemoryError
 				else:
 					return array
-def LoadCoordsArray(self, filename):
+def LoadCoordsArray(self, filename, data=None):
 	if filename == 'memorycoords':
 		if numpy.any(self.coordarray):
 			return self.coordarray
@@ -176,17 +176,21 @@ def LoadCoordsArray(self, filename):
 		elif array.shape[1] != 3:
 			raise TypeError
 		else:
+			if hasattr(data, 'shape'):
+				if array.shape[0] != numpy.prod(data.shape):
+					raise TypeError
 			return array
 def SaveArray(self, filename, array):
 	if NameIsMem(filename):
-		if filename in self.memory:
-			self.memory[filename+"_tmp"] = array
-			del self.memory[filename]
-			self.memory[filename] = self.memory.pop(filename+"_tmp")
-		else:
-			self.memory[filename] = array
-		panelscript = self.ancestor.GetPage(3)
-		panelscript.shell.interp.locals[filename] = array
+		if len(array.shape) == 3:
+			if filename in self.memory:
+				self.memory[filename+"_tmp"] = array
+				del self.memory[filename]
+				self.memory[filename] = self.memory.pop(filename+"_tmp")
+			else:
+				self.memory[filename] = array
+			panelscript = self.ancestor.GetPage(3)
+			panelscript.shell.interp.locals[filename] = array
 	else:
 		pathname = os.path.dirname(filename)
 		base = os.path.basename(filename)

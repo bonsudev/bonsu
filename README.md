@@ -45,6 +45,16 @@ Documentation is also available in the application.
 ## Version History
 
 
+#### Version 3.5.0 🗓 ️(24/10/2022)
+
+	✨ HDF5 4D array ROI.
+	✨ Q-vector viewing tool.
+	🔧 HDF5 array read speed improvements.
+	🔧 Interpolate Object output type conformity.
+	🔧 Threading of Python scripting function.
+	🔧 Minor bug fixes.
+
+
 #### Version 3.4.8 🗓 ️(21/09/2022)
 
 	🔧 Remote desktop GL rendering issue.
