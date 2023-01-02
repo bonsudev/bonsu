@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelstdout.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import wx
 import os
 import sys
 from time import strftime
-from .common import IsNotWX4
 class RedirectText:
 	def __init__(self,aWxTextCtrl):
 		self.out=aWxTextCtrl
@@ -49,10 +48,7 @@ class PanelStdOut(wx.Panel):
 		self.entry = wx.TextCtrl(self, -1, style=wx.TE_PROCESS_ENTER)
 		self.entry.SetFont(self.font)
 		self.entry.SetValue("")
-		if IsNotWX4():
-			self.entry.SetToolTipString("Enter comments into the log here.")
-		else:
-			self.entry.SetToolTip("Enter comments into the log here.")
+		self.entry.SetToolTip("Enter comments into the log here.")
 		self.entry.Bind(wx.EVT_TEXT_ENTER, self.OnEnterComments)
 		self.hbox_ent.Add( self.entry, 1, wx.EXPAND | wx.LEFT | wx.RIGHT)
 		self.vbox.Add(self.hbox_ent, 0, wx.EXPAND)

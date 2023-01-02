@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: common.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -497,50 +497,32 @@ class StaticTextNew(wx.StaticText):
 		if autotip:
 			self.SetToolTipNew(oldlabel)
 	def SetToolTipNew(self, string):
-		if IsNotWX4():
-			self.SetToolTipString(string)
-		else:
-			self.SetToolTip(string)
+		self.SetToolTip(string)
 class TextCtrlNew(wx.TextCtrl):
 	def __init__(self, parent, id=wx.ID_ANY, value="", style=wx.ALIGN_LEFT|wx.TE_PROCESS_ENTER, size=(-1,-1)):
 		wx.TextCtrl.__init__(self, parent, id, value=value, style=style, size=size)
 	def SetToolTipNew(self, string):
-		if IsNotWX4():
-			self.SetToolTipString(string)
-		else:
-			self.SetToolTip(string)
+		self.SetToolTip(string)
 class ButtonNew(wx.Button):
 	def __init__(self, parent, id=wx.ID_ANY, label="", style=wx.ALIGN_LEFT, size=(-1,-1)):
 		wx.Button.__init__(self, parent, id, label=label, style=style, size=size)
 	def SetToolTipNew(self, string):
-		if IsNotWX4():
-			self.SetToolTipString(string)
-		else:
-			self.SetToolTip(string)
+		self.SetToolTip(string)
 class BitmapButtonNew(wx.BitmapButton):
 	def __init__(self, parent, id=wx.ID_ANY, bitmap=wx.NullBitmap, style=wx.ALIGN_LEFT, size=(-1,-1)):
 		wx.BitmapButton.__init__(self, parent, id, bitmap=bitmap, style=style, size=size)
 	def SetToolTipNew(self, string):
-		if IsNotWX4():
-			self.SetToolTipString(string)
-		else:
-			self.SetToolTip(string)
+		self.SetToolTip(string)
 class CheckBoxNew(wx.CheckBox):
 	def __init__(self, parent, id=wx.ID_ANY, label="", style=wx.ALIGN_LEFT, size=(-1,-1)):
 		wx.CheckBox.__init__(self, parent, id, label=label, style=style, size=size)
 	def SetToolTipNew(self, string):
-		if IsNotWX4():
-			self.SetToolTipString(string)
-		else:
-			self.SetToolTip(string)
+		self.SetToolTip(string)
 class RadioBoxNew(wx.RadioBox):
 	def __init__(self, parent, id=wx.ID_ANY, label="", size=(-1,-1), choices=[], majorDimension=0, style=wx.ALIGN_LEFT):
 		wx.RadioBox.__init__(self, parent, id, label=label, size=size, choices=choices, majorDimension=majorDimension, style=style)
 	def SetToolTipNew(self, string):
-		if IsNotWX4():
-			self.SetToolTipString(string)
-		else:
-			self.SetToolTip(string)
+		self.SetToolTip(string)
 class DummyEvent():
 	def __init__(self):
 		pass
@@ -656,10 +638,7 @@ class TextPanelObject(wx.BoxSizer):
 		def assign(input):
 			self.objectpath.ChangeValue(input)
 		def OnBrowse(self):
-			if IsNotWX4():
-				dlg = wx.FileDialog(parent, 'Choose a file', os.getcwd(), '',  file_extension, wx.OPEN)
-			else:
-				dlg = wx.FileDialog(parent, 'Choose a file', os.getcwd(), '',  file_extension, wx.FD_OPEN)
+			dlg = wx.FileDialog(parent, 'Choose a file', os.getcwd(), '',  file_extension, wx.FD_OPEN)
 			if dlg.ShowModal() == wx.ID_OK:
 				assign(dlg.GetPath())
 			dlg.Destroy()
@@ -835,28 +814,6 @@ class NumberObject(wx.BoxSizer):
 		self.label.Refresh()
 		self.value.Enable(True)
 		self.value.Refresh()
-def IsPy3():
-	from sys import version
-	return version[0] == '3'
-def IsNotVTK6():
-	from vtk import vtkVersion
-	VTKMajor = vtkVersion().GetVTKMajorVersion()
-	if VTKMajor < 6:
-		return True
-	else:
-		return False
-def IsNotVTK7():
-	from vtk import vtkVersion
-	VTKMajor = vtkVersion().GetVTKMajorVersion()
-	if VTKMajor < 7:
-		return True
-	else:
-		return False
-def IsNotWX4():
-	if wx.VERSION[0] < 4:
-		return True
-	else:
-		return False
 def OptIconSize():
 	displays = (wx.Display(i) for i in range(wx.Display.GetCount()))
 	sizes = [display.GetGeometry().GetSize() for display in displays]
@@ -1005,10 +962,7 @@ class CustomAboutDialog(wx.Dialog):
 		self.vboxborder = wx.BoxSizer(wx.VERTICAL)
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.icon = wx.Image(os.path.join(os.path.dirname(os.path.dirname(__file__)),'image',  'bonsu.ico'), wx.BITMAP_TYPE_ICO)
-		if IsNotWX4():
-			self.bitmap = wx.BitmapFromImage(self.icon)
-		else:
-			self.bitmap = wx.Bitmap(self.icon)
+		self.bitmap = wx.Bitmap(self.icon)
 		self.staticbmp = wx.StaticBitmap(self, -1, self.bitmap)
 		self.vbox.Add(self.staticbmp, 0, flag=wx.CENTER, border=5)
 		namestr = info.GetName()+" "+info.GetVersion()
@@ -1025,10 +979,7 @@ class CustomAboutDialog(wx.Dialog):
 		self.copyright = wx.StaticText(self, label=info.GetCopyright())
 		self.vbox.Add(self.copyright, 0, flag=wx.CENTER, border=5)
 		self.vbox.Add((-1, 5))
-		if IsNotWX4():
-			self.web = wx.StaticText(self, label=info.GetWebSite()[0])
-		else:
-			self.web = wx.StaticText(self, label=info.GetWebSiteURL())
+		self.web = wx.StaticText(self, label=info.GetWebSiteURL())
 		self.vbox.Add(self.web, 0, flag=wx.CENTER, border=5)
 		self.vbox.Add((-1, 10))
 		self.hbox = wx.BoxSizer(wx.HORIZONTAL)

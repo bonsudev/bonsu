@@ -2,7 +2,7 @@
 #############################################
 ##   Filename: prfftwraarmaskpc.cxx
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by

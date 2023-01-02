@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelgraph.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -21,46 +21,26 @@
 import wx
 import numpy
 from time import strftime
-from .common import IsNotWX4
 from .common import CheckBoxNew
 from .common import SpinnerObject
 from .common import MIN_INT, MAX_INT
-if IsNotWX4():
-	from .plot import PlotCanvas, PolyLine, PlotGraphics
-else:
-	from wx.lib.plot import PlotCanvas
-	from wx.lib.plot.polyobjects import PolyLine
-	from wx.lib.plot.polyobjects import PlotGraphics
-	from .plotcanvas import PlotCanvas as PlotCanvas2
-	from .plotcanvas import PolyLine as PolyLine2
+from wx.lib.plot import PlotCanvas
+from wx.lib.plot.polyobjects import PolyLine
+from wx.lib.plot.polyobjects import PlotGraphics
 class PanelGraph(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent)
 		self.ancestor = parent
 		self.fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
 		self.colour = wx.Colour(30,70,115, alpha=wx.ALPHA_OPAQUE)
-		try:
-			self.canvas = PlotCanvas(self)
-			self.PolyLine = PolyLine
-		except TypeError:
-			self.canvas = PlotCanvas2(self)
-			self.PolyLine = PolyLine2
-		if IsNotWX4():
-			self.canvas.SetInitialSize(size=self.GetClientSize())
-			self.canvas.SetShowScrollbars(True)
-			self.canvas.SetEnableZoom(False)
-			self.canvas.SetFontSizeAxis(point=12)
-			self.canvas.SetFontSizeTitle(point=12)
-			self.canvas.SetGridColour(wx.Colour(0, 0, 0))
-			self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
-			self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
-		else:
-			self.canvas.axesPen = wx.Pen(self.colour, width=1, style=wx.PENSTYLE_SOLID)
-			self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
-			self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
-			self.canvas.enableGrid = (True,True)
-			self.canvas.fontSizeAxis = self.fontpointsize
-			self.canvas.fontSizeTitle = self.fontpointsize
+		self.canvas = PlotCanvas(self)
+		self.PolyLine = PolyLine
+		self.canvas.axesPen = wx.Pen(self.colour, width=1, style=wx.PENSTYLE_SOLID)
+		self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
+		self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
+		self.canvas.enableGrid = (True,True)
+		self.canvas.fontSizeAxis = self.fontpointsize
+		self.canvas.fontSizeTitle = self.fontpointsize
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.GROW)
 		self.paused = False
@@ -155,7 +135,7 @@ class PanelGraph(wx.Panel):
 			else:
 				self._UpdateGraph(xmin, xmax, ymin, ymax)
 	def OnNKey(self,event):
-		if event.GetKeyCode() == wx.WXK_RETURN:
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			self.OnNSpin(None)
 		else:
 			event.Skip()
@@ -163,15 +143,9 @@ class PanelGraph(wx.Panel):
 		self.paused = not self.paused
 		label = "Resume" if self.paused else "Pause Graph"
 		if self.paused == True:
-			if IsNotWX4():
-				self.canvas.SetEnableZoom(True)
-			else:
-				self.canvas.enableZoom = True
+			self.canvas.enableZoom = True
 		else:
-			if IsNotWX4():
-				self.canvas.SetEnableZoom(False)
-			else:
-				self.canvas.enableZoom = False
+			self.canvas.enableZoom = False
 		self.button_pause.SetLabel(label)
 	def OnClickSaveButton(self, event):
 		data_length = self.ancestor.GetPage(0).citer_flow[0]

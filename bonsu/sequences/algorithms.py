@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: algorithms.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -92,10 +92,7 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.scalebar_amp_real.Modified()
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -180,10 +177,7 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.lut_amp_recip.Build()
 		panelvisual.scalebar_amp_recip.SetTitle("")
 		panelvisual.scalebar_amp_recip.SetLookupTable(panelvisual.lut_amp_recip)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_recip.SetInput(panelvisual.image_amp_recip)
-		else:
-			panelvisual.filter_amp_recip.SetInputData(panelvisual.image_amp_recip)
+		panelvisual.filter_amp_recip.SetInputData(panelvisual.image_amp_recip)
 		panelvisual.filter_amp_recip.ComputeNormalsOn()
 		panelvisual.filter_amp_recip.ComputeScalarsOn()
 		panelvisual.filter_amp_recip.SetNumberOfContours(1)
@@ -255,10 +249,7 @@ def PrepareVisualisation(self,pipelineitem):
 		panelvisual.points_support.SetScalars(panelvisual.vtk_data_array_support)
 		panelvisual.image_support.SetDimensions(self.visual_support.shape)
 		panelvisual.image_support.Modified()
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_support.SetInput(panelvisual.image_support)
-		else:
-			panelvisual.filter_support.SetInputData(panelvisual.image_support)
+		panelvisual.filter_support.SetInputData(panelvisual.image_support)
 		panelvisual.filter_support.ComputeNormalsOn()
 		panelvisual.filter_support.ComputeScalarsOn()
 		panelvisual.filter_support.SetNumberOfContours(1)
@@ -357,16 +348,9 @@ def PrepareVisualisation2D(self,pipelineitem):
 		panelvisual.scalebar_amp_real.SetTitle("")
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_amp_real.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.color_amp_real.SetInputData(panelvisual.image_amp_real)
+		panelvisual.color_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.color_amp_real.Update()
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_amp_real.SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
-			panelvisual.actor2D_amp_real.SetInput(panelvisual.mapper2D_amp_real.GetInput())
-		else:
-			panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
+		panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
 		panelvisual.renderer_amp_real.AddActor2D(panelvisual.actor2D_amp_real)
 		panelvisual.renderer_amp_real.AddActor2D(panelvisual.scalebar_amp_real)
 		panelvisual.renderer_amp_real.GetActiveCamera().SetPosition(0,0,1)
@@ -393,15 +377,8 @@ def PrepareVisualisation2D(self,pipelineitem):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.color_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_phase_real.SetInput(panelvisual.image_phase_real)
-		else:
-			panelvisual.color_phase_real.SetInputData(panelvisual.image_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_phase_real.SetInputConnection(panelvisual.color_phase_real.GetOutputPort())
-			panelvisual.actor2D_phase_real.SetInput(panelvisual.mapper2D_phase_real.GetInput())
-		else:
-			panelvisual.actor2D_phase_real.GetMapper().SetInputConnection(panelvisual.color_phase_real.GetOutputPort())
+		panelvisual.color_phase_real.SetInputData(panelvisual.image_phase_real)
+		panelvisual.actor2D_phase_real.GetMapper().SetInputConnection(panelvisual.color_phase_real.GetOutputPort())
 		panelvisual.renderer_phase_real.AddActor2D(panelvisual.actor2D_phase_real)
 		panelvisual.renderer_phase_real.AddActor2D(panelvisual.scalebar_phase_real)
 		panelvisual.renderer_phase_real.GetActiveCamera().SetPosition(0,0,1)
@@ -428,15 +405,8 @@ def PrepareVisualisation2D(self,pipelineitem):
 		panelvisual.scalebar_amp_recip.SetTitle("")
 		panelvisual.scalebar_amp_recip.SetLookupTable(panelvisual.lut_amp_recip)
 		panelvisual.color_amp_recip.SetLookupTable(panelvisual.lut_amp_recip)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_amp_recip.SetInput(panelvisual.image_amp_recip)
-		else:
-			panelvisual.color_amp_recip.SetInputData(panelvisual.image_amp_recip)
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_amp_recip.SetInputConnection(panelvisual.color_amp_recip.GetOutputPort())
-			panelvisual.actor2D_amp_recip.SetInput(panelvisual.mapper2D_amp_recip.GetInput())
-		else:
-			panelvisual.actor2D_amp_recip.GetMapper().SetInputConnection(panelvisual.color_amp_recip.GetOutputPort())
+		panelvisual.color_amp_recip.SetInputData(panelvisual.image_amp_recip)
+		panelvisual.actor2D_amp_recip.GetMapper().SetInputConnection(panelvisual.color_amp_recip.GetOutputPort())
 		panelvisual.renderer_amp_recip.AddActor2D(panelvisual.actor2D_amp_recip)
 		panelvisual.renderer_amp_recip.AddActor2D(panelvisual.scalebar_amp_recip)
 		panelvisual.renderer_amp_recip.GetActiveCamera().SetPosition(0,0,1)
@@ -463,15 +433,8 @@ def PrepareVisualisation2D(self,pipelineitem):
 		panelvisual.scalebar_phase_recip.SetTitle("")
 		panelvisual.scalebar_phase_recip.SetLookupTable(panelvisual.lut_phase_recip)
 		panelvisual.color_phase_recip.SetLookupTable(panelvisual.lut_phase_recip)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_phase_recip.SetInput(panelvisual.image_phase_recip)
-		else:
-			panelvisual.color_phase_recip.SetInputData(panelvisual.image_phase_recip)
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_phase_recip.SetInputConnection(panelvisual.color_phase_recip.GetOutputPort())
-			panelvisual.actor2D_phase_recip.SetInput(panelvisual.mapper2D_phase_recip.GetInput())
-		else:
-			panelvisual.actor2D_phase_recip.GetMapper().SetInputConnection(panelvisual.color_phase_recip.GetOutputPort())
+		panelvisual.color_phase_recip.SetInputData(panelvisual.image_phase_recip)
+		panelvisual.actor2D_phase_recip.GetMapper().SetInputConnection(panelvisual.color_phase_recip.GetOutputPort())
 		panelvisual.renderer_phase_recip.AddActor2D(panelvisual.actor2D_phase_recip)
 		panelvisual.renderer_phase_recip.AddActor2D(panelvisual.scalebar_phase_recip)
 		panelvisual.renderer_phase_recip.GetActiveCamera().SetPosition(0,0,1)

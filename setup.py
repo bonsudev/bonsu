@@ -2,7 +2,7 @@
 #############################################
 ##   Filename: setup.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ def Build( type=args[0] ):
 	SETUP_REQUIRES = [
 		"wx (>=4.0.0)",
 		"numpy (>=1.12.0)",
-		"vtk (>=5.4.2)",
+		"vtk (>=9.0.0)",
 		"h5py",
 		"pillow"]
 	if type == 'develop':
@@ -63,7 +63,7 @@ def Build( type=args[0] ):
 		INSTALL_REQUIRES = [
 			"wxpython >=4.0.0",
 			"numpy >=1.12.0",
-			"vtk >=5.4.2",
+			"vtk >=9.0.0",
 			"h5py",
 			"pillow"]
 	sourcelist = [
@@ -88,6 +88,7 @@ def Build( type=args[0] ):
 		'bonsu/lib/blanklinereplace.cxx']
 	package_data_dict = {
 		'bonsu.licence': ['gpl.txt'],
+		'bonsu.changelog': ['CHANGELOG.md'],
 		'bonsu.interface': ['cms.npy'],
 		'bonsu.image': ['bonsu.ico'],
 		'bonsu.docs': ['*.*', '_images/*.*', '_images/math/*.*', '_static/*.*']}
@@ -175,7 +176,7 @@ def Build( type=args[0] ):
 		sources = sourcelist)
 	setup(
 		name = 'Bonsu',
-		version = "3.5.0",
+		version = "3.6.0",
 		license = 'GPL3',
 		description = 'Bonsu - The Interactive Phase Retrieval Suite',
 		author = 'Marcus C. Newton',
@@ -191,7 +192,8 @@ def Build( type=args[0] ):
 							'bonsu.licence',
 							'bonsu.image',
 							'bonsu.macos',
-							'bonsu.docs'],
+							'bonsu.docs',
+							'bonsu.changelog'],
 		ext_package = 'bonsu.lib',
 		ext_modules = [modprfftw],
 		scripts = scripts,

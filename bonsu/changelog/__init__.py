@@ -1,7 +1,7 @@
 #############################################
-##   Filename: pyscript.py
+##   Filename: __init__.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -18,14 +18,3 @@
 ##
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
-from __future__ import print_function
-import __builtin__
-__print = __builtin__.print
-def run_script(obj, global_dict, local_dict):
-	global_dict.update(globals())
-	local_dict.update(locals())
-	self = global_dict['self']
-	def printnew(w):
-		self.ancestor.GetPage(0).queue_info.put(w)
-	global_dict['print'] = printnew
-	exec(obj, global_dict, local_dict)

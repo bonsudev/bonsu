@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: functions.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -28,8 +28,6 @@ import sys
 import threading
 from ..interface.render import wxVTKRenderWindowInteractor
 from ..interface.common import CNTR_CLIP
-from ..interface.common import IsPy3
-from ..interface.common import IsNotVTK6
 from ..operations.wrap import WrapArray
 from ..operations.loadarray import NewArray
 from ..operations.loadarray import LoadArray
@@ -74,19 +72,12 @@ def Sequence_PyScript(\
 		script = pipelineitem.txt.GetValue()
 		def printnew(obj):
 			self.ancestor.GetPage(0).queue_info.put(obj)
-		if IsPy3():
-			global_dict.update(globals())
-			local_dict.update(locals())
-			global_dict['print'] = printnew
-		else:
-			from .pyscript import run_script
-			runscript = run_script
+		global_dict.update(globals())
+		local_dict.update(locals())
+		global_dict['print'] = printnew
 		def run_proc():
 			try:
-				if IsPy3():
-					exec(script, global_dict, local_dict)
-				else:
-					runscript(script, global_dict, local_dict)
+				exec(script, global_dict, local_dict)
 			except Exception as e:
 				self.ancestor.GetPage(0).queue_info.put("Traceback (most recent call last):")
 				tb = sys.exc_info()[2]
@@ -123,10 +114,7 @@ def Sequence_BlankLineFill(\
 			if ( '[' in roipath and ']' in roipath ):
 				roi = roipath.partition('[')[-1].rpartition(']')[0]
 				roiids_str = [x.split(":") for x in roi.split(',')]
-				if IsPy3():
-					roiids = [list(map(int, i)) for i in roiids_str]
-				else:
-					roiids = [map(int, i) for i in roiids_str]
+				roiids = [list(map(int, i)) for i in roiids_str]
 			else:
 				roi = None
 		except AttributeError or roi == None:
@@ -337,10 +325,7 @@ def Sequence_HDF_to_Numpy(\
 				keypath2 = keypath.partition('[')[0]
 				roi = keypath.partition('[')[-1].rpartition(']')[0]
 				roiids_str = [x.split(":") for x in roi.split(',')]
-				if IsPy3():
-					roiids = [list(map(int, i)) for i in roiids_str]
-				else:
-					roiids = [map(int, i) for i in roiids_str]
+				roiids = [list(map(int, i)) for i in roiids_str]
 			else:
 				roi = None
 				keypath2 = keypath
@@ -369,7 +354,10 @@ def Sequence_HDF_to_Numpy(\
 						array = numpy.array(newitem[roiids[0][0]:roiids[0][1],roiids[1][0]:roiids[1][1],roiids[2][0]:roiids[2][1],roiids[3][0]:roiids[3][1]], dtype=numpy.double) + 0j
 					else:
 						array = numpy.array(newitem, dtype=numpy.double) + 0j
-				SaveArray(self, filename_npy, numpy.squeeze(array))
+				if array.ndim > 3:
+					SaveArray(self, filename_npy, numpy.squeeze(array))
+				else:
+					SaveArray(self, filename_npy, array)
 			except Exception as e:
 				self.ancestor.GetPage(0).queue_info.put(str(e))
 			HDF_file.close()
@@ -1303,10 +1291,7 @@ def Sequence_ArraytoVTK(\
 			writer = vtk.vtkDataSetWriter()
 			writer.SetFileName(output_filename)
 			writer.SetFileType(1) #ASCII
-			if panelvisual.VTKIsNot6:
-				writer.SetInput(image)
-			else:
-				writer.SetInputData(image)
+			writer.SetInputData(image)
 			writer.Write()
 		except:
 			msg = "Could not save VTK array."
@@ -1345,10 +1330,7 @@ def Sequence_ObjecttoVTK(\
 			writer = vtk.vtkDataSetWriter()
 			writer.SetFileName(output_filename)
 			writer.SetFileType(1) #ASCII
-			if panelvisual.VTKIsNot6:
-				writer.SetInput(image)
-			else:
-				writer.SetInputData(image)
+			writer.SetInputData(image)
 			writer.Write()
 		except:
 			msg = "Could not save VTK array."
@@ -1363,14 +1345,11 @@ def InterpolatedScalarDataset(InputDataSet, grid, irange, cbounds):
 	RegGrid.SetMaximumDistance(irange)
 	RegGrid.SetSampleDimensions(grid)
 	RegGrid.SetModelBounds(cbounds)
-	if IsNotVTK6():
-		RegGrid.SetInput(InputDataSet)
-	else:
-		tp = vtk.vtkTrivialProducer()
-		tp.SetOutput(InputDataSet)
-		tp.SetWholeExtent(InputDataSet.GetExtent())
-		tp.AddObserver(vtk.vtkCommand.ErrorEvent, TPObserver)
-		RegGrid.SetInputConnection(tp.GetOutputPort())
+	tp = vtk.vtkTrivialProducer()
+	tp.SetOutput(InputDataSet)
+	tp.SetWholeExtent(InputDataSet.GetExtent())
+	tp.AddObserver(vtk.vtkCommand.ErrorEvent, TPObserver)
+	RegGrid.SetInputConnection(tp.GetOutputPort())
 	RegGrid.GetInputInformation().Set(vtk.vtkStreamingDemandDrivenPipeline.UNRESTRICTED_UPDATE_EXTENT(),1)
 	RegGrid.Update()
 	return RegGrid.GetOutput()
@@ -1561,10 +1540,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.scalebar_amp_real.Modified()
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -1620,10 +1596,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_amp_real.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_amp_real)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_amp_real)
+			panelvisual.axis.SetInputData(panelvisual.image_amp_real)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -1675,10 +1648,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.cutter.SetInput(panelvisual.image_phase_real)
-		else:
-			panelvisual.cutter.SetInputData(panelvisual.image_phase_real)
+		panelvisual.cutter.SetInputData(panelvisual.image_phase_real)
 		panelvisual.cutter.SetCutFunction(panelvisual.plane)
 		panelvisual.cutter.GenerateCutScalarsOff()
 		panelvisual.triangles_phase_real.SetInputConnection(panelvisual.cutter.GetOutputPort())
@@ -1717,10 +1687,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_phase_real.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_phase_real)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_phase_real)
+			panelvisual.axis.SetInputData(panelvisual.image_phase_real)
 			panelvisual.axis.SetCamera(panelvisual.renderer_phase_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -1793,10 +1760,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -1829,10 +1793,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_amp_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.cutter.SetInput(panelvisual.image_phase_real)
-		else:
-			panelvisual.cutter.SetInputData(panelvisual.image_phase_real)
+		panelvisual.cutter.SetInputData(panelvisual.image_phase_real)
 		panelvisual.cutter.SetCutFunction(panelvisual.plane)
 		panelvisual.cutter.GenerateCutScalarsOff()
 		panelvisual.triangles_phase_real.SetInputConnection(panelvisual.cutter.GetOutputPort())
@@ -1871,10 +1832,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_amp_real.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_amp_real)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_amp_real)
+			panelvisual.axis.SetInputData(panelvisual.image_amp_real)
 			panelvisual.axis.SetCamera(panelvisual.renderer_phase_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -1935,10 +1893,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -1996,10 +1951,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_amp_real.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_amp_real)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_amp_real)
+			panelvisual.axis.SetInputData(panelvisual.image_amp_real)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -2052,10 +2004,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.cutter.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.cutter.SetInputData(panelvisual.image_amp_real)
+		panelvisual.cutter.SetInputData(panelvisual.image_amp_real)
 		panelvisual.cutter.SetCutFunction(panelvisual.plane)
 		panelvisual.cutter.GenerateCutScalarsOff()
 		panelvisual.triangles_amp_real.SetInputConnection(panelvisual.cutter.GetOutputPort())
@@ -2090,10 +2039,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_amp_real.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_amp_real)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_amp_real)
+			panelvisual.axis.SetInputData(panelvisual.image_amp_real)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -2172,10 +2118,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -2219,10 +2162,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.mapper_amp_real2.Update()
 		panelvisual.actor_amp_real2.GetProperty().SetOpacity(opacity)
 		panelvisual.actor_amp_real2.SetMapper(panelvisual.mapper_amp_real2)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_plane.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.filter_plane.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_plane.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_plane.ComputeNormalsOn()
 		panelvisual.filter_plane.ComputeScalarsOn()
 		panelvisual.filter_plane.SetNumberOfContours(1)
@@ -2246,10 +2186,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.meshsub.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
 		panelvisual.meshsub.Update()
 		panelvisual.probefilter.SetInputConnection(panelvisual.meshsub.GetOutputPort())
-		if panelvisual.VTKIsNot6:
-			panelvisual.probefilter.SetSource(panelvisual.image_phase_real)
-		else:
-			panelvisual.probefilter.SetSourceData(panelvisual.image_phase_real)
+		panelvisual.probefilter.SetSourceData(panelvisual.image_phase_real)
 		panelvisual.probefilter.Update()
 		panelvisual.triangles_plane.SetInputConnection(panelvisual.probefilter.GetOutputPort())
 		panelvisual.normals_phase_real.SetInputConnection(panelvisual.triangles_plane.GetOutputPort())
@@ -2298,10 +2235,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_amp_real.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_amp_real)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_amp_real)
+			panelvisual.axis.SetInputData(panelvisual.image_amp_real)
 			panelvisual.axis.SetCamera(panelvisual.renderer_phase_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -2368,10 +2302,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -2429,10 +2360,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_amp_real.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_amp_real)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_amp_real)
+			panelvisual.axis.SetInputData(panelvisual.image_amp_real)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -2478,16 +2406,9 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_amp_real.SetInput(panelvisual.image2D_amp_real)
-		else:
-			panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real)
+		panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real)
 		panelvisual.color_amp_real.Update()
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_amp_real.SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
-			panelvisual.actor2D_amp_real.SetInput(panelvisual.mapper2D_amp_real.GetInput())
-		else:
-			panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
+		panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
 		panelvisual.SetPicker()
 		panelvisual.renderer_amp_real.RemoveAllViewProps()
 		panelvisual.renderer_phase_real.RemoveAllViewProps()
@@ -2514,10 +2435,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Layout()
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis2D.SetInput(panelvisual.image2D_amp_real)
-			else:
-				panelvisual.axis2D.SetInputData(panelvisual.image2D_amp_real)
+			panelvisual.axis2D.SetInputData(panelvisual.image2D_amp_real)
 			panelvisual.axis2D.SetBounds(panelvisual.image2D_amp_real.GetBounds())
 			panelvisual.axis2D.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis2D.SetLabelFormat("%6.1f")
@@ -2563,16 +2481,9 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.color_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_phase_real.SetInput(panelvisual.image2D_phase_real)
-		else:
-			panelvisual.color_phase_real.SetInputData(panelvisual.image2D_phase_real)
+		panelvisual.color_phase_real.SetInputData(panelvisual.image2D_phase_real)
 		panelvisual.color_phase_real.Update()
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_phase_real.SetInputConnection(panelvisual.color_phase_real.GetOutputPort())
-			panelvisual.actor2D_phase_real.SetInput(panelvisual.mapper2D_phase_real.GetInput())
-		else:
-			panelvisual.actor2D_phase_real.GetMapper().SetInputConnection(panelvisual.color_phase_real.GetOutputPort())
+		panelvisual.actor2D_phase_real.GetMapper().SetInputConnection(panelvisual.color_phase_real.GetOutputPort())
 		panelvisual.SetPicker()
 		panelvisual.renderer_amp_real.RemoveAllViewProps()
 		panelvisual.renderer_phase_real.RemoveAllViewProps()
@@ -2599,10 +2510,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Layout()
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis2D.SetInput(panelvisual.image2D_phase_real)
-			else:
-				panelvisual.axis2D.SetInputData(panelvisual.image2D_phase_real)
+			panelvisual.axis2D.SetInputData(panelvisual.image2D_phase_real)
 			panelvisual.axis2D.SetBounds(panelvisual.image2D_phase_real.GetBounds())
 			panelvisual.axis2D.SetCamera(panelvisual.renderer_phase_real.GetActiveCamera())
 			panelvisual.axis2D.SetLabelFormat("%6.1f")
@@ -2649,16 +2557,9 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_amp_real.SetInput(panelvisual.image2D_amp_real)
-		else:
-			panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real)
+		panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real)
 		panelvisual.color_amp_real.Update()
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_amp_real.SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
-			panelvisual.actor2D_amp_real.SetInput(panelvisual.mapper2D_amp_real.GetInput())
-		else:
-			panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
+		panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
 		phasemax = float(self.phasemax.value.GetValue())
 		phasemin = float(self.phasemin.value.GetValue())
 		flat_data_phase= (numpy.angle(data)).transpose(2,1,0).flatten();
@@ -2684,16 +2585,9 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.color_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_phase_real.SetInput(panelvisual.image2D_phase_real)
-		else:
-			panelvisual.color_phase_real.SetInputData(panelvisual.image2D_phase_real)
+		panelvisual.color_phase_real.SetInputData(panelvisual.image2D_phase_real)
 		panelvisual.color_phase_real.Update()
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_phase_real.SetInputConnection(panelvisual.color_phase_real.GetOutputPort())
-			panelvisual.actor2D_phase_real.SetInput(panelvisual.mapper2D_phase_real.GetInput())
-		else:
-			panelvisual.actor2D_phase_real.GetMapper().SetInputConnection(panelvisual.color_phase_real.GetOutputPort())
+		panelvisual.actor2D_phase_real.GetMapper().SetInputConnection(panelvisual.color_phase_real.GetOutputPort())
 		panelvisual.SetPicker()
 		panelvisual.renderer_amp_real.RemoveAllViewProps()
 		panelvisual.renderer_phase_real.RemoveAllViewProps()
@@ -2728,20 +2622,14 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.Layout()
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis2D.SetInput(panelvisual.image2D_amp_real)
-			else:
-				panelvisual.axis2D.SetInputData(panelvisual.image2D_amp_real)
+			panelvisual.axis2D.SetInputData(panelvisual.image2D_amp_real)
 			panelvisual.axis2D.SetBounds(panelvisual.image2D_amp_real.GetBounds())
 			panelvisual.axis2D.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis2D.SetLabelFormat("%6.1f")
 			panelvisual.axis2D.SetNumberOfLabels(10)
 			panelvisual.axis.SetFlyModeToOuterEdges()
 			panelvisual.renderer_amp_real.AddViewProp( panelvisual.axis2D )
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis2D_phase.SetInput(panelvisual.image2D_phase_real)
-			else:
-				panelvisual.axis2D_phase.SetInputData(panelvisual.image2D_phase_real)
+			panelvisual.axis2D_phase.SetInputData(panelvisual.image2D_phase_real)
 			panelvisual.axis2D_phase.SetBounds(panelvisual.image2D_phase_real.GetBounds())
 			panelvisual.axis2D_phase.SetCamera(panelvisual.renderer_phase_real.GetActiveCamera())
 			panelvisual.axis2D_phase.SetLabelFormat("%6.1f")
@@ -2797,10 +2685,7 @@ def Sequence_View_Array(self, ancestor):
 			if panelvisual.data.shape[2] == 1:
 				pass
 			else:
-				if panelvisual.VTKIsNot7:
-					self.ancestor.GetPage(0).queue_info.put("VTK 7 or greater is required for 'Amplitude Clipped Phase'.")
-				else:
-					ViewDataAmpClippedPhase(self, ancestor , panelvisual.data, r, g, b)
+				ViewDataAmpClippedPhase(self, ancestor , panelvisual.data, r, g, b)
 		if (self.rbampphase.GetStringSelection() == 'Amplitude q-Colour'):
 			if panelvisual.data.shape[2] == 1:
 				pass
@@ -2858,20 +2743,14 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.scalebar_amp_real.SetHeight(0.90)
 		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.scalebar_amp_real.Modified()
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_support.SetInput(panelvisual.image_phase_real)
-		else:
-			panelvisual.filter_support.SetInputData(panelvisual.image_phase_real)
+		panelvisual.filter_support.SetInputData(panelvisual.image_phase_real)
 		panelvisual.filter_support.ComputeNormalsOn()
 		panelvisual.filter_support.ComputeScalarsOn()
 		panelvisual.filter_support.SetNumberOfContours(1)
 		panelvisual.filter_support.SetValue( 0, contour_support)
 		panelvisual.filter_support.Modified()
 		panelvisual.filter_support.Update()
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -2951,10 +2830,7 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_amp_real.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_amp_real)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_amp_real)
+			panelvisual.axis.SetInputData(panelvisual.image_amp_real)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -3135,20 +3011,14 @@ def Sequence_Transform(\
 			writer = vtk.vtkStructuredGridWriter()
 			writer.SetFileName(filename_out_amp)
 			writer.SetFileTypeToBinary()
-			if panelvisual.VTKIsNot6:
-				writer.SetInput(vtk_dataset)
-			else:
-				writer.SetInputData(vtk_dataset)
+			writer.SetInputData(vtk_dataset)
 			writer.Update()
 			writer.Write()
 			vtk_dataset.GetPointData().SetScalars(vtk_scalararray_phase)
 			vtk_dataset.Modified()
 			writer.SetFileName(filename_out_phase)
 			writer.SetFileTypeToBinary()
-			if panelvisual.VTKIsNot6:
-				writer.SetInput(vtk_dataset)
-			else:
-				writer.SetInputData(vtk_dataset)
+			writer.SetInputData(vtk_dataset)
 			writer.Update()
 			writer.Write()
 			self.thread_register.get()
@@ -3231,10 +3101,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.scalebar_amp_real.Modified()
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.object_amp)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -3290,10 +3157,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.object_amp.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.object_amp)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.object_amp)
+			panelvisual.axis.SetInputData(panelvisual.object_amp)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -3345,10 +3209,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.cutter.SetInput(panelvisual.object_phase)
-		else:
-			panelvisual.cutter.SetInputData(panelvisual.object_phase)
+		panelvisual.cutter.SetInputData(panelvisual.object_phase)
 		panelvisual.cutter.SetCutFunction(panelvisual.plane)
 		panelvisual.cutter.GenerateCutScalarsOff()
 		panelvisual.triangles_phase_real.SetInputConnection(panelvisual.cutter.GetOutputPort())
@@ -3387,10 +3248,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.object_phase.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.object_phase)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.object_phase)
+			panelvisual.axis.SetInputData(panelvisual.object_phase)
 			panelvisual.axis.SetCamera(panelvisual.renderer_phase_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -3463,10 +3321,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.object_amp)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -3499,10 +3354,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.actor_amp_real.SetMapper(panelvisual.mapper_amp_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.cutter.SetInput(panelvisual.object_phase)
-		else:
-			panelvisual.cutter.SetInputData(panelvisual.object_phase)
+		panelvisual.cutter.SetInputData(panelvisual.object_phase)
 		panelvisual.cutter.SetCutFunction(panelvisual.plane)
 		panelvisual.cutter.GenerateCutScalarsOff()
 		panelvisual.triangles_phase_real.SetInputConnection(panelvisual.cutter.GetOutputPort())
@@ -3541,10 +3393,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.object_amp.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.object_amp)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.object_amp)
+			panelvisual.axis.SetInputData(panelvisual.object_amp)
 			panelvisual.axis.SetCamera(panelvisual.renderer_phase_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -3600,10 +3449,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.object_amp)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -3661,10 +3507,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.object_amp.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.object_amp)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.object_amp)
+			panelvisual.axis.SetInputData(panelvisual.object_amp)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -3711,10 +3554,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.cutter.SetInput(panelvisual.object_amp)
-		else:
-			panelvisual.cutter.SetInputData(panelvisual.object_amp)
+		panelvisual.cutter.SetInputData(panelvisual.object_amp)
 		panelvisual.cutter.SetCutFunction(panelvisual.plane)
 		panelvisual.cutter.GenerateCutScalarsOff()
 		panelvisual.triangles_amp_real.SetInputConnection(panelvisual.cutter.GetOutputPort())
@@ -3749,10 +3589,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.object_amp.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.object_amp)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.object_amp)
+			panelvisual.axis.SetInputData(panelvisual.object_amp)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -3830,10 +3667,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.object_amp)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -3877,10 +3711,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.mapper_amp_real2.Update()
 		panelvisual.actor_amp_real2.GetProperty().SetOpacity(opacity)
 		panelvisual.actor_amp_real2.SetMapper(panelvisual.mapper_amp_real2)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_plane.SetInput(panelvisual.object_amp)
-		else:
-			panelvisual.filter_plane.SetInputData(panelvisual.object_amp)
+		panelvisual.filter_plane.SetInputData(panelvisual.object_amp)
 		panelvisual.filter_plane.ComputeNormalsOn()
 		panelvisual.filter_plane.ComputeScalarsOn()
 		panelvisual.filter_plane.SetNumberOfContours(1)
@@ -3910,10 +3741,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.meshsub.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
 		panelvisual.meshsub.Update()
 		panelvisual.probefilter.SetInputConnection(panelvisual.meshsub.GetOutputPort())
-		if panelvisual.VTKIsNot6:
-			panelvisual.probefilter.SetSource(panelvisual.object_phase)
-		else:
-			panelvisual.probefilter.SetSourceData(panelvisual.object_phase)
+		panelvisual.probefilter.SetSourceData(panelvisual.object_phase)
 		panelvisual.probefilter.Update()
 		panelvisual.triangles_plane.SetInputConnection(panelvisual.probefilter.GetOutputPort())
 		panelvisual.normals_phase_real.SetInputConnection(panelvisual.triangles_plane.GetOutputPort())
@@ -3962,10 +3790,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.object_amp.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.object_amp)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.object_amp)
+			panelvisual.axis.SetInputData(panelvisual.object_amp)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -4027,10 +3852,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.scalebar_phase_real.SetTitle("")
 		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.object_amp)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -4088,10 +3910,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.object_amp.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.object_amp)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.object_amp)
+			panelvisual.axis.SetInputData(panelvisual.object_amp)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -4130,10 +3949,7 @@ def Sequence_View_Object(self, ancestor):
 		if (self.rbampphase.GetStringSelection() == 'Amplitude (cut plane)'):
 			ViewAmpPlane(self, ancestor , panelvisual.data, r, g, b)
 		if (self.rbampphase.GetStringSelection() == 'Amplitude Clipped Phase'):
-			if panelvisual.VTKIsNot7:
-				self.ancestor.GetPage(0).queue_info.put("VTK 7 or greater is required for 'Amplitude Clipped Phase'.")
-			else:
-				ViewDataAmpClippedPhase(self, ancestor , panelvisual.data, r, g, b)
+			ViewDataAmpClippedPhase(self, ancestor , panelvisual.data, r, g, b)
 		if (self.rbampphase.GetStringSelection() == 'Amplitude q-Colour'):
 			ViewDataAmpQColour(self, ancestor , panelvisual.data, r, g, b)
 		panelvisual.datarangelist = []
@@ -4166,10 +3982,7 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.scalebar_amp_real.Modified()
-		if panelvisual.VTKIsNot6:
-			panelvisual.filter_amp_real.SetInput(panelvisual.image_amp_real_vtk)
-		else:
-			panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real_vtk)
+		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real_vtk)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
 		panelvisual.filter_amp_real.ComputeScalarsOn()
 		panelvisual.filter_amp_real.SetNumberOfContours(1)
@@ -4225,10 +4038,7 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_amp_real_vtk.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_amp_real_vtk)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_amp_real_vtk)
+			panelvisual.axis.SetInputData(panelvisual.image_amp_real_vtk)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -4269,10 +4079,7 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.cutter.SetInput(panelvisual.image_phase_real_vtk)
-		else:
-			panelvisual.cutter.SetInputData(panelvisual.image_phase_real_vtk)
+		panelvisual.cutter.SetInputData(panelvisual.image_phase_real_vtk)
 		panelvisual.cutter.SetCutFunction(panelvisual.plane)
 		panelvisual.cutter.GenerateCutScalarsOff()
 		panelvisual.triangles_phase_real.SetInputConnection(panelvisual.cutter.GetOutputPort())
@@ -4311,10 +4118,7 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_phase_real_vtk.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_phase_real_vtk)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_phase_real_vtk)
+			panelvisual.axis.SetInputData(panelvisual.image_phase_real_vtk)
 			panelvisual.axis.SetCamera(panelvisual.renderer_phase_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -4353,10 +4157,7 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
-		if panelvisual.VTKIsNot6:
-			panelvisual.cutter.SetInput(panelvisual.image_amp_real_vtk)
-		else:
-			panelvisual.cutter.SetInputData(panelvisual.image_amp_real_vtk)
+		panelvisual.cutter.SetInputData(panelvisual.image_amp_real_vtk)
 		panelvisual.cutter.SetCutFunction(panelvisual.plane)
 		panelvisual.cutter.GenerateCutScalarsOff()
 		panelvisual.triangles_amp_real.SetInputConnection(panelvisual.cutter.GetOutputPort())
@@ -4391,10 +4192,7 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
 			panelvisual.axis.SetBounds(panelvisual.image_amp_real_vtk.GetBounds())
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis.SetInput(panelvisual.image_amp_real_vtk)
-			else:
-				panelvisual.axis.SetInputData(panelvisual.image_amp_real_vtk)
+			panelvisual.axis.SetInputData(panelvisual.image_amp_real_vtk)
 			panelvisual.axis.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis.SetLabelFormat("%6.1f")
 			panelvisual.axis.SetFlyModeToOuterEdges()
@@ -4428,16 +4226,9 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_amp_real.SetInput(panelvisual.image2D_amp_real_vtk)
-		else:
-			panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real_vtk)
+		panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real_vtk)
 		panelvisual.color_amp_real.Update()
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_amp_real.SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
-			panelvisual.actor2D_amp_real.SetInput(panelvisual.mapper2D_amp_real.GetInput())
-		else:
-			panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
+		panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
 		panelvisual.SetPicker()
 		panelvisual.renderer_amp_real.RemoveAllViewProps()
 		panelvisual.renderer_phase_real.RemoveAllViewProps()
@@ -4464,10 +4255,7 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.Layout()
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis2D.SetInput(panelvisual.image2D_amp_real_vtk)
-			else:
-				panelvisual.axis2D.SetInputData(panelvisual.image2D_amp_real_vtk)
+			panelvisual.axis2D.SetInputData(panelvisual.image2D_amp_real_vtk)
 			panelvisual.axis2D.SetBounds(panelvisual.image2D_amp_real_vtk.GetBounds())
 			panelvisual.axis2D.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis2D.SetLabelFormat("%6.1f")
@@ -4504,16 +4292,9 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		if panelvisual.VTKIsNot6:
-			panelvisual.color_amp_real.SetInput(panelvisual.image2D_amp_real_vtk)
-		else:
-			panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real_vtk)
+		panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real_vtk)
 		panelvisual.color_amp_real.Update()
-		if panelvisual.VTKIsNot6:
-			panelvisual.mapper2D_amp_real.SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
-			panelvisual.actor2D_amp_real.SetInput(panelvisual.mapper2D_amp_real.GetInput())
-		else:
-			panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
+		panelvisual.actor2D_amp_real.GetMapper().SetInputConnection(panelvisual.color_amp_real.GetOutputPort())
 		panelvisual.SetPicker()
 		panelvisual.renderer_amp_real.RemoveAllViewProps()
 		panelvisual.renderer_phase_real.RemoveAllViewProps()
@@ -4541,10 +4322,7 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.Layout()
 		panelvisual.Show()
 		if(self.chkbox_axes.GetValue() == True):
-			if panelvisual.VTKIsNot6:
-				panelvisual.axis2D.SetInput(panelvisual.image2D_amp_real_vtk)
-			else:
-				panelvisual.axis2D.SetInputData(panelvisual.image2D_amp_real_vtk)
+			panelvisual.axis2D.SetInputData(panelvisual.image2D_amp_real_vtk)
 			panelvisual.axis2D.SetBounds(panelvisual.image2D_amp_real_vtk.GetBounds())
 			panelvisual.axis2D.SetCamera(panelvisual.renderer_amp_real.GetActiveCamera())
 			panelvisual.axis2D.SetLabelFormat("%6.1f")

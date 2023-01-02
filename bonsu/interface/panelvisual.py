@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelvisual.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -29,15 +29,9 @@ from .common import *
 from ..operations.wrap import WrapArray
 from ..operations.wrap import WrapArrayAmp
 import threading, time
-if IsNotWX4():
-	from .plot import PlotCanvas, PolyLine, PlotGraphics
-else:
-	from wx.lib.plot.plotcanvas import PlotCanvas, PolyLine
-	from wx.lib.plot.polyobjects import PlotGraphics
-if IsPy3():
-	from queue import Queue
-else:
-	from Queue import Queue
+from queue import Queue
+from wx.lib.plot.plotcanvas import PlotCanvas, PolyLine
+from wx.lib.plot.polyobjects import PlotGraphics
 class AnimateDialog(wx.Dialog):
 	def __init__(self, parent):
 		wx.Dialog.__init__(self, parent, title="Animate Scene", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
@@ -147,10 +141,7 @@ class AnimateDialog(wx.Dialog):
 			writer = vtk.vtkPNGWriter()
 			countstr = str(self.count).rjust(4, "0")
 			writer.SetFileName(self.filename+countstr+".png")
-			if self.parent.VTKIsNot6:
-				writer.SetInput(image.GetOutput())
-			else:
-				writer.SetInputData(image.GetOutput())
+			writer.SetInputData(image.GetOutput())
 			writer.Write()
 		self.count = self.count +1
 		self.gauge.SetValue(self.count)
@@ -378,7 +369,7 @@ class QVector(wx.Panel):
 		renderer = renderers.GetItemAsObject(no_renderers-1)
 		renderer.RemoveViewProp(self.qactor)
 	def SetPointCoords(self, event):
-		if event.GetKeyCode() == wx.WXK_RETURN:
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			try:
 				p1 = [float(self.p1x.value.GetValue()),float(self.p1y.value.GetValue()),float(self.p1z.value.GetValue())]
 				d = [float(self.p2x.value.GetValue()),float(self.p2y.value.GetValue()),float(self.p2z.value.GetValue())]
@@ -589,7 +580,7 @@ class OrientXYZ(wx.Panel):
 		self.panelvisual.axestext.SetFontSize(size)
 		self.panelvisual.RefreshScene()
 	def OnRotateKey(self, event):
-		if event.GetKeyCode() == wx.WXK_RETURN:
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			self.OnRotateChange(None)
 		else:
 			event.Skip()
@@ -717,22 +708,12 @@ class MeasureLine(wx.Panel):
 		self.canvas = PlotCanvas(self)
 		self.canvas.SetInitialSize(size=self.GetClientSize())
 		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
-		if IsNotWX4():
-			self.canvas.SetShowScrollbars(False)
-			self.canvas.SetEnableLegend(True)
-			self.canvas.SetGridColour(wx.Colour(0, 0, 0))
-			self.canvas.SetForegroundColour(wx.Colour(0, 0, 0))
-			self.canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
-			self.canvas.SetEnableZoom(False)
-			self.canvas.SetFontSizeAxis(point=fontpoint)
-			self.canvas.SetFontSizeTitle(point=fontpoint)
-		else:
-			self.canvas.showScrollbars = False
-			self.canvas.enableLegend = True
-			self.canvas.enablePointLabel = True
-			self.canvas.enableZoom = True
-			self.canvas.fontSizeAxis = fontpoint
-			self.canvas.fontSizeTitle =fontpoint
+		self.canvas.showScrollbars = False
+		self.canvas.enableLegend = True
+		self.canvas.enablePointLabel = True
+		self.canvas.enableZoom = True
+		self.canvas.fontSizeAxis = fontpoint
+		self.canvas.fontSizeTitle =fontpoint
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.EXPAND)
 		self.hbox_p1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -840,7 +821,7 @@ class MeasureLine(wx.Panel):
 		self.p2y.value.SetValue(str(p2[1]))
 		self.p2z.value.SetValue(str(p2[2]))
 	def SetPointCoords(self, event):
-		if event.GetKeyCode() == wx.WXK_RETURN:
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			try:
 				p1 = [float(self.p1x.value.GetValue()),float(self.p1y.value.GetValue()),float(self.p1z.value.GetValue())]
 				p2 = [float(self.p2x.value.GetValue()),float(self.p2y.value.GetValue()),float(self.p2z.value.GetValue())]
@@ -895,10 +876,7 @@ class MeasureLine(wx.Panel):
 		self.panelvisual.measure_data[1][1] = list(p2)
 		probe = vtk.vtkProbeFilter()
 		probe.SetInputConnection(self.line.GetOutputPort())
-		if self.panelvisual.VTKIsNot6:
-			probe.SetSource(self.panelvisual.image_probe)
-		else:
-			probe.SetSourceData(self.panelvisual.image_probe)
+		probe.SetSourceData(self.panelvisual.image_probe)
 		probe.Update()
 		polydata = probe.GetPolyDataOutput()
 		scalars = polydata.GetPointData().GetScalars()
@@ -919,10 +897,7 @@ class MeasureLine(wx.Panel):
 			self.chkbox_log.Enable(True)
 		graphic = PlotGraphics([line],"", "Distance", graphic_y_axis)
 		if self.chkbox_log.GetValue() == True:
-			if IsNotWX4():
-				self.canvas.setLogScale((False,True))
-			else:
-				self.canvas.logScale = (False,True)
+			self.canvas.logScale = (False,True)
 			ymin = numpy.min(y[numpy.nonzero(y)])
 			ymax = y.max()
 			if ymin < 1e-6:
@@ -931,10 +906,7 @@ class MeasureLine(wx.Panel):
 				ymax = 1e300
 			self.canvas.Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(ymin, ymax))
 		else:
-			if IsNotWX4():
-				self.canvas.setLogScale((False,True))
-			else:
-				self.canvas.logScale = (False,False)
+			self.canvas.logScale = (False,False)
 			self.canvas.Draw(graphic, xAxis=(x.min(), x.max()), yAxis=(y.min(), y.max()))
 		self.Refresh()
 class MeasureAngle(wx.Panel):
@@ -1338,22 +1310,22 @@ class DataRangeDialog(wx.Dialog):
 										self.panelvisual.mapper_phase_recip,\
 										self.recip_phase_max, self.recip_phase_min)
 	def OnRealAmpKey(self,event):
-		if event.GetKeyCode() == wx.WXK_RETURN:
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			self.OnRealAmpSpin(None)
 		else:
 			event.Skip()
 	def OnRealPhaseKey(self,event):
-		if event.GetKeyCode() == wx.WXK_RETURN:
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			self.OnRealPhaseSpin(None)
 		else:
 			event.Skip()
 	def OnRecipAmpKey(self,event):
-		if event.GetKeyCode() == wx.WXK_RETURN:
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			self.OnRecipAmpSpin(None)
 		else:
 			event.Skip()
 	def OnRecipPhaseKey(self,event):
-		if event.GetKeyCode() == wx.WXK_RETURN:
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			self.OnRecipPhaseSpin(None)
 		else:
 			event.Skip()
@@ -1440,14 +1412,9 @@ class SBDialog(wx.Dialog):
 		self.labelfontsize = SpinnerObject(self,"Font size:",MAX_INT_16,1,1,self.panelvisual.scalebar_amp_real.GetLabelTextProperty().GetFontSize(),60,50)
 		self.labelfontsize.spin.SetEventFunc(self.OnLabelFontSize)
 		self.labelfontsizeauto = CheckBoxNew(self, -1, 'Auto')
-		if IsNotVTK7():
-			if self.panelvisual.scalebar_amp_real.GetAnnotationTextScaling == 0:
-				self.labelfontsizeauto.SetValue(True)
-				self.labelfontsize.Disable()
-		else:
-			if self.panelvisual.scalebar_amp_real.GetUnconstrainedFontSize() == False:
-				self.labelfontsizeauto.SetValue(True)
-				self.labelfontsize.Disable()
+		if self.panelvisual.scalebar_amp_real.GetUnconstrainedFontSize() == False:
+			self.labelfontsizeauto.SetValue(True)
+			self.labelfontsize.Disable()
 		self.Bind(wx.EVT_CHECKBOX, self.OnChkboxLabelFontSize, self.labelfontsizeauto)
 		self.hbox11.Add(self.labelfontsize, 0 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.hbox11.Add(self.labelfontsizeauto, 0 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
@@ -1575,22 +1542,16 @@ class SBDialog(wx.Dialog):
 		self.panelvisual.RefreshScene()
 	def OnChkboxLabelFontSize(self, event):
 		if self.labelfontsizeauto.GetValue() == True:
-			if IsNotVTK7():
-				pass
-			else:
-				self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOff()
-				self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOff()
-				self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOff()
-				self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOff()
+			self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOff()
+			self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOff()
+			self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOff()
+			self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOff()
 			self.labelfontsize.Disable()
 		else:
-			if IsNotVTK7():
-				pass
-			else:
-				self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOn()
-				self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOn()
-				self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOn()
-				self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOn()
+			self.panelvisual.scalebar_amp_real.UnconstrainedFontSizeOn()
+			self.panelvisual.scalebar_phase_real.UnconstrainedFontSizeOn()
+			self.panelvisual.scalebar_amp_recip.UnconstrainedFontSizeOn()
+			self.panelvisual.scalebar_phase_recip.UnconstrainedFontSizeOn()
 			self.labelfontsize.Enable()
 		self.panelvisual.RefreshScene()
 	def OnDimKey(self, event):
@@ -1775,10 +1736,7 @@ class LUTDialog(wx.Dialog):
 		self.list.InsertColumn(0,'Settings', width = 200)
 		self.list.SetFont(self.font)
 		for i in range(len(self.listtitles)):
-			if IsNotWX4():
-				self.list.InsertStringItem(i,self.listtitles[i],i)
-			else:
-				self.list.InsertItem(i,self.listtitles[i],i)
+			self.list.InsertItem(i,self.listtitles[i],i)
 			self.list.SetItemFont(i, self.font)
 			self.panels.append(ColourDialog(self))
 			self.panels[-1].Hide()
@@ -1819,10 +1777,7 @@ class LUTDialog(wx.Dialog):
 				else:
 					self.panelphase.cmls[idx][1] = 0
 	def OnSelectListItem(self, event):
-		if IsNotWX4():
-			self.CurrentListItem = event.m_itemIndex
-		else:
-			self.CurrentListItem = event.GetIndex()
+		self.CurrentListItem = event.GetIndex()
 		self.panel_hld.Hide()
 		for  i in range(len(self.panels)):
 			if i == self.CurrentListItem:
@@ -1867,10 +1822,7 @@ class ColourDialog(wx.ScrolledWindow):
 		dc.SetFont(self.panelvisual.font)
 		w,h = dc.GetTextExtent("TestString")
 		height = h
-		if IsNotWX4():
-			image = wx.EmptyImage(array.shape[0],height)
-		else:
-			image = wx.Image(array.shape[0],height)
+		image = wx.Image(array.shape[0],height)
 		newarray = numpy.zeros((height, array.shape[0], 3), dtype=numpy.uint8)
 		for i in range(self.panelphase.cms.shape[0]):
 			self.cmhbox.append( wx.BoxSizer(wx.HORIZONTAL) )
@@ -1902,8 +1854,6 @@ class PanelVisual(wx.Panel,wx.App):
 		def ParseStop(event):
 			self.ancestor.GetPage(0).OnClickStop(self.ancestor.GetPage(0))
 		self.panel = wx.Panel.__init__(self, parent)
-		self.VTKIsNot6 = IsNotVTK6()
-		self.VTKIsNot7 = IsNotVTK7()
 		self.nblock_dialogs = 0
 		self.font = self.ancestor.GetParent().font
 		self.flat_data = None
@@ -2004,8 +1954,7 @@ class PanelVisual(wx.Panel,wx.App):
 		self.cutter = vtk.vtkCutter()
 		self.clipper = vtk.vtkClipPolyData()
 		self.triangles_plane = vtk.vtkTriangleFilter()
-		if not self.VTKIsNot7:
-			self.meshsub = vtk.vtkAdaptiveSubdivisionFilter()
+		self.meshsub = vtk.vtkAdaptiveSubdivisionFilter()
 		self.probefilter = vtk.vtkProbeFilter()
 		self.filter_plane = vtk.vtkContourFilter()
 		self.smooth_plane = vtk.vtkSmoothPolyDataFilter()
@@ -2313,19 +2262,13 @@ class PanelVisual(wx.Panel,wx.App):
 		writer = vtk.vtkPNGWriter()
 		datestr = strftime("%Y-%m-%d_%H.%M.%S")
 		writer.SetFileName("image_"+datestr+".png")
-		if self.VTKIsNot6:
-			writer.SetInput(w2if.GetOutput())
-		else:
-			writer.SetInputData(w2if.GetOutput())
+		writer.SetInputData(w2if.GetOutput())
 		writer.Write()
 	def SaveSceneAs(self,event):
 		filetypes = "PNG files (*.png)|*.png|JPEG files (*.jpg)|*.jpg|TIFF files (*.tif)|*.tif"
 		filetypeext = [".png",".jpg",".tif"]
 		cwd = self.ancestor.GetParent().CurrentWD()
-		if IsNotWX4():
-			dlg = wx.FileDialog(self, "Choose a file", cwd, "", filetypes, wx.SAVE | wx.OVERWRITE_PROMPT)
-		else:
-			dlg = wx.FileDialog(self, "Choose a file", cwd, "", filetypes, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+		dlg = wx.FileDialog(self, "Choose a file", cwd, "", filetypes, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if dlg.ShowModal() == wx.ID_OK:
 			filename=dlg.GetFilename()
 			dirname=dlg.GetDirectory()
@@ -2346,10 +2289,7 @@ class PanelVisual(wx.Panel,wx.App):
 				writer = vtk.vtkPNGWriter()
 			filenamepath = os.path.join(dirname, filename)
 			writer.SetFileName(filenamepath)
-			if self.VTKIsNot6:
-				writer.SetInput(w2if.GetOutput())
-			else:
-				writer.SetInputData(w2if.GetOutput())
+			writer.SetInputData(w2if.GetOutput())
 			writer.Write()
 		dlg.Destroy()
 	def AnimateScene(self,event):

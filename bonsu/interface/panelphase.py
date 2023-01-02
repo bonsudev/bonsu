@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelphase.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import os
 import numpy
 from threading import BoundedSemaphore
 import inspect
+from queue import Queue
 from . import subpanel
 from .subpanel import *
 from .action import *
@@ -32,12 +33,6 @@ from .common import getmainhoverBitmap
 from .common import getpipelineok24Bitmap
 from .common import OptIconSize
 from .common import CheckListCtrl
-from .common import IsNotWX4
-from .common import IsPy3
-if IsPy3():
-	from queue import Queue
-else:
-	from Queue import Queue
 class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 	def __init__(self,parent):
 		self.ancestor = parent
@@ -294,15 +289,9 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 			else:
 				self.maintree.Expand(item)
 		if (item not in (self.visual,self.importtools,self.exporttools,self.operpre,self.algs,self.operpost)):
-			if IsNotWX4():
-				mainlistidx = self.mainlist.InsertStringItem(itemcount,"")
-			else:
-				mainlistidx = self.mainlist.InsertItem(itemcount,"")
+			mainlistidx = self.mainlist.InsertItem(itemcount,"")
 			self.mainlist.CheckItem(mainlistidx)
-			if IsNotWX4():
-				self.mainlist.SetStringItem(mainlistidx, 1, itemtext)
-			else:
-				self.mainlist.SetItem(mainlistidx, 1, itemtext)
+			self.mainlist.SetItem(mainlistidx, 1, itemtext)
 			for item in self.subpanel_members:
 				if hasattr(item[1], 'treeitem'):
 					if item[1].treeitem['name'] == itemtext:
@@ -334,50 +323,30 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 			self.mainlist.SetItemState(next, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED )
 		event.Skip()
 	def OnSelectListItem(self, event):
-		if IsNotWX4():
-			self.CurrentListItem = event.m_itemIndex
-		else:
-			self.CurrentListItem = event.GetIndex()
+		self.CurrentListItem = event.GetIndex()
 		if self.menu_place_holder.IsShown():
 			self.menu_place_holder.Hide()
-		if IsNotWX4():
-			name = self.mainlist.GetItemText(event.m_itemIndex)
-		else:
-			name = self.mainlist.GetItemText(event.GetIndex())
+		name = self.mainlist.GetItemText(event.GetIndex())
 		for  i in range(len(self.pipelineitems)):
 			if i == self.CurrentListItem: self.pipelineitems[i].Show();
 			else : self.pipelineitems[i].Hide()
 		self.Layout()
 		self.panel2.Layout()
 	def OnRightDown(self,event):
-		if IsNotWX4():
-			item = self.mainlist.HitTest(event.GetPosition())[0]
-		else:
-			item = self.mainlist.HitTest(event.GetPoint())[0]
+		item = self.mainlist.HitTest(event.GetPoint())[0]
 		if item > -1:
 			menu = wx.Menu()
-			if IsNotWX4():
-				self.CurrentListItem = event.m_itemIndex
-			else:
-				self.CurrentListItem = event.GetIndex()
+			self.CurrentListItem = event.GetIndex()
 			itemup = wx.MenuItem(menu, wx.ID_UP, "Move up")
 			itemdel = wx.MenuItem(menu, wx.ID_DELETE, "Delete")
 			itemdown = wx.MenuItem(menu, wx.ID_DOWN, "Move Down")
-			if IsNotWX4():
-				menu.AppendItem(itemup)
-				menu.AppendItem(itemdel)
-				menu.AppendItem(itemdown)
-			else:
-				menu.Append(itemup)
-				menu.Append(itemdel)
-				menu.Append(itemdown)
+			menu.Append(itemup)
+			menu.Append(itemdel)
+			menu.Append(itemdown)
 			self.Bind(wx.EVT_MENU, self.OnClickUp, itemup)
 			self.Bind(wx.EVT_MENU, self.OnItemDel, itemdel)
 			self.Bind(wx.EVT_MENU, self.OnClickDown, itemdown)
-			if IsNotWX4():
-				x,y = event.GetPosition()
-			else:
-				x,y = event.GetPoint().Get()
+			x,y = event.GetPoint().Get()
 			mx,my = self.hbox1.GetSize()
 			x= 3*mx/4
 			self.PopupMenu( menu, (x,y))
@@ -404,23 +373,14 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 			t = self.mainlist.GetItem(item_next,1).GetText()
 			ischecked = self.mainlist.IsChecked(item_next)
 			self.mainlist.DeleteItem(item_next)
-			if IsNotWX4():
-				mainlistidx = self.mainlist.InsertStringItem(item,"")
-			else:
-				mainlistidx = self.mainlist.InsertItem(item,"")
+			mainlistidx = self.mainlist.InsertItem(item,"")
 			if ischecked:
 				self.mainlist.CheckItem(mainlistidx)
-			if IsNotWX4():
-				self.mainlist.SetStringItem(mainlistidx, 1, t)
-			else:
-				self.mainlist.SetItem(mainlistidx, 1, t)
+			self.mainlist.SetItem(mainlistidx, 1, t)
 			self.mainlist.Select(item, 1)
 			self.pipelineitems[item], self.pipelineitems[item_next] = self.pipelineitems[item_next], self.pipelineitems[item]
 			cmd = wx.ListEvent(wx.EVT_LIST_ITEM_SELECTED.typeId, self.mainlist.GetId())
-			if IsNotWX4():
-				cmd.m_itemIndex = item
-			else:
-				cmd.SetIndex(item)
+			cmd.SetIndex(item)
 			self.mainlist.GetEventHandler().ProcessEvent(cmd)
 	def OnClickDown(self, event):
 		itemcount = self.mainlist.GetItemCount()
@@ -437,23 +397,14 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 			t = self.mainlist.GetItem(item_next,1).GetText()
 			ischecked = self.mainlist.IsChecked(item_next)
 			self.mainlist.DeleteItem(item_next)
-			if IsNotWX4():
-				mainlistidx = self.mainlist.InsertStringItem(item,"")
-			else:
-				mainlistidx = self.mainlist.InsertItem(item,"")
+			mainlistidx = self.mainlist.InsertItem(item,"")
 			if ischecked:
 				self.mainlist.CheckItem(mainlistidx)
-			if IsNotWX4():
-				self.mainlist.SetStringItem(mainlistidx, 1, t)
-			else:
-				self.mainlist.SetItem(mainlistidx, 1, t)
+			self.mainlist.SetItem(mainlistidx, 1, t)
 			self.pipelineitems[item], self.pipelineitems[item_next] = self.pipelineitems[item_next], self.pipelineitems[item]
 			self.mainlist.Select(item, 1)
 			cmd = wx.ListEvent(wx.EVT_LIST_ITEM_SELECTED.typeId, self.mainlist.GetId())
-			if IsNotWX4():
-				cmd.m_itemIndex = item
-			else:
-				cmd.SetIndex(item)
+			cmd.SetIndex(item)
 			self.mainlist.GetEventHandler().ProcessEvent(cmd)
 	def OnClickStart(self, event):
 		OnClickStartAction(self, event)

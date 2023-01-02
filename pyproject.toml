@@ -1,3 +1,3 @@
 [build-system]
-requires = ["setuptools", "wheel", "wxpython", "numpy", "vtk" ,"h5py", "pillow"]
+requires = ["setuptools", "wheel", "wxpython>=4.1.0", "numpy", "vtk>=8.0.0" ,"h5py", "pillow"]
 build-backend = "setuptools.build_meta"

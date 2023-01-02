@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: instance.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import gzip
 import pickle
 import os
 from .subpanel import *
-from .common import IsNotWX4
 def NewInstance(self):
 	panelphase = self.GetChildren()[1].GetPage(0)
 	if panelphase.pipeline_started == False:
@@ -630,15 +629,9 @@ def RestoreInstance(self):
 	panelphase = self.GetChildren()[1].GetPage(0)
 	for i in range(len(instance_list)):
 		itemcount = panelphase.mainlist.GetItemCount()
-		if IsNotWX4():
-			mainlistidx = panelphase.mainlist.InsertStringItem((itemcount+i),"")
-		else:
-			mainlistidx = panelphase.mainlist.InsertItem((itemcount+i),"")
+		mainlistidx = panelphase.mainlist.InsertItem((itemcount+i),"")
 		panelphase.mainlist.CheckItem(mainlistidx)
-		if IsNotWX4():
-			panelphase.mainlist.SetStringItem(mainlistidx, 1, instance_list[i][0])
-		else:
-			panelphase.mainlist.SetItem(mainlistidx, 1, instance_list[i][0])
+		panelphase.mainlist.SetItem(mainlistidx, 1, instance_list[i][0])
 		object = instance_list[i][1]
 		subpanelname = instance_list[i][2]
 		if subpanelname == 'Nexus Viewer I16':

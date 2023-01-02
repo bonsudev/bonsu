@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: bonsu.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -19,17 +19,22 @@
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
 __author__ = "Marcus C. Newton"
-__copyright__ = "Copyright 2011-2022 Marcus C. Newton"
+__maintainer__ = "Marcus C. Newton"
+__copyright__ = "Copyright 2011 - 2023 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "3.5.0"
-__maintainer__ = "Marcus C. Newton"
+__version__ = "3.6.0"
+__appname__ = "Bonsu"
 __email__ = "Bonsu.Devel@gmail.com"
+__website__ = "github.com/bonsudev/bonsu"
 __status__ = "Production"
 __builddate__ = ''
+__description__ = "Bonsu is a collection of tools and algorithms primarily for the reconstruction of phase information from diffraction intensity measurements."
+__licencestr__ = "This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."
 import os
 import sys
 import wx
+import wx.adv
 import numpy
 import vtk
 from PIL import __version__ as PILVERSION
@@ -43,12 +48,7 @@ from .instance import SaveInstance
 from .instance import RestoreInstance
 from .instance import NewInstance
 from .panelpref import VisualDialog
-from .common import IsNotWX4
 from .common import CustomAboutDialog
-if IsNotWX4():
-	pass
-else:
-	import wx.adv
 class MainWindow(wx.Frame):
 	def __init__(self, parent, title):
 		self.dirname=os.getcwd()
@@ -70,10 +70,7 @@ class MainWindow(wx.Frame):
 		self.viewmenudock.Enable(0)
 		self.Bind(wx.EVT_MENU, self.OnUndock, self.viewmenuundock)
 		self.Bind(wx.EVT_MENU, self.OnDock, self.viewmenudock)
-		if IsNotWX4():
-			viewmenu.AppendMenu(wx.ID_ANY,"&Visualisation", vismenu)
-		else:
-			viewmenu.AppendSubMenu(vismenu, "&Visualisation")
+		viewmenu.AppendSubMenu(vismenu, "&Visualisation")
 		self.visualdialog_docked = True
 		editmenu = wx.Menu()
 		self.menuCWD = editmenu.Append(wx.ID_ANY, "Current Working &Directory","Current Working Directory")
@@ -81,10 +78,7 @@ class MainWindow(wx.Frame):
 		memlimitmenu = wx.Menu()
 		self.memlimiton = memlimitmenu.Append(wx.ID_ANY,"On","Limit array size to half of physical memory")
 		self.memlimitoff = memlimitmenu.Append(wx.ID_ANY,"Off","Limit array size to half of physical memory")
-		if IsNotWX4():
-			editmenu.AppendMenu(wx.ID_ANY,"Array Size Limit", memlimitmenu)
-		else:
-			editmenu.AppendSubMenu(memlimitmenu,"Array Size Limit")
+		editmenu.AppendSubMenu(memlimitmenu,"Array Size Limit")
 		self.Bind(wx.EVT_MENU, self.OnMemLimitOn, self.memlimiton)
 		self.Bind(wx.EVT_MENU, self.OnMemLimitOff, self.memlimitoff)
 		helpmenu= wx.Menu()
@@ -94,10 +88,7 @@ class MainWindow(wx.Frame):
 		fxaamenu = wx.Menu()
 		self.fxaamenuon = fxaamenu.Append(wx.ID_ANY,"On","Enable FX antialiasing")
 		self.fxaamenuoff = fxaamenu.Append(wx.ID_ANY,"Off","Enable FX antialiasing")
-		if IsNotWX4():
-			scenemenu.AppendMenu(wx.ID_ANY,"FX &Antialiasing", fxaamenu)
-		else:
-			scenemenu.AppendSubMenu(fxaamenu,"FX &Antialiasing")
+		scenemenu.AppendSubMenu(fxaamenu,"FX &Antialiasing")
 		self.scenemenu_save = scenemenu.Append(wx.ID_ANY, "&Save","Save Scene")
 		self.Bind(wx.EVT_MENU, self.OnSceneSave, self.scenemenu_save)
 		self.scenemenu_saveas = scenemenu.Append(wx.ID_ANY, "&Save As","Save Scene")
@@ -148,31 +139,15 @@ class MainWindow(wx.Frame):
 		self.Layout()
 		self.Show()
 	def OnAbout(self,e):
-		description =\
-		"""Bonsu is a collection of tools and algorithms primarily for the reconstruction of phase information from diffraction intensity measurements."""
-		licence =\
-		"""This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>."""
-		if IsNotWX4():
-			info = wx.AboutDialogInfo()
-		else:
-			info = wx.adv.AboutDialogInfo()
+		info = wx.adv.AboutDialogInfo()
 		info.SetIcon(wx.Icon(os.path.join(os.path.dirname(os.path.dirname(__file__)),'image',  'bonsu.ico'), wx.BITMAP_TYPE_ICO))
-		info.SetName('Bonsu')
+		info.SetName(__appname__)
 		info.SetVersion(__version__)
-		info.SetDescription(description)
-		info.SetCopyright('Copyright (C) 2011-2022 Marcus C. Newton')
-		info.SetWebSite('github.com/bonsudev/bonsu')
-		info.SetLicence(licence)
-		info.AddDeveloper('Marcus C. Newton')
+		info.SetDescription(__description__)
+		info.SetCopyright(__copyright__)
+		info.SetWebSite(__website__)
+		info.SetLicence(__licencestr__)
+		info.AddDeveloper(__author__)
 		self.version_str_list = []
 		self.version_str_list.append("Python "+str(sys.version_info.major)+"."+str(sys.version_info.minor)+"."+str(sys.version_info.micro))
 		self.version_str_list.append("wxPython "+wx.version())
@@ -223,10 +198,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		panelphase = self.GetChildren()[1].GetPage(0)
 		if panelphase.pipeline_started == False:
 			cwd = self.CurrentWD()
-			if IsNotWX4():
-				dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.OPEN)
-			else:
-				dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.FD_OPEN)
+			dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.FD_OPEN)
 			if dlg.ShowModal() == wx.ID_OK:
 				self.filename = dlg.GetFilename()
 				self.dirname = dlg.GetDirectory()
@@ -236,10 +208,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 		panelphase = self.GetChildren()[1].GetPage(0)
 		if panelphase.pipeline_started == False:
 			cwd = self.CurrentWD()
-			if IsNotWX4():
-				dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.SAVE | wx.OVERWRITE_PROMPT)
-			else:
-				dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+			dlg = wx.FileDialog(self, "Choose a file", cwd, "", "fin files (*.fin)|*.fin|All files (*.*)|*.*", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 			if dlg.ShowModal() == wx.ID_OK:
 				self.filename=dlg.GetFilename()
 				self.dirname=dlg.GetDirectory()
@@ -319,6 +288,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
 class main():
 	def __init__(self):
 		app = wx.App()
+		if hasattr(app, 'GTKSuppressDiagnostics'):
+			app.GTKSuppressDiagnostics()
 		self.frame = MainWindow(None, "Bonsu - The Interactive Phase Retrieval Suite")
 		self.nb = wx.Notebook(self.frame)
 		self.nb.AddPage(PanelPhase(self.nb), "Phasing Pipeline")

@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelscipt.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ class PanelScript(wx.Panel):
 			event.Skip()
 			return
 		key = event.GetKeyCode()
-		if key == wx.WXK_RETURN:
+		if key == wx.WXK_RETURN or key == wx.WXK_NUMPAD_ENTER:
 			self.ih = 0
 			self.shell.processLine()
 			self.shell.clearCommand()

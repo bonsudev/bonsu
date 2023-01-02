@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 env:
   CIBW_BUILD: cp37-* cp38-* cp39-* cp310-*
-  CIBW_SKIP: cp311-*
+  CIBW_SKIP: cp311-* cp312-*
   CIBW_ARCHS_WINDOWS: "AMD64"
   CIBW_ARCHS_MACOS: "x86_64"
   CIBW_ARCHS_LINUX: "x86_64"
@@ -16,13 +16,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-11, windows-2019]
+        os: [macos-10.15, windows-2019]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # Used to host cibuildwheel
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
@@ -32,7 +32,7 @@ jobs:
           brew install fftw
 
       - name: Install dependencies
-        run: python -m pip install wxpython numpy vtk h5py pillow requests
+        run: python -m pip install wxpython==4.1.1 numpy vtk h5py pillow requests
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==2.1.1
@@ -40,7 +40,7 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: ./wheelhouse/*.whl
       
@@ -49,3 +49,35 @@ jobs:
         if: ${{startsWith(github.ref, 'refs/tags/') }}
         with:
           files: ./wheelhouse/*.whl
+
+
+  build_sdist:
+    name: Build source package
+    runs-on: macos-10.15
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+  
+      - name: Install required Python packages
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install build
+          python -m pip install wxpython==4.1.1 numpy vtk h5py pillow requests
+          brew install fftw
+
+      - name: Build sdist
+        run: |
+          python -m build --sdist --no-isolation --skip-dependency-check
+          
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./dist/*
+      
+      - name: Upload binaries to release
+        uses: softprops/action-gh-release@v1
+        if: ${{startsWith(github.ref, 'refs/tags/') }}
+        with:
+          files: ./dist/*

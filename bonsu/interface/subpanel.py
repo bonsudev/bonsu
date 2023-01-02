@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: subpanel.py
 ##
-##    Copyright (C) 2011 - 2022 Marcus C. Newton
+##    Copyright (C) 2011 - 2023 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -23,16 +23,15 @@ import os
 import numpy
 import h5py
 from PIL import Image
+from queue import Queue
 from ..sequences.functions import *
 from ..sequences.algorithms import *
 from ..operations.loadarray import SaveArray
 from .common import *
 import threading
-if IsNotWX4():
-	from .plot import PlotCanvas, PolyLine, PolyMarker, PlotGraphics
-else:
-	from wx.lib.plot.plotcanvas import PlotCanvas, PolyMarker, PolyLine
-	from wx.lib.plot.polyobjects import PlotGraphics
+from time import sleep
+from wx.lib.plot.plotcanvas import PlotCanvas, PolyMarker, PolyLine
+from wx.lib.plot.polyobjects import PlotGraphics
 class ContextSup:
 	def __enter__(self):
 		pass
@@ -169,24 +168,14 @@ class LaxarusPlotDialog(wx.Dialog):
 		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
 		canvas = PlotCanvas(self)
 		canvas.SetInitialSize(size=self.GetClientSize())
-		if IsNotWX4():
-			canvas.SetShowScrollbars(False)
-			canvas.SetEnableLegend(False)
-			canvas.SetGridColour(wx.Colour(0, 0, 0))
-			canvas.SetForegroundColour(wx.Colour(0, 0, 0))
-			canvas.SetBackgroundColour(wx.Colour(255, 255, 255))
-			canvas.SetEnableZoom(False)
-			canvas.SetFontSizeAxis(point=fontpoint)
-			canvas.SetFontSizeTitle(point=fontpoint)
-		else:
-			canvas.showScrollbars = False
-			canvas.enableLegend = False
-			canvas.enablePointLabel = True
-			canvas.enableZoom = False
-			canvas.fontSizeAxis = fontpoint
-			canvas.fontSizeTitle = fontpoint
-			canvas.SetBackgroundColour(wx.Colour(wx.WHITE))
-			canvas.SetForegroundColour(wx.Colour(wx.BLACK))
+		canvas.showScrollbars = False
+		canvas.enableLegend = False
+		canvas.enablePointLabel = True
+		canvas.enableZoom = False
+		canvas.fontSizeAxis = fontpoint
+		canvas.fontSizeTitle = fontpoint
+		canvas.SetBackgroundColour(wx.Colour(wx.WHITE))
+		canvas.SetForegroundColour(wx.Colour(wx.BLACK))
 		graphdata = self.GetGraphData(id)
 		graphdata[:,1] -= graphdata[:,1].min()
 		x = graphdata[:,0]
@@ -621,11 +610,15 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 				self.panelphase.ancestor.GetPage(0).queue_info.put("Could not load %s"%self.fnames[-1])
 				self.panelphase.ancestor.GetPage(4).UpdateLog(None)
 			else:
-				value = self.IterateKey("/,entry1,entry_identifier",f)[()]
-				if not numpy.isscalar(value):
-					value = value[0]
-				self.scanno.ChangeValue(value)
-				self.fnamescache[self.fnamesidx] = value
+				try:
+					value = self.IterateKey("/,entry1,entry_identifier",f)[()]
+					if not numpy.isscalar(value):
+						value = value[0]
+					self.scanno.ChangeValue(value)
+					self.fnamescache[self.fnamesidx] = value
+				except Exception as e:
+					self.panelphase.ancestor.GetPage(0).queue_info.put("%s"%e)
+					self.panelphase.ancestor.GetPage(4).UpdateLog(None)
 				f.close()
 		else:
 			self.scanno.ChangeValue(self.fnamescache[self.fnamesidx])
@@ -888,68 +881,38 @@ class LoadNexusPlotDialog(wx.Dialog):
 		self.canvas1 = PlotCanvas(self)
 		self.canvas1.SetInitialSize(size=self.GetClientSize())
 		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
-		if IsNotWX4():
-			self.canvas1.SetShowScrollbars(False)
-			self.canvas1.SetEnableLegend(False)
-			self.canvas1.SetGridColour(wx.Colour(0, 0, 0))
-			self.canvas1.SetForegroundColour(wx.Colour(0, 0, 0))
-			self.canvas1.SetBackgroundColour(wx.Colour(255, 255, 255))
-			self.canvas1.SetEnableZoom(False)
-			self.canvas1.SetFontSizeAxis(point=fontpoint)
-			self.canvas1.SetFontSizeTitle(point=fontpoint)
-		else:
-			self.canvas1.showScrollbars = False
-			self.canvas1.enableLegend = False
-			self.canvas1.enablePointLabel = True
-			self.canvas1.enableZoom = False
-			self.canvas1.fontSizeAxis = fontpoint
-			self.canvas1.fontSizeTitle =fontpoint
-			self.canvas1.SetBackgroundColour(wx.Colour(wx.WHITE))
-			self.canvas1.SetForegroundColour(wx.Colour(wx.BLACK))
+		self.canvas1.showScrollbars = False
+		self.canvas1.enableLegend = False
+		self.canvas1.enablePointLabel = True
+		self.canvas1.enableZoom = False
+		self.canvas1.fontSizeAxis = fontpoint
+		self.canvas1.fontSizeTitle =fontpoint
+		self.canvas1.SetBackgroundColour(wx.Colour(wx.WHITE))
+		self.canvas1.SetForegroundColour(wx.Colour(wx.BLACK))
 		self.vbox1.Add(self.canvas1, 1, flag=wx.EXPAND|wx.ALL)
 		self.canvas2 = PlotCanvas(self)
 		self.canvas2.SetInitialSize(size=self.GetClientSize())
 		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
-		if IsNotWX4():
-			self.canvas2.SetShowScrollbars(False)
-			self.canvas2.SetEnableLegend(True)
-			self.canvas2.SetGridColour(wx.Colour(0, 0, 0))
-			self.canvas2.SetForegroundColour(wx.Colour(0, 0, 0))
-			self.canvas2.SetBackgroundColour(wx.Colour(255, 255, 255))
-			self.canvas2.SetEnableZoom(False)
-			self.canvas2.SetFontSizeAxis(point=fontpoint)
-			self.canvas2.SetFontSizeTitle(point=fontpoint)
-		else:
-			self.canvas2.showScrollbars = False
-			self.canvas2.enableLegend = False
-			self.canvas2.enablePointLabel = True
-			self.canvas2.enableZoom = False
-			self.canvas2.fontSizeAxis = fontpoint
-			self.canvas2.fontSizeTitle =fontpoint
-			self.canvas2.SetBackgroundColour(wx.Colour(wx.WHITE))
-			self.canvas2.SetForegroundColour(wx.Colour(wx.BLACK))
+		self.canvas2.showScrollbars = False
+		self.canvas2.enableLegend = False
+		self.canvas2.enablePointLabel = True
+		self.canvas2.enableZoom = False
+		self.canvas2.fontSizeAxis = fontpoint
+		self.canvas2.fontSizeTitle =fontpoint
+		self.canvas2.SetBackgroundColour(wx.Colour(wx.WHITE))
+		self.canvas2.SetForegroundColour(wx.Colour(wx.BLACK))
 		self.vbox2.Add(self.canvas2, 1, flag=wx.EXPAND|wx.ALL)
 		self.canvas3 = PlotCanvas(self)
 		self.canvas3.SetInitialSize(size=self.GetClientSize())
 		fontpoint = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
-		if IsNotWX4():
-			self.canvas3.SetShowScrollbars(False)
-			self.canvas3.SetEnableLegend(True)
-			self.canvas3.SetGridColour(wx.Colour(0, 0, 0))
-			self.canvas3.SetForegroundColour(wx.Colour(0, 0, 0))
-			self.canvas3.SetBackgroundColour(wx.Colour(255, 255, 255))
-			self.canvas3.SetEnableZoom(False)
-			self.canvas3.SetFontSizeAxis(point=fontpoint)
-			self.canvas3.SetFontSizeTitle(point=fontpoint)
-		else:
-			self.canvas3.showScrollbars = False
-			self.canvas3.enableLegend = False
-			self.canvas3.enablePointLabel = True
-			self.canvas3.enableZoom = False
-			self.canvas3.fontSizeAxis = fontpoint
-			self.canvas3.fontSizeTitle =fontpoint
-			self.canvas3.SetBackgroundColour(wx.Colour(wx.WHITE))
-			self.canvas3.SetForegroundColour(wx.Colour(wx.BLACK))
+		self.canvas3.showScrollbars = False
+		self.canvas3.enableLegend = False
+		self.canvas3.enablePointLabel = True
+		self.canvas3.enableZoom = False
+		self.canvas3.fontSizeAxis = fontpoint
+		self.canvas3.fontSizeTitle =fontpoint
+		self.canvas3.SetBackgroundColour(wx.Colour(wx.WHITE))
+		self.canvas3.SetForegroundColour(wx.Colour(wx.BLACK))
 		self.vbox3.Add(self.canvas3, 1, flag=wx.EXPAND|wx.ALL)
 		self.canvass = [self.canvas1,self.canvas2,self.canvas3]
 		vbox.Add(self.vbox1, 1, wx.EXPAND | wx.ALL, border=0)
@@ -1328,10 +1291,7 @@ class ROIDialog(wx.Dialog):
 		self.vbox22 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox23 = wx.BoxSizer(wx.VERTICAL)
 		self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-		if IsNotWX4():
-			self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(1,1))
-		else:
-			self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(1,1))
+		self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(1,1))
 		self.vbox1.Add(self.image, 1, wx.EXPAND | wx.ALL, border=0)
 		self.scrollaxis = SpinnerObject(self,"Axis",3,1,1,1,50,40)
 		self.scrollaxis.spin.SetEventFunc(self.OnAxisSpin)
@@ -1449,10 +1409,7 @@ class ROIDialog(wx.Dialog):
 		imagedatalow = numpy.uint8(imagedata).reshape(-1)
 		shp = imagedata.shape
 		imagedatanew = numpy.zeros((shp[0]*shp[1], 3), dtype=numpy.uint8)
-		if IsNotWX4():
-			self.imwx = wx.EmptyImage( *shp[::-1] )
-		else:
-			self.imwx = wx.Image( *shp[::-1] )
+		self.imwx = wx.Image( *shp[::-1] )
 		imagedatanew[:,0] = numpy.uint8(255.0*numpy.take(cm[:,0], imagedatalow[:]))
 		imagedatanew[:,1] = numpy.uint8(255.0*numpy.take(cm[:,1], imagedatalow[:]))
 		imagedatanew[:,2] = numpy.uint8(255.0*numpy.take(cm[:,2], imagedatalow[:]))
@@ -1672,10 +1629,7 @@ class KeyDialog(wx.Dialog):
 		self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelTreeItem)
 		self.tree.__collapsing = False
 		self.treeroot = self.tree.AddRoot(self.file.name)
-		if IsNotWX4():
-			self.tree.SetItemPyData(self.treeroot, self.treeid)
-		else:
-			self.tree.SetItemData(self.treeroot, self.treeid)
+		self.tree.SetItemData(self.treeroot, self.treeid)
 		self.treeid += 1
 		self.MakeBranch(self.file.get(self.file.name), self.treeroot)
 		self.im = wx.ImageList(16, 16)
@@ -1757,10 +1711,7 @@ class KeyDialog(wx.Dialog):
 		self.hbox3.Add(self.vbox43, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
 		self.hbox3.Add((20, -1))
 		self.hbox3.Add(self.vbox44, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP|wx.BOTTOM, border=0)
-		if IsNotWX4():
-			self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(1,1))
-		else:
-			self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(1,1))
+		self.image = wx.StaticBitmap(self, bitmap=wx.Bitmap(1,1))
 		self.vbox3.Add(self.image, 1, wx.EXPAND | wx.ALL, border=0)
 		self.vbox2.Add(self.vbox3, 1, wx.EXPAND | wx.ALL, border=2)
 		self.vbox2.Add(self.hbox2, 0, wx.EXPAND | wx.ALL, border=2)
@@ -1893,10 +1844,7 @@ class KeyDialog(wx.Dialog):
 		imagedatalow = numpy.uint8(imagedata).reshape(-1)
 		shp = imagedata.shape
 		imagedatanew = numpy.zeros((shp[0]*shp[1], 3), dtype=numpy.uint8)
-		if IsNotWX4():
-			self.imwx = wx.EmptyImage( *shp[::-1] )
-		else:
-			self.imwx = wx.Image( *shp[::-1] )
+		self.imwx = wx.Image( *shp[::-1] )
 		imagedatanew[:,0] = numpy.uint8(255.0*numpy.take(cm[:,0], imagedatalow[:]))
 		imagedatanew[:,1] = numpy.uint8(255.0*numpy.take(cm[:,1], imagedatalow[:]))
 		imagedatanew[:,2] = numpy.uint8(255.0*numpy.take(cm[:,2], imagedatalow[:]))
@@ -1980,10 +1928,7 @@ class KeyDialog(wx.Dialog):
 				for key in keys:
 					newitem = item.get(key)
 					newlimb = self.tree.AppendItem(limb, key)
-					if IsNotWX4():
-						self.tree.SetItemPyData(newlimb, self.treeid)
-					else:
-						self.tree.SetItemData(newlimb, self.treeid)
+					self.tree.SetItemData(newlimb, self.treeid)
 					self.treeid += 1
 					try:
 						subkey = newitem.keys()
@@ -1997,19 +1942,12 @@ class KeyDialog(wx.Dialog):
 		hdfpath = []
 		parent = item
 		hdfpath.append(itemtext)
-		if IsNotWX4():
-			parentobj = self.tree.GetItemPyData(self.treeroot)
-			atroot = (parentobj is self.tree.GetItemPyData(parent))
-		else:
-			parentobj = self.tree.GetItemData(self.treeroot)
-			atroot = (parentobj is self.tree.GetItemData(parent))
+		parentobj = self.tree.GetItemData(self.treeroot)
+		atroot = (parentobj is self.tree.GetItemData(parent))
 		if (atroot is not True):
 			while (atroot is not True):
 				parent = self.tree.GetItemParent(parent)
-				if IsNotWX4():
-					atroot = parentobj is self.tree.GetItemPyData(parent)
-				else:
-					atroot = parentobj is self.tree.GetItemData(parent)
+				atroot = parentobj is self.tree.GetItemData(parent)
 				itemtext = self.tree.GetItemText(parent)
 				hdfpath.append(itemtext)
 			hdfpath.reverse()
@@ -2979,7 +2917,7 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 		self.panelvisual.plane.Modified()
 		self.panelvisual.RefreshScene()
 	def OnPlaneKey(self,event):
-		if event.GetKeyCode() == wx.WXK_RETURN:
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			self.OnPlaneSpin(None)
 		else:
 			event.Skip()
