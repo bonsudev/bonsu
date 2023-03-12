@@ -1,7 +1,7 @@
 ![Build Status](https://github.com/bonsudev/bonsu/actions/workflows/build_wheels.yml/badge.svg) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) ![Python Versions](https://img.shields.io/badge/Python-3.7%7C3.8%7C3.9%7C3.10-brightgreen) ![PyPI](https://img.shields.io/pypi/v/bonsu) ![PyPI - Wheel](https://img.shields.io/pypi/wheel/bonsu)
 
 
-# ![Bonsu Logo](/bonsu/image/bonsu.png) Bonsu - The Interactive Phase Retrieval Suite
+# <img src="/bonsu/image/bonsu.ico" alt= "" width="64" height="64"> Bonsu - The Interactive Phase Retrieval Suite
 
 ## Introduction
 

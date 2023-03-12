@@ -2,6 +2,16 @@
 ## Version History
 
 
+#### Version 3.6.1 🗓 ️(12/03/2023)
+
+	✨ Replace load script with setuptools entry point.
+	✨ Remove support for legacy NumPy matrix interface.
+	✨ Remove legacy desktop integration.
+	✨ Syntax highlighting in Python scripting function.
+	✨ Optional dependency for hdf5plugin.
+	🔧 Minor bug fixes.
+
+
 #### Version 3.6.0 🗓 ️(02/01/2023)
 
 	✨ Remove support for legacy wxPython 3.x.

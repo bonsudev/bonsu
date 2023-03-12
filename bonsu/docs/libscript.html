@@ -1,48 +1,173 @@
-
 <!DOCTYPE html>
-
-<html lang="en">
+<html  lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Scripting with Bonsu &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.6.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+      <title>Scripting with Bonsu</title>
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
     
-    <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Library Reference - Phasing Operations" href="libref-operations.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="libref-operations.html" title="Library Reference - Phasing Operations"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.6.0 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Scripting with Bonsu</a></li> 
+      <link rel="shortcut icon" href="_static/bonsu.ico"/>
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="prev" title="Library Reference - Phasing Operations" href="libref-operations.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="bonsu.html" class="home-link">
+    
+      <img class="logo" src="_static/bonsu.png" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="bonsu.html#bonsu-3-6-1-documentation">bonsu 3.6.1 documentation</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="setup.html" class="reference internal ">Installation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="intro.html" class="reference internal ">Introduction</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="usage.html" class="reference internal ">General Usage</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="licence.html" class="reference internal ">History and Licence</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libref.html" class="reference internal ">Library Reference</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">Scripting with Bonsu</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#core-concepts" class="reference internal">Core concepts</a></li>
+                
+                  <li class="toctree-l2"><a href="#custom-algorithms" class="reference internal">Custom Algorithms</a></li>
+                
+                  <li class="toctree-l2"><a href="#concurrent-phase-retrieval" class="reference internal">Concurrent Phase Retrieval</a></li>
+                
+                  <li class="toctree-l2"><a href="#class-reference" class="reference internal">Class Reference</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
       </ul>
-    </div>  
+    </div>
+  
+</div>
+        </sidebar>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="bonsu.html">Docs</a> &raquo;</li>
+    
+    <li>Scripting with Bonsu</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="libref-operations.html"
+       title="previous chapter">← Library Reference - Phasing Operations</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
             
   <section id="scripting-with-bonsu">
 <span id="libscript"></span><h1>Scripting with Bonsu<a class="headerlink" href="#scripting-with-bonsu" title="Permalink to this heading">¶</a></h1>
@@ -1047,230 +1172,21 @@ A negative value implies no reweighting.</p>
 </section>
 
 
-            <div class="clearer"></div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="bonsu.html">
-              <img class="logo" src="_static/bonsu.png" alt="Logo"/>
-            </a></p>
-  <div>
-    <h3><a href="bonsu.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Scripting with Bonsu</a><ul>
-<li><a class="reference internal" href="#core-concepts">Core concepts</a></li>
-<li><a class="reference internal" href="#custom-algorithms">Custom Algorithms</a></li>
-<li><a class="reference internal" href="#concurrent-phase-retrieval">Concurrent Phase Retrieval</a></li>
-<li><a class="reference internal" href="#class-reference">Class Reference</a><ul>
-<li><a class="reference internal" href="#module-bonsu.phasing.abstract">Abstract Classes</a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.Prepare"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.Prepare()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.PrepareCustom"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.PrepareCustom()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.SetSOS"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.SetSOS()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.GetSOS"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.GetSOS()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.SetStartiter"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.SetStartiter()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.SetNumiter"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.SetNumiter()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.SetNumthreads"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.SetNumthreads()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.SetSeqdata"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.SetSeqdata()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.GetSeqdata"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.GetSeqdata()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.SetExpdata"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.SetExpdata()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.GetExpdata"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.GetExpdata()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.SetSupport"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.SetSupport()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.GetSupport"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.GetSupport()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.SetMask"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.SetMask()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.GetMask"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.GetMask()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.SetBeta"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.SetBeta()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.GetBeta"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.GetBeta()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.Pause"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.Pause()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.Resume"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.Resume()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.Start"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.Start()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract.Stop"><code class="docutils literal notranslate"><span class="pre">PhaseAbstract.Stop()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetPSF"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.SetPSF()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetPSF"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.GetPSF()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.LorentzFillPSF"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.LorentzFillPSF()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetNumiterRLpre"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.SetNumiterRLpre()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetNumiterRLpre"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.GetNumiterRLpre()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetNumiterRL"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.SetNumiterRL()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetNumiterRL"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.GetNumiterRL()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetNumiterRLinterval"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.SetNumiterRLinterval()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetNumiterRLinterval"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.GetNumiterRLinterval()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetGammaHWHM"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.SetGammaHWHM()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetGammaHWHM"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.GetGammaHWHM()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetPSFZeroEnd"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.SetPSFZeroEnd()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetPSFZeroEnd"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.GetPSFZeroEnd()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC.Prepare"><code class="docutils literal notranslate"><span class="pre">PhaseAbstractPC.Prepare()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SetSWCyclelength"><code class="docutils literal notranslate"><span class="pre">ShrinkWrap.SetSWCyclelength()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.GetSWCyclelength"><code class="docutils literal notranslate"><span class="pre">ShrinkWrap.GetSWCyclelength()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SetSWSigma"><code class="docutils literal notranslate"><span class="pre">ShrinkWrap.SetSWSigma()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.GetSWSigma"><code class="docutils literal notranslate"><span class="pre">ShrinkWrap.GetSWSigma()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SetSWThreshold"><code class="docutils literal notranslate"><span class="pre">ShrinkWrap.SetSWThreshold()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.GetSWThreshold"><code class="docutils literal notranslate"><span class="pre">ShrinkWrap.GetSWThreshold()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SWPrepare"><code class="docutils literal notranslate"><span class="pre">ShrinkWrap.SWPrepare()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SWStart"><code class="docutils literal notranslate"><span class="pre">ShrinkWrap.SWStart()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-bonsu.phasing.HIO">Hybrid Input-Output Classes</a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.HIO"><code class="docutils literal notranslate"><span class="pre">HIO</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.SWHIO"><code class="docutils literal notranslate"><span class="pre">SWHIO</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.HIOMask"><code class="docutils literal notranslate"><span class="pre">HIOMask</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.SWHIOMask"><code class="docutils literal notranslate"><span class="pre">SWHIOMask</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.HIOPlus"><code class="docutils literal notranslate"><span class="pre">HIOPlus</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.SWHIOPlus"><code class="docutils literal notranslate"><span class="pre">SWHIOPlus</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PCHIO"><code class="docutils literal notranslate"><span class="pre">PCHIO</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PCHIO.SetMaxphase"><code class="docutils literal notranslate"><span class="pre">PCHIO.SetMaxphase()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PCHIO.GetMaxphase"><code class="docutils literal notranslate"><span class="pre">PCHIO.GetMaxphase()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PCHIO.SetMinphase"><code class="docutils literal notranslate"><span class="pre">PCHIO.SetMinphase()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PCHIO.GetMinphase"><code class="docutils literal notranslate"><span class="pre">PCHIO.GetMinphase()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.SWPCHIO"><code class="docutils literal notranslate"><span class="pre">SWPCHIO</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PGCHIO"><code class="docutils literal notranslate"><span class="pre">PGCHIO</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PGCHIO.SetMaxphase"><code class="docutils literal notranslate"><span class="pre">PGCHIO.SetMaxphase()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PGCHIO.GetMaxphase"><code class="docutils literal notranslate"><span class="pre">PGCHIO.GetMaxphase()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PGCHIO.SetMinphase"><code class="docutils literal notranslate"><span class="pre">PGCHIO.SetMinphase()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PGCHIO.GetMinphase"><code class="docutils literal notranslate"><span class="pre">PGCHIO.GetMinphase()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PGCHIO.SetQ"><code class="docutils literal notranslate"><span class="pre">PGCHIO.SetQ()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PGCHIO.GetQ"><code class="docutils literal notranslate"><span class="pre">PGCHIO.GetQ()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.PGCHIO.Prepare"><code class="docutils literal notranslate"><span class="pre">PGCHIO.Prepare()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.SWPGCHIO"><code class="docutils literal notranslate"><span class="pre">SWPGCHIO</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.HIOMaskPC"><code class="docutils literal notranslate"><span class="pre">HIOMaskPC</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.SWHIOMaskPC"><code class="docutils literal notranslate"><span class="pre">SWHIOMaskPC</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.HIO.SWHIOMaskPC.Start"><code class="docutils literal notranslate"><span class="pre">SWHIOMaskPC.Start()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-bonsu.phasing.ER">Error Reduction Classes</a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.ER.ER"><code class="docutils literal notranslate"><span class="pre">ER</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ER.SWER"><code class="docutils literal notranslate"><span class="pre">SWER</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ER.ERMask"><code class="docutils literal notranslate"><span class="pre">ERMask</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ER.SWERMask"><code class="docutils literal notranslate"><span class="pre">SWERMask</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ER.POER"><code class="docutils literal notranslate"><span class="pre">POER</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ER.ERMaskPC"><code class="docutils literal notranslate"><span class="pre">ERMaskPC</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.ER.SWERMaskPC"><code class="docutils literal notranslate"><span class="pre">SWERMaskPC</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.ER.SWERMaskPC.Start"><code class="docutils literal notranslate"><span class="pre">SWERMaskPC.Start()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-bonsu.phasing.HPR">Hybrid Project-Reflection Classes</a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.HPR.HPR"><code class="docutils literal notranslate"><span class="pre">HPR</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HPR.SWHPR"><code class="docutils literal notranslate"><span class="pre">SWHPR</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HPR.HPRPC"><code class="docutils literal notranslate"><span class="pre">HPRPC</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.HPR.SWHPRPC"><code class="docutils literal notranslate"><span class="pre">SWHPRPC</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.HPR.SWHPRPC.Start"><code class="docutils literal notranslate"><span class="pre">SWHPRPC.Start()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-bonsu.phasing.RAAR">Relaxed Average Alternating Reflection Classes</a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.RAAR.RAAR"><code class="docutils literal notranslate"><span class="pre">RAAR</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.RAAR.SWRAAR"><code class="docutils literal notranslate"><span class="pre">SWRAAR</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.RAAR.RAARPC"><code class="docutils literal notranslate"><span class="pre">RAARPC</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.RAAR.SWRAARPC"><code class="docutils literal notranslate"><span class="pre">SWRAARPC</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.RAAR.SWRAARPC.Start"><code class="docutils literal notranslate"><span class="pre">SWRAARPC.Start()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-bonsu.phasing.CSHIO">CSHIO Classes</a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO"><code class="docutils literal notranslate"><span class="pre">CSHIO</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.SetPnorm"><code class="docutils literal notranslate"><span class="pre">CSHIO.SetPnorm()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.GetPnorm"><code class="docutils literal notranslate"><span class="pre">CSHIO.GetPnorm()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.SetEpsilon"><code class="docutils literal notranslate"><span class="pre">CSHIO.SetEpsilon()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.GetEpsilon"><code class="docutils literal notranslate"><span class="pre">CSHIO.GetEpsilon()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.SetEpsilonmin"><code class="docutils literal notranslate"><span class="pre">CSHIO.SetEpsilonmin()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.GetEpsilonmin"><code class="docutils literal notranslate"><span class="pre">CSHIO.GetEpsilonmin()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.SetDivisor"><code class="docutils literal notranslate"><span class="pre">CSHIO.SetDivisor()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.GetDivisor"><code class="docutils literal notranslate"><span class="pre">CSHIO.GetDivisor()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.SetEta"><code class="docutils literal notranslate"><span class="pre">CSHIO.SetEta()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.GetEta"><code class="docutils literal notranslate"><span class="pre">CSHIO.GetEta()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO.Prepare"><code class="docutils literal notranslate"><span class="pre">CSHIO.Prepare()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#bonsu.phasing.CSHIO.SWCSHIO"><code class="docutils literal notranslate"><span class="pre">SWCSHIO</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-bonsu.phasing.SO2D">SO2D Classes</a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D"><code class="docutils literal notranslate"><span class="pre">SO2D</span></code></a><ul>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.SetNumsoiter"><code class="docutils literal notranslate"><span class="pre">SO2D.SetNumsoiter()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.GetNumsoiter"><code class="docutils literal notranslate"><span class="pre">SO2D.GetNumsoiter()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.SetReweightiter"><code class="docutils literal notranslate"><span class="pre">SO2D.SetReweightiter()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.GetReweightiter"><code class="docutils literal notranslate"><span class="pre">SO2D.GetReweightiter()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.SetDtaumax"><code class="docutils literal notranslate"><span class="pre">SO2D.SetDtaumax()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.GetDtaumax"><code class="docutils literal notranslate"><span class="pre">SO2D.GetDtaumax()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.SetDtaumin"><code class="docutils literal notranslate"><span class="pre">SO2D.SetDtaumin()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.GetDtaumin"><code class="docutils literal notranslate"><span class="pre">SO2D.GetDtaumin()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.SetTaumax"><code class="docutils literal notranslate"><span class="pre">SO2D.SetTaumax()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.GetTaumax"><code class="docutils literal notranslate"><span class="pre">SO2D.GetTaumax()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.SetPsiexitratio"><code class="docutils literal notranslate"><span class="pre">SO2D.SetPsiexitratio()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.GetPsiexitratio"><code class="docutils literal notranslate"><span class="pre">SO2D.GetPsiexitratio()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.SetPsiexiterror"><code class="docutils literal notranslate"><span class="pre">SO2D.SetPsiexiterror()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.GetPsiexiterror"><code class="docutils literal notranslate"><span class="pre">SO2D.GetPsiexiterror()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.SetPsiresetratio"><code class="docutils literal notranslate"><span class="pre">SO2D.SetPsiresetratio()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.GetPsiresetratio"><code class="docutils literal notranslate"><span class="pre">SO2D.GetPsiresetratio()</span></code></a></li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SO2D.Prepare"><code class="docutils literal notranslate"><span class="pre">SO2D.Prepare()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#bonsu.phasing.SO2D.SWSO2D"><code class="docutils literal notranslate"><span class="pre">SWSO2D</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="libref-operations.html"
-                          title="previous chapter">Library Reference - Phasing Operations</a></p>
-  </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="libref-operations.html"
+       title="previous chapter">← Library Reference - Phasing Operations</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2011 - 2023, Marcus C. Newton.
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="libref-operations.html" title="Library Reference - Phasing Operations"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.6.0 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Scripting with Bonsu</a></li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2011 - 2023, Marcus C. Newton.
-    </div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
   </body>
 </html>

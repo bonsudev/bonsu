@@ -21,6 +21,7 @@
 import wx
 import os
 import numpy
+import keyword
 import h5py
 from PIL import Image
 from queue import Queue
@@ -1185,7 +1186,34 @@ class SubPanel_PyScript(wx.Panel):
 		title = StaticTextNew(self, label="Python Script:")
 		title.SetToolTipNew("Python Script.")
 		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.txt = wx.TextCtrl(self, style=wx.TE_BESTWRAP | wx.TE_MULTILINE)
+		self.txt = wx.stc.StyledTextCtrl(self, style=wx.TE_BESTWRAP | wx.TE_MULTILINE)
+		self.txt.SetLexer(wx.stc.STC_LEX_PYTHON)
+		kwlist = " ".join(keyword.kwlist)
+		self.txt.SetKeyWords(0, kwlist)
+		self.fontpointsize=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).GetPointSize()
+		self.font = wx.Font(self.fontpointsize, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+		self.ffname = self.font.GetFaceName()
+		self.size = self.font.GetPointSize()
+		self.ffnd = dict(font=self.ffname, size=self.size)
+		self.fonts = "face:%(font)s,size:%(size)d" % self.ffnd
+		self.sss = "fore:%s," + self.fonts
+		self.txt.StyleSetSpec(wx.stc.STC_P_DEFAULT, "fore:#000000," + self.fonts)
+		self.txt.StyleSetSpec(wx.stc.STC_P_COMMENTLINE, self.sss %"#007F00")
+		self.txt.StyleSetSpec(wx.stc.STC_P_NUMBER, self.sss %"#007F7F")
+		self.txt.StyleSetSpec(wx.stc.STC_P_STRING, self.sss %"#7F007F")
+		self.txt.StyleSetSpec(wx.stc.STC_P_CHARACTER, self.sss %"#7F007F")
+		self.txt.StyleSetSpec(wx.stc.STC_P_WORD, self.sss %"#00007F,bold")
+		self.txt.StyleSetSpec(wx.stc.STC_P_TRIPLE, self.sss %"#7F0000")
+		self.txt.StyleSetSpec(wx.stc.STC_P_TRIPLEDOUBLE, self.sss %"#7F0000")
+		self.txt.StyleSetSpec(wx.stc.STC_P_CLASSNAME, self.sss %"#0000FF,bold")
+		self.txt.StyleSetSpec(wx.stc.STC_P_DEFNAME, self.sss %"#007F7F,bold")
+		self.txt.StyleSetSpec(wx.stc.STC_P_OPERATOR, "bold," + self.fonts)
+		self.txt.StyleSetSpec(wx.stc.STC_P_IDENTIFIER, "fore:#000000," + self.fonts)
+		self.txt.StyleSetSpec(wx.stc.STC_P_COMMENTBLOCK, self.sss %"#7F7F7F")
+		self.txt.StyleSetSpec(wx.stc.STC_P_STRINGEOL, "fore:#000000,back:#E0C0E0,eol," + self.fonts)
+		self.txt.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
+		self.txt.SetMarginMask(1, 0)
+		self.txt.SetMarginWidth(1, 25)
 		self.txt.Enable(True)
 		self.txt.AppendText("# memory slot arrays are accessible in 'memory' dictionary."+os.linesep)
 		self.txt.AppendText("# phase reconstruction array is accessible as 'sequence'."+os.linesep)

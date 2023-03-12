@@ -6,9 +6,11 @@ env:
   CIBW_BUILD: cp37-* cp38-* cp39-* cp310-*
   CIBW_SKIP: cp311-* cp312-*
   CIBW_ARCHS_WINDOWS: "AMD64"
-  CIBW_ARCHS_MACOS: "x86_64"
+  CIBW_ARCHS_MACOS: "x86_64 arm64"
   CIBW_ARCHS_LINUX: "x86_64"
-  CIBW_BEFORE_BUILD_WINDOWS: python .github/workflows/prepare.py
+  CIBW_BEFORE_BUILD_WINDOWS: python .github/workflows/prepare.py && python -m pip install attrdict3
+  CIBW_BEFORE_BUILD_MACOS: python -m pip install attrdict3
+  CIBW_BEFORE_BUILD_LINUX: python -m pip install attrdict3
 
 jobs:
   build_wheels:
@@ -16,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-10.15, windows-2019]
+        os: [macos-11.0, windows-2019]
 
     steps:
       - uses: actions/checkout@v3
@@ -30,12 +32,13 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: |
           brew install fftw
+          brew install wxpython
 
       - name: Install dependencies
-        run: python -m pip install wxpython==4.1.1 numpy vtk h5py pillow requests
+        run: python -m pip install attrdict3 wxpython numpy vtk h5py pillow requests
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.1.1
+        run: python -m pip install cibuildwheel==2.12.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -53,7 +56,7 @@ jobs:
 
   build_sdist:
     name: Build source package
-    runs-on: macos-10.15
+    runs-on: macos-11
     steps:
       - uses: actions/checkout@v3
 
@@ -63,10 +66,12 @@ jobs:
   
       - name: Install required Python packages
         run: |
+          brew install fftw
+          brew install wxpython
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install build
-          python -m pip install wxpython==4.1.1 numpy vtk h5py pillow requests
-          brew install fftw
+          python -m pip install attrdict3
+          python -m pip install wxpython numpy vtk h5py pillow requests
 
       - name: Build sdist
         run: |

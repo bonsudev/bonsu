@@ -32,6 +32,7 @@ from ..operations.wrap import WrapArray
 from ..operations.loadarray import NewArray
 from ..operations.loadarray import LoadArray
 from ..operations.loadarray import SaveArray
+from ..operations.loadarray import ArTo3DNpy
 from ..operations.loadarray import LoadCoordsArray
 def Sequence_PyScript(\
 	self,
@@ -325,6 +326,18 @@ def Sequence_HDF_to_Numpy(\
 				keypath2 = keypath.partition('[')[0]
 				roi = keypath.partition('[')[-1].rpartition(']')[0]
 				roiids_str = [x.split(":") for x in roi.split(',')]
+				sxs = []
+				shp = []
+				reshape = False
+				for i in range(len(roiids_str)):
+					if "r" in roiids_str[i][0]:
+						reshape = True
+						rstr = roiids_str[i][0].split("r")
+						shp.append(int(rstr[0]))
+						roiids_str[i][0] = rstr[1]
+					if roiids_str[i][0].startswith("s"):
+						sxs.append(i)
+						roiids_str[i][0] = roiids_str[i][0][1:]
 				roiids = [list(map(int, i)) for i in roiids_str]
 			else:
 				roi = None
@@ -348,12 +361,19 @@ def Sequence_HDF_to_Numpy(\
 					array = numpy.array(newitem, dtype=numpy.double) + 0j
 				else:
 					n = len(roiids)
-					if n == 3:
-						array = numpy.array(newitem[roiids[0][0]:roiids[0][1],roiids[1][0]:roiids[1][1],roiids[2][0]:roiids[2][1]], dtype=numpy.double) + 0j
-					elif n == 4:
-						array = numpy.array(newitem[roiids[0][0]:roiids[0][1],roiids[1][0]:roiids[1][1],roiids[2][0]:roiids[2][1],roiids[3][0]:roiids[3][1]], dtype=numpy.double) + 0j
-					else:
+					idx = [numpy.s_[:]]*n
+					for i in range(n):
+						idx[i] = numpy.s_[roiids[i][0]:roiids[i][1]]
+					if reshape == True:
 						array = numpy.array(newitem, dtype=numpy.double) + 0j
+						array = array.reshape(shp)
+						array = array[tuple(idx)]
+					else:
+						array = numpy.array(newitem[tuple(idx)], dtype=numpy.double) + 0j
+					if len(sxs) > 0:
+						array = numpy.sum(array, axis=tuple(sxs))
+				if array.ndim < 3:
+					SaveArray(self, filename_npy, ArTo3DNpy(array))
 				if array.ndim > 3:
 					SaveArray(self, filename_npy, numpy.squeeze(array))
 				else:

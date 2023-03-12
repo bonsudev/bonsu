@@ -65,12 +65,12 @@ class PhaseConcurrent(Bifurcate):
 		"""
 		self.Qar[idx,:] = Q
 	def _PrepQ(self):
-		self.Qmat = numpy.mat(self.Qar).T
+		self.Qmat = self.Qar
 		if self.NQ == 3:
-			self.QmatInv = self.Qmat.I
+			self.QmatInv = numpy.linalg.inv(self.Qmat)
 		else:
-			squareQ = self.Qmat * self.Qmat.T
-			self.QmatInv = squareQ.I
+			squareQ = numpy.dot(numpy.transpose(self.Qmat), self.Qmat)
+			self.QmatInv = numpy.linalg.inv(squareQ)
 	def SetStartiter(self,startiter):
 		"""
 		Set the starting iteration number.
@@ -109,13 +109,12 @@ class PhaseConcurrent(Bifurcate):
 			self.seqdata_angle_bundle[:,:,:,i] = numpy.angle(self.base_insts[i].seqdata)
 		phimat = numpy.asmatrix(self.seqdata_angle_bundle.reshape(self.dims[0]*self.dims[1]*self.dims[2],self.NQ))
 		if self.NQ == 3:
-			vector_mat = (phimat * self.QmatInv).T
+			vector_mat = numpy.dot(self.QmatInv, numpy.transpose(phimat))
 		else:
-			phimatT = phimat.T
-			vector_mat = self.QmatInv * (self.Qmat * phimatT)
+			vector_mat = numpy.dot(self.QmatInv, numpy.dot(numpy.transpose(self.Qmat), numpy.transpose(phimat)))
 		u = vector_mat
 		dfield_flat = self.dfield.reshape(self.dims[0]*self.dims[1]*self.dims[2],3)
-		dfield_flat[:] = numpy.asarray(u.T)
+		dfield_flat[:] = numpy.transpose(u)
 		newphiar = []
 		for jj in range(self.NQ):
 			phineww = numpy.dot(self.Qar[jj,:],u)
@@ -143,7 +142,7 @@ class PhaseConcurrent(Bifurcate):
 			else:
 				for j in range(self.NQ):
 					self.base_insts[j].DoIter()
-					self._Concrnt()
+				self._Concrnt()
 	def SaveDField(self, name):
 		"""
 		Save the displacement field to a NumPy file.

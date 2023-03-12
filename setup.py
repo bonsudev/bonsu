@@ -52,20 +52,23 @@ def Build( type=args[0] ):
 	"""
 	debug_compile_args = "-Wall"
 	SETUP_REQUIRES = [
-		"wx (>=4.0.0)",
-		"numpy (>=1.12.0)",
-		"vtk (>=9.0.0)",
+		"wx (>=4.1.0)",
+		"numpy",
+		"vtk (>=8.0.0)",
 		"h5py",
 		"pillow"]
 	if type == 'develop':
 		INSTALL_REQUIRES = []
+		EXTRAS_REQUIRE = {}
 	else:
 		INSTALL_REQUIRES = [
-			"wxpython >=4.0.0",
-			"numpy >=1.12.0",
-			"vtk >=9.0.0",
+			"wxpython >=4.1.0",
+			"numpy",
+			"vtk >=8.0.0",
 			"h5py",
 			"pillow"]
+		EXTRAS_REQUIRE = {
+			'hdf5plugin':  ["hdf5plugin"]}
 	sourcelist = [
 		'bonsu/lib/prfftwmodule.cxx',
 		'bonsu/lib/prfftwhiomask.cxx',
@@ -90,7 +93,7 @@ def Build( type=args[0] ):
 		'bonsu.licence': ['gpl.txt'],
 		'bonsu.changelog': ['CHANGELOG.md'],
 		'bonsu.interface': ['cms.npy'],
-		'bonsu.image': ['bonsu.ico'],
+		'bonsu.image': ['bonsu.ico', 'bonsu.icns'],
 		'bonsu.docs': ['*.*', '_images/*.*', '_images/math/*.*', '_static/*.*']}
 	data_files = []
 	modprfftw_lib =  ['fftw3']
@@ -98,28 +101,15 @@ def Build( type=args[0] ):
 		SETUP_REQUIRES.append("wheel")
 	if os.environ.get('BONSU_SETUP_REQUIRES', '1') == '0':
 		SETUP_REQUIRES = []
-	from sys import executable
-	from sys import exec_prefix
 	if type == 'sdist':
 		extra_package_data = {
-		'bonsu.lib':['prfftwmodule.h'],
-		'bonsu.macos':['*']}
+		'bonsu.lib':['prfftwmodule.h']
+		}
 		package_data_dict.update(extra_package_data)
 	elif platform.startswith('win'):
 		extra_package_data = {'bonsu.lib': ['libfftw3-3.dll']}
 		package_data_dict.update(extra_package_data)
-	if platform.startswith('win') and not type.startswith('bdist_wheel'):
-		scripts=['bonsu/bonsu', 'bonsupost']
-	else:
-		scripts=['bonsu/bonsu']
 	if platform.startswith('linux'):
-		iconfolder_old='share/pixmaps'
-		iconfolder='share/icons/hicolor/48x48/apps'
-		extra_data_files = [
-			('share/applications', ['bonsu/image/bonsu.desktop']),
-			(iconfolder, ['bonsu/image/bonsu.png']),
-			(iconfolder, ['bonsu/image/bonsu.xpm'])]
-		data_files += extra_data_files
 		modprfftw_lib.append('fftw3_threads')
 		sourcelist.append('bonsu/lib/libphase-pthread.cxx')
 		sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
@@ -133,25 +123,6 @@ def Build( type=args[0] ):
 			sourcelist.append('bonsu/lib/libphase-pthread.cxx')
 			sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
 	elif platform.startswith('darwin'):
-		if not type.startswith('bdist'):
-			binstr = executable
-			binstrbonsu = os.path.join(exec_prefix,'bin','bonsu')
-			appenv = '#!/usr/bin/env bash'
-			approot = os.path.join(os.environ['HOME'],'Desktop')
-			apppath = os.path.join(approot,'bonsu.app/Contents/MacOS')
-			apppathcont = os.path.join(approot,'bonsu.app/Contents')
-			apppathres = os.path.join(approot,'bonsu.app/Contents/Resources')
-			fname='bonsu/macos/bonsu'
-			f = open(fname,'w')
-			f.write(appenv)
-			f.write(os.linesep)
-			f.write(binstr+' '+binstrbonsu)
-			f.close()
-			extra_data_files = [
-				(apppath, [fname]),
-				(apppathcont, ['bonsu/macos/Info.plist']),
-				(apppathres, ['bonsu/macos/bonsu.icns'])]
-			data_files += extra_data_files
 		modprfftw_lib.append('fftw3_threads')
 		sourcelist.append('bonsu/lib/libphase.cxx')
 		sourcelist.append('bonsu/lib/prfftwrs.cxx')
@@ -176,7 +147,7 @@ def Build( type=args[0] ):
 		sources = sourcelist)
 	setup(
 		name = 'Bonsu',
-		version = "3.6.0",
+		version = "3.6.1",
 		license = 'GPL3',
 		description = 'Bonsu - The Interactive Phase Retrieval Suite',
 		author = 'Marcus C. Newton',
@@ -191,16 +162,19 @@ def Build( type=args[0] ):
 							'bonsu.phasing',
 							'bonsu.licence',
 							'bonsu.image',
-							'bonsu.macos',
 							'bonsu.docs',
 							'bonsu.changelog'],
 		ext_package = 'bonsu.lib',
 		ext_modules = [modprfftw],
-		scripts = scripts,
+		entry_points={
+			# 'console_scripts': ['bonsu = bonsu.interface.bonsu:main'],
+			'gui_scripts': ['bonsu = bonsu.interface.bonsu:main'],
+			},
 		package_data = package_data_dict,
 		data_files = data_files,
 		requires = SETUP_REQUIRES,
 		install_requires = INSTALL_REQUIRES,
+		extras_require = EXTRAS_REQUIRE,
 		python_requires = '>=3.7',
 		long_description = bonsu_description
 	)

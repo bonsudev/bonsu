@@ -1,53 +1,168 @@
-
 <!DOCTYPE html>
-
-<html lang="en">
+<html  lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Library Reference - Import Tools &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.6.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+      <title>Library Reference - Import Tools</title>
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
     
-    <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Library Reference - Export Tools" href="libref-exporttools.html" />
-    <link rel="prev" title="Library Reference - Visualisation Tools" href="libref-visualtools.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="libref-exporttools.html" title="Library Reference - Export Tools"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="libref-visualtools.html" title="Library Reference - Visualisation Tools"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.6.0 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="libref.html" accesskey="U">Library Reference</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Library Reference - Import Tools</a></li> 
+      <link rel="shortcut icon" href="_static/bonsu.ico"/>
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Library Reference - Export Tools" href="libref-exporttools.html" />
+  <link rel="prev" title="Library Reference - Visualisation Tools" href="libref-visualtools.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="bonsu.html" class="home-link">
+    
+      <img class="logo" src="_static/bonsu.png" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="bonsu.html#bonsu-3-6-1-documentation">bonsu 3.6.1 documentation</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="setup.html" class="reference internal ">Installation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="intro.html" class="reference internal ">Introduction</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="usage.html" class="reference internal ">General Usage</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="licence.html" class="reference internal ">History and Licence</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libref.html" class="reference internal ">Library Reference</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libscript.html" class="reference internal ">Scripting with Bonsu</a>
+            
+
+            
+          </li>
+
+        
       </ul>
-    </div>  
+    </div>
+  
+</div>
+        </sidebar>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="bonsu.html">Docs</a> &raquo;</li>
+    
+      <li><a href="libref.html">Library Reference</a> &raquo;</li>
+    
+    <li>Library Reference - Import Tools</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="libref-visualtools.html"
+       title="previous chapter">← Library Reference - Visualisation Tools</a>
+  </li>
+  <li class="next">
+    <a href="libref-exporttools.html"
+       title="next chapter">Library Reference - Export Tools →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
             
   <section id="library-reference-import-tools">
 <span id="libref-importtools"></span><h1>Library Reference - Import Tools<a class="headerlink" href="#library-reference-import-tools" title="Permalink to this heading">¶</a></h1>
@@ -131,77 +246,25 @@
 </section>
 
 
-            <div class="clearer"></div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="bonsu.html">
-              <img class="logo" src="_static/bonsu.png" alt="Logo"/>
-            </a></p>
-  <div>
-    <h3><a href="bonsu.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Library Reference - Import Tools</a><ul>
-<li><a class="reference internal" href="#array-to-memory">Array to Memory</a></li>
-<li><a class="reference internal" href="#empty-array">Empty Array</a></li>
-<li><a class="reference internal" href="#hdf5-to-numpy">HDF5 to Numpy</a></li>
-<li><a class="reference internal" href="#image-to-numpy">Image to Numpy</a></li>
-<li><a class="reference internal" href="#load-co-ordinates">Load Co-ordinates</a></li>
-<li><a class="reference internal" href="#load-psf">Load PSF</a></li>
-<li><a class="reference internal" href="#spe-to-numpy">SPE to Numpy</a></li>
-</ul>
-</li>
-</ul>
-
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="libref-visualtools.html"
-                          title="previous chapter">Library Reference - Visualisation Tools</a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="libref-exporttools.html"
-                          title="next chapter">Library Reference - Export Tools</a></p>
-  </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="libref-visualtools.html"
+       title="previous chapter">← Library Reference - Visualisation Tools</a>
+  </li>
+  <li class="next">
+    <a href="libref-exporttools.html"
+       title="next chapter">Library Reference - Export Tools →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2011 - 2023, Marcus C. Newton.
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="libref-exporttools.html" title="Library Reference - Export Tools"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="libref-visualtools.html" title="Library Reference - Visualisation Tools"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.6.0 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="libref.html" >Library Reference</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Library Reference - Import Tools</a></li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2011 - 2023, Marcus C. Newton.
-    </div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
   </body>
 </html>

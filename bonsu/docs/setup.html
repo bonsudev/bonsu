@@ -1,52 +1,176 @@
-
 <!DOCTYPE html>
-
-<html lang="en">
+<html  lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Installation &#8212; Bonsu - The Interactive Phase Retrieval Suite 3.6.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+      <title>Installation</title>
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
     
-    <link rel="shortcut icon" href="_static/bonsu.ico"/>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Introduction" href="intro.html" />
-    <link rel="prev" title="Bonsu 3.6.0 documentation" href="bonsu.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="intro.html" title="Introduction"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="bonsu.html" title="Bonsu 3.6.0 documentation"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.6.0 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
+      <link rel="shortcut icon" href="_static/bonsu.ico"/>
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Introduction" href="intro.html" />
+  <link rel="prev" title="Bonsu 3.6.1 documentation" href="bonsu.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="bonsu.html" class="home-link">
+    
+      <img class="logo" src="_static/bonsu.png" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="bonsu.html#bonsu-3-6-1-documentation">bonsu 3.6.1 documentation</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">Installation</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#installation-on-mac-os-x" class="reference internal">Installation on Mac OS X</a></li>
+                
+                  <li class="toctree-l2"><a href="#installation-on-windows" class="reference internal">Installation on Windows</a></li>
+                
+                  <li class="toctree-l2"><a href="#installation-on-linux-unix" class="reference internal">Installation on Linux/Unix</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="intro.html" class="reference internal ">Introduction</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="usage.html" class="reference internal ">General Usage</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="licence.html" class="reference internal ">History and Licence</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libref.html" class="reference internal ">Library Reference</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libscript.html" class="reference internal ">Scripting with Bonsu</a>
+            
+
+            
+          </li>
+
+        
       </ul>
-    </div>  
+    </div>
+  
+</div>
+        </sidebar>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="bonsu.html">Docs</a> &raquo;</li>
+    
+    <li>Installation</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="bonsu.html"
+       title="previous chapter">← Bonsu 3.6.1 documentation</a>
+  </li>
+  <li class="next">
+    <a href="intro.html"
+       title="next chapter">Introduction →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
             
   <section id="installation">
 <span id="setup"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h1>
@@ -59,10 +183,15 @@
 <li><p><a class="reference external" href="https://pypi.python.org/pypi/vtk/">VTK</a></p></li>
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/Pillow/">Pillow</a></p></li>
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/h5py">H5Py</a></p></li>
+<li><p><a class="reference external" href="http://pypi.python.org/pypi/hdf5plugin">hdf5plugin</a> (optional)</p></li>
 </ul>
 <p>A stand alone python distribution such as <a class="reference external" href="https://www.anaconda.com/">Anaconda Python</a> will likely include all of the above prerequisites.</p>
 <p>It is then possible to install Bonsu from the <a class="reference external" href="https://pypi.org">Python Package Index</a> using the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install bonsu
+</pre></div>
+</div>
+<p>If the optional <a class="reference external" href="http://pypi.python.org/pypi/hdf5plugin">hdf5plugin</a> module is required, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install bonsu<span class="o">[</span>hdf5plugin<span class="o">]</span>
 </pre></div>
 </div>
 <p>To install in the conda environment, run the following in the terminal or an Anaconda Prompt:</p>
@@ -79,9 +208,10 @@
 <li><p><a class="reference external" href="https://pypi.python.org/pypi/vtk/">VTK</a></p></li>
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/Pillow/">Pillow</a></p></li>
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/h5py">H5Py</a></p></li>
+<li><p><a class="reference external" href="http://pypi.python.org/pypi/hdf5plugin">hdf5plugin</a> (optional)</p></li>
 </ul>
 <p>Prerequisites are installed using the <a class="reference external" href="https://pypi.python.org/pypi">pip</a> command found in the PythonScript folder. For example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip.exe install wxpython
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install wxpython
 </pre></div>
 </div>
 <div class="admonition note">
@@ -90,7 +220,11 @@
 </div>
 <p>Alternatively, it is possible to install a stand alone python distribution such as <a class="reference external" href="https://www.anaconda.com">Anaconda Python</a> . This will likely include all of the above prerequisites.</p>
 <p>It is then possible to install Bonsu from the <a class="reference external" href="https://pypi.org">Python Package Index</a> using the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip.exe install bonsu
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install bonsu
+</pre></div>
+</div>
+<p>If the optional <a class="reference external" href="http://pypi.python.org/pypi/hdf5plugin">hdf5plugin</a> module is required, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install bonsu<span class="o">[</span>hdf5plugin<span class="o">]</span>
 </pre></div>
 </div>
 </section>
@@ -107,6 +241,7 @@
 <li><p><a class="reference external" href="http://www.vtk.org">VTK (compiled with python bindings)</a></p></li>
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/Pillow">Python Imaging Library (Pillow)</a></p></li>
 <li><p><a class="reference external" href="http://www.h5py.org/">H5Py</a></p></li>
+<li><p><a class="reference external" href="http://pypi.python.org/pypi/hdf5plugin">hdf5plugin</a> (optional)</p></li>
 <li><p>A reasonably new c<sup>++</sup>compiler such as <a class="reference external" href="http://gcc.gnu.org">gcc</a></p></li>
 </ul>
 <p>As most Linux systems and services require Python natively, it is likely that Python is already provided in your distribution. Also, many distributions package all of the above prerequisites.  Please check your distributions repositories.</p>
@@ -160,6 +295,13 @@ $ make install
 <p>For Linux users, a link to the program should be visible in the applications menu.</p>
 </div>
 </section>
+<section id="hdf5-plugins">
+<h3>HDF5 Plugins<a class="headerlink" href="#hdf5-plugins" title="Permalink to this heading">¶</a></h3>
+<p>If HDF5 plugins are installed to a non-default location, h5py might require the following environmental variable:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">export</span> <span class="nv">HDF5_PLUGIN_PATH</span><span class="o">=</span>/path/to/plugins.so/folder
+</pre></div>
+</div>
+</section>
 <section id="remote-access">
 <h3>Remote Access<a class="headerlink" href="#remote-access" title="Permalink to this heading">¶</a></h3>
 <p>If Bonsu is used remotely via X11 fowarding or X2Go (NX technology), errors with rendering might occur dependent on the available graphics hardware.  A possible workaround is to add the following environment variables to your .bashrc script:</p>
@@ -173,78 +315,25 @@ $ <span class="nb">export</span> <span class="nv">MESA_GLSL_VERSION_OVERRIDE</sp
 </section>
 
 
-            <div class="clearer"></div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="bonsu.html">
-              <img class="logo" src="_static/bonsu.png" alt="Logo"/>
-            </a></p>
-  <div>
-    <h3><a href="bonsu.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Installation</a><ul>
-<li><a class="reference internal" href="#installation-on-mac-os-x">Installation on Mac OS X</a></li>
-<li><a class="reference internal" href="#installation-on-windows">Installation on Windows</a></li>
-<li><a class="reference internal" href="#installation-on-linux-unix">Installation on Linux/Unix</a><ul>
-<li><a class="reference internal" href="#system-preparation">System Preparation</a></li>
-<li><a class="reference internal" href="#note-on-building-fftw">Note on Building FFTW</a></li>
-<li><a class="reference internal" href="#installing-bonsu">Installing Bonsu</a></li>
-<li><a class="reference internal" href="#remote-access">Remote Access</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="bonsu.html"
-                          title="previous chapter">Bonsu 3.6.0 documentation</a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="intro.html"
-                          title="next chapter">Introduction</a></p>
-  </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="bonsu.html"
+       title="previous chapter">← Bonsu 3.6.1 documentation</a>
+  </li>
+  <li class="next">
+    <a href="intro.html"
+       title="next chapter">Introduction →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2011 - 2023, Marcus C. Newton.
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="intro.html" title="Introduction"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="bonsu.html" title="Bonsu 3.6.0 documentation"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="bonsu.html">Bonsu - The Interactive Phase Retrieval Suite 3.6.0 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2011 - 2023, Marcus C. Newton.
-    </div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
   </body>
 </html>
