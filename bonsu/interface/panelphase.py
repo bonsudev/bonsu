@@ -24,6 +24,7 @@ import numpy
 from threading import BoundedSemaphore
 import inspect
 from queue import Queue
+import copy
 from . import subpanel
 from .subpanel import *
 from .action import *
@@ -33,8 +34,11 @@ from .common import getmainhoverBitmap
 from .common import getpipelineok24Bitmap
 from .common import OptIconSize
 from .common import CheckListCtrl
-class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
+from .instance import GetInstanceObject
+from .instance import SetInstanceObject
+class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App,Action):
 	def __init__(self,parent):
+		Action.__init__(self)
 		self.ancestor = parent
 		self.citer_flow = numpy.zeros((20), dtype=numpy.int32)
 		self.pipeline_started = False
@@ -96,9 +100,11 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.maintree.SetItemImage(self.algs, 0,  wx.TreeItemIcon_Normal)
 		self.maintree.SetItemImage(self.operpost, 0,  wx.TreeItemIcon_Normal)
 		self.treechilditems = []
+		self.subpanel_items = []
 		self.subpanel_members = inspect.getmembers(subpanel, inspect.isclass)
 		for item in self.subpanel_members:
 			if hasattr(item[1], 'treeitem'):
+				self.subpanel_items.append(item[1].treeitem['name'])
 				if item[1].treeitem['type'] == 'operpreview':
 					self.treechilditems.append(self.maintree.AppendItem(self.visual,item[1].treeitem['name']))
 				elif item[1].treeitem['type'] == 'importtools':
@@ -134,6 +140,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.mainlist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelectListItem)
 		self.mainlist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightDown)
 		self.mainlist.Bind(wx.EVT_KEY_DOWN, self.OnKeyListItem)
+		self.mainlist.Bind(wx.EVT_KEY_UP, self.OnKeyUpListItem)
 		self.CurrentListItem = -1
 		self.vbox1 = wx.BoxSizer(wx.VERTICAL)
 		self.vbox1.Add((-1,200))
@@ -180,6 +187,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		self.vbox_chk = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox_chk1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox_chk2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.ctrlk = False
 		rstext = 'Real'
 		fstext = 'Fourier'
 		sstext ='Support'
@@ -310,10 +318,25 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 	def OnListResize(self, event):
 		self.mainlist.SetColumnWidth(0, self.mainlist.GetSizeTuple()[0]-4)
 		event.Skip()
+	def OnKeyUpListItem(self, event):
+		keycode = event.GetKeyCode()
+		if keycode == wx.WXK_CONTROL:
+			self.ctrlk = False
+		event.Skip()
 	def OnKeyListItem(self, event):
 		keycode = event.GetKeyCode()
+		ukeycode = event.GetUnicodeKey()
 		itemcount = self.mainlist.GetItemCount()
-		if keycode == wx.WXK_DELETE and itemcount > 0:
+		if keycode == wx.WXK_CONTROL:
+			self.ctrlk = True
+			event.Skip()
+		elif keycode == wx.WXK_DOWN and self.ctrlk:
+			self.OnClickDown(None)
+		elif keycode == wx.WXK_UP and self.ctrlk:
+			self.OnClickUp(None)
+		elif ukeycode != wx.WXK_NONE and ukeycode == 68  and self.ctrlk:
+			self.OnItemDup(None)
+		elif keycode == wx.WXK_DELETE and itemcount > 0:
 			self.mainlist.DeleteItem(self.CurrentListItem)
 			self.pipelineitems[self.CurrentListItem].Hide()
 			self.pipelineitems.pop(self.CurrentListItem)
@@ -321,7 +344,8 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 				self.menu_place_holder.Show()
 			next = self.CurrentListItem - 1
 			self.mainlist.SetItemState(next, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED )
-		event.Skip()
+		else:
+			event.Skip()
 	def OnSelectListItem(self, event):
 		self.CurrentListItem = event.GetIndex()
 		if self.menu_place_holder.IsShown():
@@ -337,14 +361,18 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 		if item > -1:
 			menu = wx.Menu()
 			self.CurrentListItem = event.GetIndex()
-			itemup = wx.MenuItem(menu, wx.ID_UP, "Move up")
-			itemdel = wx.MenuItem(menu, wx.ID_DELETE, "Delete")
-			itemdown = wx.MenuItem(menu, wx.ID_DOWN, "Move Down")
+			self.mainlist.SetItemState(self.CurrentListItem, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED )
+			itemup = wx.MenuItem(menu, wx.ID_UP, "Move up (Ctrl + Up)")
+			itemdel = wx.MenuItem(menu, wx.ID_DELETE, "Delete  (Del)")
+			itemdup = wx.MenuItem(menu, wx.ID_DUPLICATE, "Duplicate (Ctrl + D)")
+			itemdown = wx.MenuItem(menu, wx.ID_DOWN, "Move Down  (Ctrl + Down)")
 			menu.Append(itemup)
 			menu.Append(itemdel)
+			menu.Append(itemdup)
 			menu.Append(itemdown)
 			self.Bind(wx.EVT_MENU, self.OnClickUp, itemup)
 			self.Bind(wx.EVT_MENU, self.OnItemDel, itemdel)
+			self.Bind(wx.EVT_MENU, self.OnItemDup, itemdup)
 			self.Bind(wx.EVT_MENU, self.OnClickDown, itemdown)
 			x,y = event.GetPoint().Get()
 			mx,my = self.hbox1.GetSize()
@@ -358,6 +386,20 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 			self.menu_place_holder.Show()
 		next = self.CurrentListItem - 1
 		self.mainlist.SetItemState(next, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED )
+	def OnItemDup(self, event):
+		itemcount = self.mainlist.GetItemCount()
+		if self.CurrentListItem < 0:
+			return
+		item_selected = -1
+		for i in range(itemcount):
+			if self.mainlist.IsSelected(i):
+				item_selected = i
+				break
+		if item_selected > -1:
+			item_new = item_selected + 1
+			t = self.mainlist.GetItem(item_selected,1).GetText()
+			instance = GetInstanceObject(self, item_selected)
+			SetInstanceObject(self, instance, item_new, self.subpanel_items)
 	def OnClickUp(self, event):
 		itemcount = self.mainlist.GetItemCount()
 		if self.CurrentListItem <= 0:
@@ -406,11 +448,3 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App):
 			cmd = wx.ListEvent(wx.EVT_LIST_ITEM_SELECTED.typeId, self.mainlist.GetId())
 			cmd.SetIndex(item)
 			self.mainlist.GetEventHandler().ProcessEvent(cmd)
-	def OnClickStart(self, event):
-		OnClickStartAction(self, event)
-	def OnClickPause(self, event):
-		OnClickPauseAction(self, event)
-	def OnClickStop(self, event):
-		OnClickStopAction(self, event)
-	def OnClickFinal(self):
-		OnClickFinalAction(self)

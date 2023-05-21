@@ -28,11 +28,11 @@ from .common import *
 from ..operations.loadarray import LoadArray
 from ..operations.loadarray import SaveArray
 from ..operations.loadarray import NewArray
-def OnClickStartAction(self, event):
-	if self.pipeline_started == False:
-		self.pipeline_started = True
-		self.citer_flow[7] = int(self.nthreads.value.GetValue())
-		self.pipeline_exec_idx = 0
+class Action():
+	def __init__(self):
+		self.clean_init = 0
+		self.total_iter = 0
+	def DisableItems(self):
 		self.maintree.Enable(False)
 		self.maintree.Refresh()
 		self.mainlist.Enable(False)
@@ -46,22 +46,23 @@ def OnClickStartAction(self, event):
 				self.pipelineitems[i].Enable(False)
 				self.pipelineitems[i].Refresh()
 				break
-		clean_init = 0
-		self.total_iter = 0
-		if len(self.pipelineitems) == 0:
-			dlg = wx.MessageDialog(self, "There are no items in the pipeline. Please add items as needed.", "Pipeline Message", wx.OK)
-			dlg.ShowModal()
-			dlg.Destroy()
-			self.pipeline_started = False
-			self.maintree.Enable(True)
-			self.maintree.Refresh()
-			self.mainlist.Enable(True)
-			self.mainlist.Refresh()
-			self.spin_up.Enable(True)
-			self.spin_down.Enable(True)
-			self.spin_up.Refresh()
-			self.spin_down.Refresh()
-			return
+	def EnableItems(self):
+		self.maintree.Enable(True)
+		self.maintree.Refresh()
+		self.mainlist.Enable(True)
+		self.mainlist.Refresh()
+		self.spin_up.Enable(True)
+		self.spin_down.Enable(True)
+		self.spin_up.Refresh()
+		self.spin_down.Refresh()
+		for i in range(len(self.pipelineitems)):
+			self.pipelineitems[i].Enable(True)
+			self.pipelineitems[i].Refresh()
+	def UserMsg(self, msg = "", msghead = "Pipeline Message"):
+		dlg = wx.MessageDialog(self, msg, msghead, wx.OK)
+		dlg.ShowModal()
+		dlg.Destroy()
+	def SetIters(self):
 		for i in range(len(self.pipelineitems)):
 			if self.mainlist.IsChecked(i):
 				if self.pipelineitems[i].treeitem['type'] == 'algsstart' or self.pipelineitems[i].treeitem['type'] == 'operpost':
@@ -69,6 +70,7 @@ def OnClickStartAction(self, event):
 				elif self.pipelineitems[i].treeitem['type'] == 'algs':
 					self.pipelineitems[i].start_iter = self.total_iter
 					self.total_iter += int(self.pipelineitems[i].niter.value.GetValue())
+	def SetResid(self):
 		try:
 			residual_length = self.residual.shape[0]
 		except AttributeError:
@@ -76,6 +78,7 @@ def OnClickStartAction(self, event):
 		else:
 			if self.total_iter != residual_length:
 				self.residual = numpy.zeros(self.total_iter, dtype=numpy.double)
+	def SetAlgData(self):
 		for i in range(len(self.pipelineitems)):
 			if self.mainlist.IsChecked(i):
 				if self.pipelineitems[i].treeitem['type'] == 'algs':
@@ -84,24 +87,20 @@ def OnClickStartAction(self, event):
 					try:
 						tmp_npy_array = LoadArray(self, tmp_npy_array_path)
 					except:
-						dlg = wx.MessageDialog(self, "Could not load array for sequence."+os.linesep+"Please check the log.", "Pipeline Message", wx.OK)
-						dlg.ShowModal()
-						dlg.Destroy()
-						clean_init = 1
+						self.UserMsg(msg = "Could not load array for sequence."+os.linesep+"Please check the log.")
+						self.clean_init = 1
 						break
 					if self.seqdata is None:
 						self.queue_info.put("Creating sequence data")
 						try:
 							self.seqdata =  NewArray(self, *tmp_npy_array.shape)
 						except:
-							clean_init = 1
+							self.clean_init = 1
 							break
 						SaveArray(self, "memorysequence", self.seqdata)
 					elif tmp_npy_array.shape != self.seqdata.shape:
-						dlg = wx.MessageDialog(self, "Array and sequence dimensions are inconsistent."+os.linesep+"You may need to start a new session.", "Pipeline Message", wx.OK)
-						dlg.ShowModal()
-						dlg.Destroy()
-						clean_init = 1
+						self.UserMsg(msg = "Array and sequence dimensions are inconsistent."+os.linesep+"You may need to start a new session.")
+						self.clean_init = 1
 						break
 					tmp_npy_array = None
 					if self.chkbox_phase.GetValue() == True:
@@ -113,7 +112,7 @@ def OnClickStartAction(self, event):
 							try:
 								self.visual_amp_real =  NewArray(self, *self.seqdata.shape, type=1, val=1)
 							except:
-								clean_init = 1
+								self.clean_init = 1
 								break
 						self.citer_flow[3] = int(self.amp_real_update_interval.value.GetValue())
 						if self.chkbox_phase.GetValue() == True:
@@ -121,7 +120,7 @@ def OnClickStartAction(self, event):
 								try:
 									self.visual_phase_real =  NewArray(self, *self.seqdata.shape, type=1, val=1)
 								except:
-									clean_init = 1
+									self.clean_init = 1
 									break
 						else:
 							self.visual_phase_real = None
@@ -134,7 +133,7 @@ def OnClickStartAction(self, event):
 							try:
 								self.visual_support =  NewArray(self, *self.seqdata.shape, type=1, val=1)
 							except:
-								clean_init = 1
+								self.clean_init = 1
 								break
 						self.citer_flow[4] = int(self.support_update_interval.value.GetValue())
 					else:
@@ -145,7 +144,7 @@ def OnClickStartAction(self, event):
 							try:
 								self.visual_amp_recip =  NewArray(self, *self.seqdata.shape, type=1, val=1)
 							except:
-								clean_init = 1
+								self.clean_init = 1
 								break
 						self.citer_flow[5] = int(self.amp_recip_update_interval.value.GetValue())
 						if self.chkbox_phase.GetValue() == True:
@@ -153,7 +152,7 @@ def OnClickStartAction(self, event):
 								try:
 									self.visual_phase_recip =  NewArray(self, *self.seqdata.shape, type=1, val=1)
 								except:
-									clean_init = 1
+									self.clean_init = 1
 									break
 						else:
 							self.visual_phase_recip = None
@@ -162,137 +161,123 @@ def OnClickStartAction(self, event):
 						self.visual_phase_recip = None
 						self.citer_flow[5] = 0
 					break
-		self.citer_flow[0] = 0
-		self.citer_flow[1] = 0
-		self.citer_flow[2] = 0
-		if clean_init != 0:
-			self.pipeline_started = False
-			self.maintree.Enable(True)
-			self.maintree.Refresh()
-			self.mainlist.Enable(True)
-			self.mainlist.Refresh()
-			self.spin_up.Enable(True)
-			self.spin_down.Enable(True)
-			self.spin_up.Refresh()
-			self.spin_down.Refresh()
-			for j in range(len(self.pipelineitems)):
-				self.pipelineitems[j].Enable(True)
-				self.pipelineitems[j].Refresh()
+	def OrderedSequence(self, event):
+		if self.citer_flow[1] == 2 or self.pipeline_started == False:
+			self.sequence_timer.Stop()
+			self.EnableItems()
+			self.ancestor.GetPage(2).data_poll_timer.Stop()
+			if self.citer_flow[1] < 2:
+				self.queue_info.put("Pipeline Complete.")
+			self.ancestor.GetPage(4).UpdateLog(None)
 			return
-		def OrderedSequence(event):
-			if self.citer_flow[1] == 2 or self.pipeline_started == False:
-				self.sequence_timer.Stop()
-				self.maintree.Enable(True)
-				self.maintree.Refresh()
-				self.mainlist.Enable(True)
-				self.mainlist.Refresh()
-				self.spin_up.Enable(True)
-				self.spin_down.Enable(True)
-				self.spin_up.Refresh()
-				self.spin_down.Refresh()
-				for j in range(len(self.pipelineitems)):
-					self.pipelineitems[j].Enable(True)
-					self.pipelineitems[j].Refresh()
-				self.ancestor.GetPage(2).data_poll_timer.Stop()
-				if self.citer_flow[1] < 2:
-					self.queue_info.put("Pipeline Complete.")
-				self.ancestor.GetPage(4).UpdateLog(None)
-				return
-			if self.pipeline_exec_idx < len(self.pipelineitems):
-				object = self.pipelineitems[self.pipeline_exec_idx]
-				if self.mainlist.IsChecked(self.pipeline_exec_idx):
-					if hasattr(object, 'treeitem') and self.thread_register.empty():
-						if object.treeitem['type'] == 'operpreview':
-							self.pipeline_exec_idx += 1
-						elif object.treeitem['type'] == 'operpre' or object.treeitem['type'] == 'importtools' or object.treeitem['type'] == 'exporttools':
-							def RunUnthreaded(objectsequence, self, object):
-								objectsequence(self, object)
-								self.thread_register.get()
-							self.thread_register.put(1)
-							thd = threading.Thread(target=RunUnthreaded, args=(object.sequence, self, object))
-							thd.daemon = True
-							thd.start()
-							self.pipeline_exec_idx += 1
-						elif (object.treeitem['type'] == 'algs' or object.treeitem['type'] == 'algsstart'):
-							object.sequence(self,object)
-							self.pipeline_exec_idx += 1
-						elif object.treeitem['type'] == 'operpost':
-							object.sequence(self,object)
-							self.pipeline_exec_idx += 1
-				else:
-					self.pipeline_exec_idx += 1
-			elif (self.pipeline_exec_idx == len(self.pipelineitems) and (self.citer_flow[0] == self.total_iter or self.total_iter == 0) and self.thread_register.empty()):
+		if self.pipeline_exec_idx < len(self.pipelineitems):
+			object = self.pipelineitems[self.pipeline_exec_idx]
+			if self.mainlist.IsChecked(self.pipeline_exec_idx):
+				if hasattr(object, 'treeitem') and self.thread_register.empty():
+					if object.treeitem['type'] == 'operpreview':
+						self.pipeline_exec_idx += 1
+					elif object.treeitem['type'] == 'operpre' or object.treeitem['type'] == 'importtools' or object.treeitem['type'] == 'exporttools':
+						def RunUnthreaded(objectsequence, self, object):
+							objectsequence(self, object)
+							self.thread_register.get()
+						self.thread_register.put(1)
+						thd = threading.Thread(target=RunUnthreaded, args=(object.sequence, self, object))
+						thd.daemon = True
+						thd.start()
+						self.pipeline_exec_idx += 1
+					elif (object.treeitem['type'] == 'algs' or object.treeitem['type'] == 'algsstart'):
+						object.sequence(self,object)
+						self.pipeline_exec_idx += 1
+					elif object.treeitem['type'] == 'operpost':
+						object.sequence(self,object)
+						self.pipeline_exec_idx += 1
+			else:
+				self.pipeline_exec_idx += 1
+		elif (self.pipeline_exec_idx == len(self.pipelineitems) and (self.citer_flow[0] == self.total_iter or self.total_iter == 0) and self.thread_register.empty()):
+			self.pipeline_started = False
+	def OnClickStart(self, event):
+		if self.pipeline_started == False:
+			self.pipeline_started = True
+			self.citer_flow[7] = int(self.nthreads.value.GetValue())
+			self.pipeline_exec_idx = 0
+			self.DisableItems()
+			self.clean_init = 0
+			self.total_iter = 0
+			if len(self.pipelineitems) == 0:
+				self.UserMsg(msg = "There are no items in the pipeline. Please add items as needed.")
 				self.pipeline_started = False
-		self.ancestor.GetPage(4).data_poll_timer.Start(1000)
-		if clean_init == 0:
-			self.sequence_timer = wx.Timer(self)
-			self.Bind(wx.EVT_TIMER, OrderedSequence, self.sequence_timer)
-			self.sequence_timer.Start(1000)
-			if self.total_iter > 0 :
-				self.ancestor.GetPage(2).data_poll_timer.Start(1000)
-		else:
-			self.pipeline_started = False
-			return
-def OnClickPauseAction(self, event):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 0:
-			self.citer_flow[1] = 1
-			self.button_pause.SetBitmapLabel(getpause482Bitmap())
-			self.ancestor.GetPage(1).button_pause.SetBitmapLabel(getpause2Bitmap())
-			try:
-				self.sequence_timer.Stop()
-				self.ancestor.GetPage(2).data_poll_timer.Stop()
-				self.ancestor.GetPage(4).data_poll_timer.Stop()
-			except:
-				pass
-		else:
+				self.EnableItems()
+				return
+			self.SetIters()
+			self.SetResid()
+			self.SetAlgData()
+			self.citer_flow[0] = 0
 			self.citer_flow[1] = 0
-			self.button_pause.SetBitmapLabel(getpause48Bitmap())
-			self.ancestor.GetPage(1).button_pause.SetBitmapLabel(getpauseBitmap())
-			try:
+			self.citer_flow[2] = 0
+			if self.clean_init != 0:
+				self.pipeline_started = False
+				self.EnableItems()
+				return
+			self.ancestor.GetPage(4).data_poll_timer.Start(1000)
+			if self.clean_init == 0:
+				self.sequence_timer = wx.Timer(self)
+				self.Bind(wx.EVT_TIMER, self.OrderedSequence, self.sequence_timer)
+				self.sequence_timer.Start(1000)
+				if self.total_iter > 0 :
+					self.ancestor.GetPage(2).data_poll_timer.Start(1000)
+			else:
+				self.pipeline_started = False
+				return
+	def OnClickPause(self, event):
+		if self.pipeline_started == True:
+			if self.citer_flow[1] == 0:
+				self.citer_flow[1] = 1
+				self.button_pause.SetBitmapLabel(getpause482Bitmap())
+				self.ancestor.GetPage(1).button_pause.SetBitmapLabel(getpause2Bitmap())
+				try:
+					self.sequence_timer.Stop()
+					self.ancestor.GetPage(2).data_poll_timer.Stop()
+					self.ancestor.GetPage(4).data_poll_timer.Stop()
+				except:
+					pass
+			else:
+				self.citer_flow[1] = 0
+				self.button_pause.SetBitmapLabel(getpause48Bitmap())
+				self.ancestor.GetPage(1).button_pause.SetBitmapLabel(getpauseBitmap())
+				try:
+					self.sequence_timer.Start(1000)
+					self.ancestor.GetPage(4).data_poll_timer.Start(1000)
+					if self.total_iter > 0:
+						self.ancestor.GetPage(2).data_poll_timer.Start(1000)
+				except:
+					pass
+	def OnClickStop(self, event):
+		if self.pipeline_started == True:
+			if self.citer_flow[1] == 1:
 				self.sequence_timer.Start(1000)
 				self.ancestor.GetPage(4).data_poll_timer.Start(1000)
 				if self.total_iter > 0:
 					self.ancestor.GetPage(2).data_poll_timer.Start(1000)
-			except:
-				pass
-def OnClickStopAction(self, event):
-	if self.pipeline_started == True:
-		if self.citer_flow[1] == 1:
-			self.sequence_timer.Start(1000)
-			self.ancestor.GetPage(4).data_poll_timer.Start(1000)
-			if self.total_iter > 0:
-				self.ancestor.GetPage(2).data_poll_timer.Start(1000)
-		if self.citer_flow[1] < 2:
-			self.citer_flow[1] = 2
-			self.pipeline_started = False
-			self.button_pause.SetBitmapLabel(getpause48Bitmap())
-			self.ancestor.GetPage(1).button_pause.SetBitmapLabel(getpauseBitmap())
-			self.citer_flow[3] = 0
-			self.citer_flow[4] = 0
-			self.citer_flow[5] = 0
-			def ThreadClean(self):
-				while len(enumerate()) > 2:
-					sleep(0.1)
-				wx.CallAfter(self.OnClickFinal,)
-			self.thread = threading.Thread(target=ThreadClean, args=(self,))
-			self.thread.daemon = True
-			self.thread.start()
-def OnClickFinalAction(self):
-	self.sequence_timer.Stop()
-	self.ancestor.GetPage(2).data_poll_timer.Stop()
-	self.ancestor.GetPage(4).data_poll_timer.Stop()
-	self.maintree.Enable(True)
-	self.maintree.Refresh()
-	self.mainlist.Enable(True)
-	self.mainlist.Refresh()
-	self.spin_up.Enable(True)
-	self.spin_down.Enable(True)
-	self.spin_up.Refresh()
-	self.spin_down.Refresh()
-	for i in range(len(self.pipelineitems)):
-		self.pipelineitems[i].Enable(True)
-		self.pipelineitems[i].Refresh()
-	self.queue_info.put("Sequence halted.")
-	self.queue_info.put("Pipeline Complete.")
-	self.ancestor.GetPage(4).UpdateLog(None)
+			if self.citer_flow[1] < 2:
+				self.citer_flow[1] = 2
+				self.pipeline_started = False
+				self.button_pause.SetBitmapLabel(getpause48Bitmap())
+				self.ancestor.GetPage(1).button_pause.SetBitmapLabel(getpauseBitmap())
+				self.citer_flow[3] = 0
+				self.citer_flow[4] = 0
+				self.citer_flow[5] = 0
+				def ThreadClean(self):
+					while len(enumerate()) > 2:
+						sleep(0.1)
+					wx.CallAfter(self.OnClickFinal,)
+				self.thread = threading.Thread(target=ThreadClean, args=(self,))
+				self.thread.daemon = True
+				self.thread.start()
+	def OnClickFinal(self):
+		self.sequence_timer.Stop()
+		self.ancestor.GetPage(2).data_poll_timer.Stop()
+		self.ancestor.GetPage(4).data_poll_timer.Stop()
+		self.EnableItems()
+		self.queue_info.put("Sequence halted.")
+		self.queue_info.put("Pipeline Complete.")
+		self.ancestor.GetPage(4).UpdateLog(None)

@@ -651,7 +651,7 @@ class LineScan():
 		image.Modified()
 		return image
 	def NumpyCoordsToVTK(self, ar, coords, phase=False):
-		shp = numpy.array(ar.shape, dtype=numpy.int)
+		shp = numpy.array(ar.shape, dtype=numpy.int64)
 		if phase:
 			flat_data= (numpy.angle(ar)).transpose(2,1,0).flatten();
 		else:

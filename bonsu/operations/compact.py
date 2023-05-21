@@ -24,13 +24,13 @@ def CompactArray(array, amp):
 	if array.shape[2] == 1:
 		pass
 	else:
-		x_yz = numpy.ones((2,dims[1],dims[2]), dtype=numpy.int)
+		x_yz = numpy.ones((2,dims[1],dims[2]), dtype=numpy.int64)
 		x_yz[0,:,:] = dims[0] # low set to highest
 		x_yz[1,:,:] = 0 # high set to low
-		y_xz = numpy.ones((2,dims[0],dims[2]), dtype=numpy.int)
+		y_xz = numpy.ones((2,dims[0],dims[2]), dtype=numpy.int64)
 		y_xz[0,:,:] = dims[1] # low set to highest
 		y_xz[1,:,:] = 0 # high set to low
-		z_xy = numpy.ones((2,dims[0],dims[1]), dtype=numpy.int)
+		z_xy = numpy.ones((2,dims[0],dims[1]), dtype=numpy.int64)
 		z_xy[0,:,:] = dims[2] # low set to highest
 		z_xy[1,:,:] = 0 # high set to low
 		#

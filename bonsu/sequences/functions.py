@@ -679,7 +679,7 @@ def Sequence_Bin(\
 			nx = (shp[0]+binx -1)//binx
 			ny = (shp[1]+biny -1)//biny
 			nz = (shp[2]+binz -1)//binz
-			nshp = numpy.array((nx, ny, nz),dtype=numpy.int)
+			nshp = numpy.array((nx, ny, nz),dtype=numpy.int64)
 			try:
 				arraybin = NewArray(self,nx,ny,nz)
 			except:
@@ -1084,7 +1084,7 @@ def Sequence_Cuboid_Support(\
 				self.pipeline_started = False
 				return
 			else:
-				x,y,z = numpy.asarray(fromarray.shape, numpy.int)
+				x,y,z = numpy.asarray(fromarray.shape, numpy.int64)
 		elif (sx> x or sy > y or sz > z):
 			msg = "Invalid support dimensions."
 			wx.CallAfter(self.UserMessage, title, msg)
@@ -1163,7 +1163,7 @@ def Sequence_Polyhedron_Support(\
 				self.pipeline_started = False
 				return
 			support = numpy.asarray(fromarray, dtype=numpy.cdouble, order='C')
-			x,y,z = numpy.asarray( support.shape, numpy.int)
+			x,y,z = numpy.asarray( support.shape, numpy.int64)
 		try:
 			support = NewArray(self,x,y,z)
 		except:
@@ -1221,7 +1221,7 @@ def Sequence_Empty_Array(\
 				self.pipeline_started = False
 				return
 			else:
-				x,y,z = numpy.asarray(fromarray.shape, numpy.int)
+				x,y,z = numpy.asarray(fromarray.shape, numpy.int64)
 		try:
 			emptyarray = NewArray(self,x,y,z)
 		except:
@@ -1392,7 +1392,7 @@ def Sequence_InterpolateObject(\
 			cbounds[i] = float(pipelineitem.bounds[i].value.GetValue())
 		irange =  float(pipelineitem.interp_range.value.GetValue())
 		def Interpolate(self):
-			shp = numpy.array(data.shape, dtype=numpy.int)
+			shp = numpy.array(data.shape, dtype=numpy.int64)
 			vtk_coordarray = numpy_support.numpy_to_vtk(coords)
 			vtk_points = vtk.vtkPoints()
 			vtk_points.SetDataTypeToDouble()
@@ -1444,7 +1444,7 @@ def Sequence_InterpolateObject(\
 				self.pipeline_started = False
 			self.thread_register.get()
 		try:
-			test_array = numpy.zeros([x,y,z], dtype=numpy.float)
+			test_array = numpy.zeros([x,y,z], dtype=numpy.float64)
 		except:
 			msg = "Array dimensions are too large for the available memory."
 			wx.CallAfter(self.UserMessage, title, msg)
@@ -2961,7 +2961,7 @@ def Sequence_Transform(\
 			else:
 				array = self.seqdata
 		def Transform(self):
-			shp = numpy.array(array.shape, dtype=numpy.int)
+			shp = numpy.array(array.shape, dtype=numpy.int64)
 			R = float(pipelineitem.armln.value.GetValue())
 			binx =  float(pipelineitem.bdims[0].value.GetValue())
 			biny =  float(pipelineitem.bdims[1].value.GetValue())
@@ -3093,7 +3093,7 @@ def Sequence_View_Object(self, ancestor):
 		maxval = numpy.abs(data).max()
 		if contour > maxval: contour = CNTR_CLIP*maxval;
 		feature_angle = float(self.feature_angle.value.GetValue())
-		shp = numpy.array(data.shape, dtype=numpy.int)
+		shp = numpy.array(data.shape, dtype=numpy.int64)
 		panelvisual.flat_data= (numpy.abs(data)).transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(panelvisual.flat_data)
 		panelvisual.vtk_coordarray = numpy_support.numpy_to_vtk(panelvisual.coords)
@@ -3200,7 +3200,7 @@ def Sequence_View_Object(self, ancestor):
 		nx = float(self.nx.value.GetValue())
 		ny = float(self.ny.value.GetValue())
 		nz = float(self.nz.value.GetValue())
-		shp = numpy.array(data.shape, dtype=numpy.int)
+		shp = numpy.array(data.shape, dtype=numpy.int64)
 		panelvisual.flat_data= (numpy.angle(data)).transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(panelvisual.flat_data)
 		panelvisual.vtk_coordarray = numpy_support.numpy_to_vtk(panelvisual.coords)
@@ -3296,7 +3296,7 @@ def Sequence_View_Object(self, ancestor):
 		nx = float(self.nx.value.GetValue())
 		ny = float(self.ny.value.GetValue())
 		nz = float(self.nz.value.GetValue())
-		shp = numpy.array(data.shape, dtype=numpy.int)
+		shp = numpy.array(data.shape, dtype=numpy.int64)
 		panelvisual.flat_data = (numpy.abs(data)).transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(panelvisual.flat_data)
 		panelvisual.vtk_coordarray = numpy_support.numpy_to_vtk(panelvisual.coords)
@@ -3437,7 +3437,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.flat_data_phase= (numpy.angle(data)).transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array_phase = numpy_support.numpy_to_vtk(panelvisual.flat_data_phase)
 		panelvisual.vtk_data_array_phase.SetName("mapscalar")
-		shp = numpy.array(data.shape, dtype=numpy.int)
+		shp = numpy.array(data.shape, dtype=numpy.int64)
 		panelvisual.flat_data= (numpy.abs(data)).transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(panelvisual.flat_data)
 		panelvisual.vtk_coordarray = numpy_support.numpy_to_vtk(panelvisual.coords)
@@ -3548,7 +3548,7 @@ def Sequence_View_Object(self, ancestor):
 		nx = float(self.nx.value.GetValue())
 		ny = float(self.ny.value.GetValue())
 		nz = float(self.nz.value.GetValue())
-		shp = numpy.array(data.shape, dtype=numpy.int)
+		shp = numpy.array(data.shape, dtype=numpy.int64)
 		panelvisual.flat_data= (numpy.abs(data)).transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(panelvisual.flat_data)
 		panelvisual.vtk_coordarray = numpy_support.numpy_to_vtk(panelvisual.coords)
@@ -3641,7 +3641,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.flat_data_phase= (numpy.angle(data)).transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array_phase = numpy_support.numpy_to_vtk(panelvisual.flat_data_phase)
 		panelvisual.vtk_data_array_phase.SetName("mapscalar")
-		shp = numpy.array(data.shape, dtype=numpy.int)
+		shp = numpy.array(data.shape, dtype=numpy.int64)
 		panelvisual.flat_data= (numpy.abs(data)).transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(panelvisual.flat_data)
 		panelvisual.vtk_coordarray = numpy_support.numpy_to_vtk(panelvisual.coords)
@@ -3840,7 +3840,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.flat_data_phase= qcolourdata.transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array_phase = numpy_support.numpy_to_vtk(panelvisual.flat_data_phase)
 		panelvisual.vtk_data_array_phase.SetName("mapscalar")
-		shp = numpy.array(data.shape, dtype=numpy.int)
+		shp = numpy.array(data.shape, dtype=numpy.int64)
 		panelvisual.flat_data= (numpy.abs(data)).transpose(2,1,0).flatten();
 		panelvisual.vtk_data_array = numpy_support.numpy_to_vtk(panelvisual.flat_data)
 		panelvisual.vtk_coordarray = numpy_support.numpy_to_vtk(panelvisual.coords)

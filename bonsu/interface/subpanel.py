@@ -675,8 +675,8 @@ class SubPanel_NEXUSView(wx.ScrolledWindow):
 				timesec = timesec.flatten()
 				dtime = timesec[-1] - timesec[0]
 				d['timetotalsec'] = dtime
-				d['timehours'] = numpy.int(numpy.floor(dtime/3600))
-				d['timemin'] = numpy.int(numpy.floor(numpy.remainder(dtime,3600)/60))
+				d['timehours'] = numpy.int64(numpy.floor(dtime/3600))
+				d['timemin'] = numpy.int64(numpy.floor(numpy.remainder(dtime,3600)/60))
 				d['timesec'] = numpy.remainder(numpy.remainder(dtime,3600),60)
 			self.motors = []
 			f.get('entry1').get('before_scan').visititems(self.IterateH5)
@@ -872,7 +872,7 @@ class LoadNexusPlotDialog(wx.Dialog):
 		self.imgarraysum = imgarraysum
 		self.datashape = self.imgarraypath.shape
 		self.n = imgarraysum.ndim
-		self.xyz = numpy.ones(3, dtype=numpy.int)
+		self.xyz = numpy.ones(3, dtype=numpy.int64)
 		for i in range(self.n):
 			self.xyz[i] = self.datashape[i]
 		vbox = wx.BoxSizer(wx.VERTICAL)

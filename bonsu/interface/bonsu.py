@@ -23,7 +23,7 @@ __maintainer__ = "Marcus C. Newton"
 __copyright__ = "Copyright 2011 - 2023 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "3.6.1"
+__version__ = "3.6.2"
 __appname__ = "Bonsu"
 __email__ = "Bonsu.Devel@gmail.com"
 __website__ = "github.com/bonsudev/bonsu"
@@ -287,9 +287,15 @@ class MainWindow(wx.Frame):
 		self.nb.GetPage(1).OnLightSelect(None)
 class main():
 	def __init__(self):
+		self.Start()
+	def Start(self):
 		app = wx.App()
 		if hasattr(app, 'GTKSuppressDiagnostics'):
 			app.GTKSuppressDiagnostics()
+		self.SetFrame()
+		self.ShowFrame()
+		app.MainLoop()
+	def SetFrame(self):
 		self.frame = MainWindow(None, "Bonsu - The Interactive Phase Retrieval Suite")
 		self.nb = wx.Notebook(self.frame)
 		self.nb.AddPage(PanelPhase(self.nb), "Phasing Pipeline")
@@ -303,8 +309,9 @@ class main():
 		self.frame.SetSizer(self.frame.sizer)
 		self.frame.Fit()
 		self.frame.Layout()
-		self.frame.Show()
 		self.frame.OnFileArg()
-		app.MainLoop()
+	def ShowFrame(self):
+		self.frame.Enable(True)
+		self.frame.Show()
 if __name__ == '__main__':
 	main_app = main()

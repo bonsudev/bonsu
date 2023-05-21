@@ -1,6 +1,14 @@
 
 ## Version History
 
+#### Version 3.6.2 🗓 ️(21/05/2023)
+
+	✨ Pipeline item duplication and shortcuts.
+	✨ Pipeline item sorting shortcuts.
+	✨ Revise action script.
+	✨ Remove deprecated NumPy data types.
+	🔧 Minor bug fixes.
+
 
 #### Version 3.6.1 🗓 ️(12/03/2023)
 
