@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: phasing/ER.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -28,13 +28,10 @@ class ER(PhaseAbstract):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self, parent)
-		from ..lib.prfftw import er
-		self.algorithm = er
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,\
-		self.startiter,self.numiter,self.ndim,self.rho_m1,self.nn,self.residual,self.citer_flow,\
-		self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-		self.updatereal,self.updaterecip,self.updatelog)
+		from ..lib.prutillib import rser
+		self._rser = rser
+	def RSCons(self):
+		self._rser(self.seqdata, self.rho_m1, self.support, self.nthreads)
 class SWER(ER,ShrinkWrap):
 	"""
 	Error Reduction (ER) algorithm.
@@ -49,14 +46,10 @@ class ERMask(PhaseAbstract):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self, parent)
-		from ..lib.prfftw import ermask
-		self.algorithm = ermask
-		self.numiter_relax = 0
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,\
-		self.startiter,self.numiter,self.ndim,self.rho_m1,self.nn,self.residual,self.citer_flow,\
-		self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-		self.updatereal,self.updaterecip,self.updatelog,self.numiter_relax)
+		from ..lib.prutillib import rser
+		self._rser = rser
+	def RSCons(self):
+		self._rser(self.seqdata, self.rho_m1, self.support, self.nthreads)
 class SWERMask(ERMask,ShrinkWrap):
 	"""
 	Error Reduction (ER) algorithm with the addition of a Fourier space constraint mask.
@@ -71,32 +64,20 @@ class POER(PhaseAbstract):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self, parent)
-		from ..lib.prfftw import poermask
-		self.algorithm = poermask
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,\
-		self.startiter,self.numiter,self.ndim,self.rho_m1,self.nn,self.residual,self.citer_flow,\
-		self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-		self.updatereal,self.updaterecip,self.updatelog)
+		from ..lib.prutillib import rspoer
+		self._rspoer = rspoer
+	def RSCons(self):
+		self._rspoer(self.seqdata, self.rho_m1, self.support, self.nthreads)
 class ERMaskPC(PhaseAbstractPC):
 	"""
 	ER Mask with Partial Coherence Optimisation algorithm.
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstractPC.__init__(self, parent)
-		from ..lib.prfftw import ermaskpc
-		self.algorithm = ermaskpc
-	def Algorithm(self):
-		SeqArrayObjects = [self.seqdata,self.expdata,self.support,self.mask,self.psf,\
-									self.rho_m1,self.pca_inten,self.pca_rho_m1_ft,self.pca_Idm_iter,\
-									self.pca_Idmdiv_iter,self.pca_IdmdivId_iter,self.tmpdata1,self.tmpdata2,\
-									self.nn,self.ndim, self.nn2,self.startiter,self.numiter,self.citer_flow]
-		SeqObjects = [self.residual,self.residualRL,\
-								self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-								self.updatereal,self.updaterecip, self.updatelog, self.updatelog2,\
-								self.gammaHWHM, self.reset_gamma, self.niterrl, self.niterrlpre, self.niterrlinterval, self.ze[0], self.ze[1], self.ze[2],\
-								self.accel]
-		self.algorithm(SeqObjects,SeqArrayObjects)
+		from ..lib.prutillib import rser
+		self._rser = rser
+	def RSCons(self):
+		self._rser(self.seqdata, self.rho_m1, self.support, self.nthreads)
 class SWERMaskPC(ERMaskPC,ShrinkWrap):
 	"""
 	ER Mask with Partial Coherence Optimisation algorithm.
@@ -107,4 +88,5 @@ class SWERMaskPC(ERMaskPC,ShrinkWrap):
 		ShrinkWrap.__init__(self)
 	def Start(self):
 		self.SetNumiterRLpre(self.niterrlpretmp - self.startiter)
-		self.Algorithm()
+		if self.citer_flow[1] == 0:
+			self.Phase()

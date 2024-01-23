@@ -1,6 +1,16 @@
 
 ## Version History
 
+#### Version 3.7.0 🗓 ️(23/01/2024)
+
+	✨ Revised algorithm interface using Cython.
+	✨ Single and double precision phasing.
+	✨ Multiple vector viewer.
+	✨ Multiple plane viewer.
+	✨ Scale Array Dims function.
+	🔧 Minor bug fixes.
+
+
 #### Version 3.6.2 🗓 ️(21/05/2023)
 
 	✨ Pipeline item duplication and shortcuts.

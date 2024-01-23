@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: action.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -32,32 +32,6 @@ class Action():
 	def __init__(self):
 		self.clean_init = 0
 		self.total_iter = 0
-	def DisableItems(self):
-		self.maintree.Enable(False)
-		self.maintree.Refresh()
-		self.mainlist.Enable(False)
-		self.mainlist.Refresh()
-		self.spin_up.Enable(False)
-		self.spin_down.Enable(False)
-		self.spin_up.Refresh()
-		self.spin_down.Refresh()
-		for i in range(len(self.pipelineitems)):
-			if self.pipelineitems[i].IsShown():
-				self.pipelineitems[i].Enable(False)
-				self.pipelineitems[i].Refresh()
-				break
-	def EnableItems(self):
-		self.maintree.Enable(True)
-		self.maintree.Refresh()
-		self.mainlist.Enable(True)
-		self.mainlist.Refresh()
-		self.spin_up.Enable(True)
-		self.spin_down.Enable(True)
-		self.spin_up.Refresh()
-		self.spin_down.Refresh()
-		for i in range(len(self.pipelineitems)):
-			self.pipelineitems[i].Enable(True)
-			self.pipelineitems[i].Refresh()
 	def UserMsg(self, msg = "", msghead = "Pipeline Message"):
 		dlg = wx.MessageDialog(self, msg, msghead, wx.OK)
 		dlg.ShowModal()
@@ -85,7 +59,10 @@ class Action():
 					tmp_npy_array_path = self.pipelineitems[i].exp_amps.objectpath.GetValue()
 					tmp_npy_array = None
 					try:
-						tmp_npy_array = LoadArray(self, tmp_npy_array_path)
+						if self.chkbox_precision.GetValue() == True:
+							tmp_npy_array = LoadArray(self, tmp_npy_array_path, dtype=numpy.csingle)
+						else:
+							tmp_npy_array = LoadArray(self, tmp_npy_array_path, dtype=numpy.cdouble)
 					except:
 						self.UserMsg(msg = "Could not load array for sequence."+os.linesep+"Please check the log.")
 						self.clean_init = 1
@@ -93,7 +70,10 @@ class Action():
 					if self.seqdata is None:
 						self.queue_info.put("Creating sequence data")
 						try:
-							self.seqdata =  NewArray(self, *tmp_npy_array.shape)
+							if self.chkbox_precision.GetValue() == True:
+								self.seqdata =  NewArray(self, *tmp_npy_array.shape, dtype=numpy.csingle)
+							else:
+								self.seqdata =  NewArray(self, *tmp_npy_array.shape, dtype=numpy.cdouble)
 						except:
 							self.clean_init = 1
 							break
@@ -110,7 +90,7 @@ class Action():
 					if self.chkbox_amp_real.GetValue() == True:
 						if self.visual_amp_real is None:
 							try:
-								self.visual_amp_real =  NewArray(self, *self.seqdata.shape, type=1, val=1)
+								self.visual_amp_real =  NewArray(self, *self.seqdata.shape, dtype=numpy.double, val=1)
 							except:
 								self.clean_init = 1
 								break
@@ -118,7 +98,7 @@ class Action():
 						if self.chkbox_phase.GetValue() == True:
 							if self.visual_phase_real is None:
 								try:
-									self.visual_phase_real =  NewArray(self, *self.seqdata.shape, type=1, val=1)
+									self.visual_phase_real =  NewArray(self, *self.seqdata.shape, dtype=numpy.double, val=1)
 								except:
 									self.clean_init = 1
 									break
@@ -131,7 +111,7 @@ class Action():
 					if self.chkbox_support.GetValue() == True:
 						if self.visual_support is None:
 							try:
-								self.visual_support =  NewArray(self, *self.seqdata.shape, type=1, val=1)
+								self.visual_support =  NewArray(self, *self.seqdata.shape, dtype=numpy.double, val=1)
 							except:
 								self.clean_init = 1
 								break
@@ -142,7 +122,7 @@ class Action():
 					if self.chkbox_amp_recip.GetValue() == True:
 						if self.visual_amp_recip is None:
 							try:
-								self.visual_amp_recip =  NewArray(self, *self.seqdata.shape, type=1, val=1)
+								self.visual_amp_recip =  NewArray(self, *self.seqdata.shape, dtype=numpy.double, val=1)
 							except:
 								self.clean_init = 1
 								break
@@ -150,7 +130,7 @@ class Action():
 						if self.chkbox_phase.GetValue() == True:
 							if self.visual_phase_recip is None:
 								try:
-									self.visual_phase_recip =  NewArray(self, *self.seqdata.shape, type=1, val=1)
+									self.visual_phase_recip =  NewArray(self, *self.seqdata.shape, dtype=numpy.double, val=1)
 								except:
 									self.clean_init = 1
 									break
@@ -164,7 +144,7 @@ class Action():
 	def OrderedSequence(self, event):
 		if self.citer_flow[1] == 2 or self.pipeline_started == False:
 			self.sequence_timer.Stop()
-			self.EnableItems()
+			self.EnablePanel(True)
 			self.ancestor.GetPage(2).data_poll_timer.Stop()
 			if self.citer_flow[1] < 2:
 				self.queue_info.put("Pipeline Complete.")
@@ -200,13 +180,13 @@ class Action():
 			self.pipeline_started = True
 			self.citer_flow[7] = int(self.nthreads.value.GetValue())
 			self.pipeline_exec_idx = 0
-			self.DisableItems()
+			self.EnablePanel(False)
 			self.clean_init = 0
 			self.total_iter = 0
 			if len(self.pipelineitems) == 0:
 				self.UserMsg(msg = "There are no items in the pipeline. Please add items as needed.")
 				self.pipeline_started = False
-				self.EnableItems()
+				self.EnablePanel(True)
 				return
 			self.SetIters()
 			self.SetResid()
@@ -214,9 +194,13 @@ class Action():
 			self.citer_flow[0] = 0
 			self.citer_flow[1] = 0
 			self.citer_flow[2] = 0
+			if self.chkbox_precision.GetValue() == True:
+				self.citer_flow[12] = 1
+			else:
+				self.citer_flow[12] = 0
 			if self.clean_init != 0:
 				self.pipeline_started = False
-				self.EnableItems()
+				self.EnablePanel(True)
 				return
 			self.ancestor.GetPage(4).data_poll_timer.Start(1000)
 			if self.clean_init == 0:
@@ -277,7 +261,7 @@ class Action():
 		self.sequence_timer.Stop()
 		self.ancestor.GetPage(2).data_poll_timer.Stop()
 		self.ancestor.GetPage(4).data_poll_timer.Stop()
-		self.EnableItems()
+		self.EnablePanel(True)
 		self.queue_info.put("Sequence halted.")
 		self.queue_info.put("Pipeline Complete.")
 		self.ancestor.GetPage(4).UpdateLog(None)

@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: HPR.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ def HPR\
 		numiter,
 		numiter_relax
 	):
-	from bonsu.phasing.HPR import HPR
+	from ..phasing.HPR import HPR
 	hpr = HPR(parent)
 	hpr.SetStartiter(startiter)
 	hpr.SetNumiter(numiter)
@@ -55,7 +55,7 @@ def HPRMaskPC\
 	reset_gamma,
 	accel
 	):
-	from bonsu.phasing.HPR import HPRPC
+	from ..phasing.HPR import HPRPC
 	hpr = HPRPC(parent)
 	hpr.SetStartiter(startiter)
 	hpr.SetNumiter(numiter)

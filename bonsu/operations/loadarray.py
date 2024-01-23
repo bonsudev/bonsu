@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: loadarray.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -70,47 +70,36 @@ def NameIsMem(name):
 			return True
 	else:
 		return False
-def NewArray(self,x,y,z, type=0, val=0):
+def NewArray(self,x,y,z, dtype=numpy.cdouble, val=0):
 	try:
-		if type == 0:
-			array = ByteAlignedArray(x,y,z)
-		elif type == 1:
-			if val == 1:
-				array = ByteAlignedArray(x,y,z, dtype=numpy.double, type=1)
-			else:
-				array = ByteAlignedArray(x,y,z, dtype=numpy.double)
+		if val > 0:
+			array = ByteAlignedArray(x,y,z, dtype=dtype, type=1)
+		else:
+			array = ByteAlignedArray(x,y,z, dtype=dtype)
 	except MemoryError:
 		self.ancestor.GetPage(0).queue_info.put("Could not create array. Insufficient memory.")
 		raise MemoryError
 	else:
 		return array
-def _NewArrayPair(x,y,z, type=0, alignment=32, order='C'):
+def _NewArrayPair(x,y,z, dtype=numpy.cdouble, alignment=32, order='C'):
 	size = x*y*z
 	size2 = size*2
-	if type == 0:
-		dtype=numpy.cdouble
-		pad = alignment // numpy.dtype(dtype).itemsize
-		buffer = numpy.empty(size2 + pad, dtype=dtype, order=order)
-		offset = (-buffer.ctypes.data % alignment) // numpy.dtype(dtype).itemsize
-		ar_align1 = buffer[offset:offset+size].reshape(x,y,z)
-		ar_align2 = buffer[offset+size:offset+size2].reshape(x,y,z)
-	elif type == 1:
-		dtype=numpy.double
-		pad = alignment // numpy.dtype(dtype).itemsize
-		buffer = numpy.empty(size2 + pad, dtype=dtype, order=order)
-		offset = (-buffer.ctypes.data % alignment) // numpy.dtype(dtype).itemsize
-		ar_align1 = buffer[offset:offset+size].reshape(x,y,z)
-		ar_align2 = buffer[offset+size:offset+size2].reshape(x,y,z)
+	pad = alignment // numpy.dtype(dtype).itemsize
+	buffer = numpy.empty(size2 + pad, dtype=dtype, order=order)
+	offset = (-buffer.ctypes.data % alignment) // numpy.dtype(dtype).itemsize
+	ar_align1 = buffer[offset:offset+size].reshape(x,y,z)
+	ar_align2 = buffer[offset+size:offset+size2].reshape(x,y,z)
 	return ar_align1,ar_align2
-def NewArrayPair(self,x,y,z, type=0, alignment=32, order='C'):
+def NewArrayPair(self,x,y,z, dtype=numpy.cdouble, alignment=32, order='C'):
 	try:
-		ar_align1,ar_align2 = _NewArrayPair(x,y,z, type=type, alignment=alignment, order=order)
+		ar_align1,ar_align2 = _NewArrayPair(x,y,z, dtype=dtype, alignment=alignment, order=order)
 	except MemoryError:
 		self.ancestor.GetPage(0).queue_info.put("Could not create array. Insufficient memory.")
 		raise MemoryError
 	else:
 		return ar_align1,ar_align2
-def LoadArray(self, filename):
+def LoadArray(self, filename, dtype=numpy.cdouble):
+	assert (dtype==numpy.cdouble or dtype==numpy.csingle)
 	if NameIsMem(filename):
 		if filename in self.memory:
 			array = ArTo3DNpy(self.memory[filename])
@@ -139,7 +128,7 @@ def LoadArray(self, filename):
 			raise IOError
 		else:
 			try:
-				dt = numpy.dtype(numpy.complex128)
+				dt = numpy.dtype(dtype)
 				memsize = dt.itemsize
 				for i in shape:
 					memsize *= i
@@ -153,7 +142,7 @@ def LoadArray(self, filename):
 			else:
 				try:
 					x,y,z = shape
-					array = ByteAlignedArray(x,y,z)
+					array = ByteAlignedArray(x,y,z, dtype=dtype)
 					numpy.copyto(array, ArTo3DNpy(array_mm))
 				except MemoryError:
 					self.ancestor.GetPage(0).queue_info.put("Could not load array. Insufficient memory.")
@@ -184,11 +173,11 @@ def SaveArray(self, filename, array):
 	if NameIsMem(filename):
 		if len(array.shape) == 3:
 			if filename in self.memory:
-				self.memory[filename+"_tmp"] = array
+				self.memory[filename+"_tmp"] = numpy.ascontiguousarray(array)
 				del self.memory[filename]
 				self.memory[filename] = self.memory.pop(filename+"_tmp")
 			else:
-				self.memory[filename] = array
+				self.memory[filename] = numpy.ascontiguousarray(array)
 			panelscript = self.ancestor.GetPage(3)
 			panelscript.shell.interp.locals[filename] = array
 	else:

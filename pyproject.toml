@@ -1,3 +1,40 @@
 [build-system]
-requires = ["setuptools", "wheel", "wxpython>=4.1.0", "numpy", "vtk>=8.0.0" ,"h5py", "pillow"]
+requires = ["setuptools", "wheel", "wxpython>=4.2.0", "numpy", "vtk>=8.0.0" ,"h5py", "pillow", "cython>=3.0.0"]
 build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "Bonsu"
+version = "3.7.0"
+authors = [{name = "Marcus C. Newton", email = "Bonsu.Devel@gmail.com"},]
+maintainers = [{name = "Marcus C. Newton", email = "Bonsu.Devel@gmail.com"},]
+description = "Bonsu - The Interactive Phase Retrieval Suite"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["Phase Retrieval", "Bragg Coherent Diffraction Imaging", "Synchrotron Science"]
+license = {text = "GPL3"}
+dependencies = ["wxpython >= 4.2.0", "numpy > 1.23.0", "vtk >= 8.0.0" ,"h5py", "pillow", "cython >= 3.0.0"]
+
+
+[project.optional-dependencies]
+hdf5plugin = ["hdf5plugin"]
+
+
+[project.urls]
+documentation = "https://bonsudev.github.io/bonsu"
+source = "https://github.com/bonsudev/bonsu"
+home-page = "https://github.com/bonsudev/bonsu"
+
+
+[tool.setuptools]
+packages = ['bonsu','bonsu.interface','bonsu.operations','bonsu.lib','bonsu.sequences','bonsu.phasing','bonsu.licence','bonsu.image','bonsu.docs','bonsu.changelog']
+
+
+[project.scripts]
+bonsu = "bonsu.interface.bonsu:main"
+
+
+[project.gui-scripts]
+bonsu = "bonsu.interface.bonsu:main"
+
+

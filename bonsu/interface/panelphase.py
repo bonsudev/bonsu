@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelphase.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -101,10 +101,12 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App,Action):
 		self.maintree.SetItemImage(self.operpost, 0,  wx.TreeItemIcon_Normal)
 		self.treechilditems = []
 		self.subpanel_items = []
+		self.subpanel_items_dic = {}
 		self.subpanel_members = inspect.getmembers(subpanel, inspect.isclass)
 		for item in self.subpanel_members:
 			if hasattr(item[1], 'treeitem'):
 				self.subpanel_items.append(item[1].treeitem['name'])
+				self.subpanel_items_dic[item[1].treeitem['name']] = item[1]
 				if item[1].treeitem['type'] == 'operpreview':
 					self.treechilditems.append(self.maintree.AppendItem(self.visual,item[1].treeitem['name']))
 				elif item[1].treeitem['type'] == 'importtools':
@@ -124,7 +126,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App,Action):
 			while branch.IsOk():
 				self.maintree.SetItemFont(branch, self.font)
 				branch = self.maintree.GetNextSibling(branch)
-			limb= self.maintree.GetNextSibling(limb)
+			limb = self.maintree.GetNextSibling(limb)
 		self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnActivateTreeItem)
 		self.maintree.Expand(self.visual)
 		fontdc = wx.ScreenDC()
@@ -182,71 +184,95 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App,Action):
 		self.button_stop.SetToolTipNew('Stop pipeline execution.')
 		self.hbox_btn.Add(self.button_stop)
 		self.Bind(wx.EVT_BUTTON, self.OnClickStop,self.button_stop)
-		self.sbox1 = wx.StaticBox(self.panel3, label="Visualisation Options", style=wx.BORDER_DEFAULT)
+		self.sbox1 = wx.StaticBox(self.panel3, label="", style=wx.BORDER_DEFAULT)
 		self.sbox1.SetFont(self.font)
 		self.vbox_chk = wx.StaticBoxSizer(self.sbox1,wx.VERTICAL)
 		self.hbox_chk1 = wx.BoxSizer(wx.HORIZONTAL)
 		self.hbox_chk2 = wx.BoxSizer(wx.HORIZONTAL)
 		self.ctrlk = False
-		rstext = 'Real'
-		fstext = 'Fourier'
-		sstext ='Support'
+		rstext = 'RS'
+		fstext = 'FS'
+		sstext ='Sp.'
 		dc = wx.ScreenDC()
 		dc.SetFont(self.font)
 		rstextw,rstexth = dc.GetTextExtent(rstext)
 		fstextw,fstexth = dc.GetTextExtent(fstext)
 		sstextw,sstexth = dc.GetTextExtent(sstext)
-		rschkw =120
-		fschkw =120
-		sschkw =120
-		if rstextw > rschkw-25: rschkw = rstextw+35;
-		if fstextw > fschkw-25: fschkw = fstextw+35;
-		if sstextw > sschkw-25: sschkw = sstextw+35;
+		rschkw = 50
+		fschkw = 50
+		sschkw = 50
+		if rstextw > rschkw: rschkw = rstextw+10;
+		if fstextw > fschkw: fschkw = fstextw+10;
+		if sstextw > sschkw: sschkw = sstextw+10;
 		self.chkbox_amp_real = CheckBoxNew(self.panel3, -1, rstext, size=(rschkw, 25))
 		self.chkbox_amp_real.SetFont(self.font)
-		self.chkbox_amp_real.SetToolTipNew("Visualise")
+		self.chkbox_amp_real.SetToolTipNew("Real-space visualisation")
 		self.chkbox_amp_real.SetValue(True)
+		self.chkbox_amp_real.Bind(wx.EVT_ENTER_WINDOW, self.OnCheckEnter)
+		self.chkbox_amp_real.Bind(wx.EVT_LEAVE_WINDOW, self.OnCheckLeave)
 		self.amp_real_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
 		self.amp_real_update_interval.value.SetToolTipNew("Real space update interval")
+		self.amp_real_update_interval.GetItem(self.amp_real_update_interval.value, recursive=False).SetFlag(wx.EXPAND)
 		self.chkbox_amp_recip = CheckBoxNew(self.panel3, -1, fstext, size=(fschkw, 25))
 		self.chkbox_amp_recip.SetFont(self.font)
-		self.chkbox_amp_recip.SetToolTipNew("Visualise")
+		self.chkbox_amp_recip.SetToolTipNew("Fourier-space visualisation")
 		self.chkbox_amp_recip.SetValue(False)
+		self.chkbox_amp_recip.Bind(wx.EVT_ENTER_WINDOW, self.OnCheckEnter)
+		self.chkbox_amp_recip.Bind(wx.EVT_LEAVE_WINDOW, self.OnCheckLeave)
 		self.amp_recip_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
 		self.amp_recip_update_interval.value.SetToolTipNew("Fourier space update interval")
+		self.amp_recip_update_interval.GetItem(self.amp_recip_update_interval.value, recursive=False).SetFlag(wx.EXPAND)
 		self.hbox_chk1.Add(self.chkbox_amp_real , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add(self.amp_real_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
-		self.hbox_chk1.Add((20, -1))
+		self.hbox_chk1.Add((5, -1))
 		self.hbox_chk1.Add(self.chkbox_amp_recip , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add(self.amp_recip_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk1.Add((5,-1))
 		self.chkbox_support = CheckBoxNew(self.panel3, -1, sstext, size=(sschkw , 25))
 		self.chkbox_support.SetFont(self.font)
-		self.chkbox_support.SetToolTipNew("Visualise")
+		self.chkbox_support.SetToolTipNew("Support visualisation")
 		self.chkbox_support.SetValue(True)
+		self.chkbox_support.Bind(wx.EVT_ENTER_WINDOW, self.OnCheckEnter)
+		self.chkbox_support.Bind(wx.EVT_LEAVE_WINDOW, self.OnCheckLeave)
 		self.support_update_interval = SpinnerObject(self.panel3,"",65535,1,1,10,0,70)
-		self.support_update_interval.value.SetToolTipNew("Update interval")
+		self.support_update_interval.value.SetToolTipNew("Support update interval")
+		self.support_update_interval.GetItem(self.support_update_interval.value, recursive=False).SetFlag(wx.EXPAND)
 		self.chkbox_phase = CheckBoxNew(self.panel3, -1, 'Phase', size=(150, 25))
 		self.chkbox_phase.SetFont(self.font)
-		self.chkbox_phase.SetToolTipNew("Visualise")
+		self.chkbox_phase.SetToolTipNew("Phase information visualisation (mapped onto object surface)")
 		self.chkbox_phase.SetValue(False)
+		self.chkbox_phase.Bind(wx.EVT_ENTER_WINDOW, self.OnCheckEnter)
+		self.chkbox_phase.Bind(wx.EVT_LEAVE_WINDOW, self.OnCheckLeave)
 		self.hbox_chk2.Add(self.chkbox_support , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
 		self.hbox_chk2.Add(self.support_update_interval , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
-		self.hbox_chk2.Add((20, -1))
+		self.hbox_chk2.Add((5, -1))
 		self.hbox_chk2.Add(self.chkbox_phase , flag=wx.ALIGN_LEFT |wx.LEFT, border=2)
-		self.hbox_chk2.Add((20, -1))
-		self.sbox2 = wx.StaticBox(self.panel3, label="Threads", style=wx.BORDER_DEFAULT)
+		self.hbox_chk2.Add((5, -1))
+		self.sbox2 = wx.StaticBox(self.panel3, label="", style=wx.BORDER_DEFAULT)
 		self.sbox2.SetFont(self.font)
 		self.vbox_thrd = wx.StaticBoxSizer(self.sbox2,wx.VERTICAL)
-		self.nthreads = SpinnerObject(self.panel3,"",65535,1,1,1,5,90)
-		self.nthreads.value.SetToolTipNew("Maximum number of FFTW threads")
-		self.nthreads.label.SetToolTipNew("Maximum number of FFTW threads")
+		self.nthreads = SpinnerObject(self.panel3,"nCPU ",65535,1,1,1,70,60)
+		self.nthreads.value.SetToolTipNew("Maximum number of CPU threads")
+		self.nthreads.label.SetToolTipNew("Maximum number of CPU threads")
+		self.nthreads.GetItem(self.nthreads.value, recursive=False).SetFlag(wx.EXPAND)
+		self.nthreads.value.Bind(wx.EVT_ENTER_WINDOW, self.OnCheckEnter)
+		self.nthreads.value.Bind(wx.EVT_LEAVE_WINDOW, self.OnCheckLeave)
+		self.chkbox_precision = CheckBoxNew(self.panel3, -1, "Single Precision", size=(-1, -1))
+		self.chkbox_precision.SetFont(self.font)
+		self.chkbox_precision.SetToolTipNew("Use single precision floating point numbers for phase retrieval.  Double precision is the default.")
+		self.chkbox_precision.SetValue(False)
+		self.chkbox_precision.Bind(wx.EVT_ENTER_WINDOW, self.OnCheckEnter)
+		self.chkbox_precision.Bind(wx.EVT_LEAVE_WINDOW, self.OnCheckLeave)
+		self.chkbox_precision.Bind(wx.EVT_CHECKBOX, self.OnFPChkbox)
 		self.vbox_thrd.Add(self.nthreads , flag=wx.ALIGN_LEFT |wx.LEFT|wx.RIGHT, border=5)
-		self.vbox_thrd.Add((-1,35))
+		self.vbox_thrd.Add((-1,5))
+		self.vbox_thrd.Add(self.chkbox_precision , flag=wx.ALIGN_LEFT |wx.LEFT|wx.RIGHT, border=5)
+		self.vbox_thrd.Add((-1,5))
 		self.vbox_chk.Add(self.hbox_chk1)
+		self.vbox_chk.Add((-1,2))
 		self.vbox_chk.Add(self.hbox_chk2)
 		self.vbox_chk.Add((-1,5))
-		self.hbox_btn.Add(self.vbox_chk, flag=wx.ALIGN_LEFT |wx.LEFT, border=40)
+		self.hbox_btn.Add(self.vbox_chk, flag=wx.ALIGN_LEFT |wx.LEFT, border=10)
 		self.hbox_btn.Add(self.vbox_thrd, flag=wx.ALIGN_LEFT |wx.LEFT|wx.RIGHT, border=5)
 		self.panel3.SetSizer(self.hbox_btn)
 		self.panel3.font = self.font
@@ -255,6 +281,30 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App,Action):
 		self.Fit()
 		self.Layout()
 		self.Show()
+	def OnCheckEnter(self, event):
+		label = event.GetEventObject().GetToolTip().GetTip()
+		self.ancestor.GetParent().SetStatusText(label)
+		event.Skip()
+	def OnCheckLeave(self, event):
+		self.ancestor.GetParent().SetStatusText("")
+	def OnFPChkbox(self, event):
+		value = self.chkbox_precision.GetValue()
+		dlg = wx.MessageDialog(self, " Changing floating-point precision \n will erase sequence data. \n Are you sure?","Floating-point Precision", wx.OK|wx.CANCEL|wx.ICON_QUESTION)
+		result = dlg.ShowModal()
+		dlg.Destroy()
+		if result == wx.ID_OK:
+			self.seqdata = None
+			self.support = None
+			self.mask = None
+			self.residual = None
+			self.psf = None
+			self.visual_amp_real = None
+			self.visual_phase_real = None
+			self.visual_support = None
+			self.visual_amp_recip = None
+			self.visual_phase_recip = None
+		else:
+			self.chkbox_precision.SetValue(not value)
 	def EnablePanel(self, enable=True):
 		if enable==False:
 			self.maintree.Enable(False)
@@ -265,6 +315,15 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App,Action):
 			self.spin_down.Enable(False)
 			self.spin_up.Refresh()
 			self.spin_down.Refresh()
+			self.chkbox_amp_real.Enable(False)
+			self.chkbox_amp_recip.Enable(False)
+			self.chkbox_support.Enable(False)
+			self.chkbox_phase.Enable(False)
+			self.chkbox_precision.Enable(False)
+			self.amp_real_update_interval.Disable()
+			self.amp_recip_update_interval.Disable()
+			self.support_update_interval.Disable()
+			self.nthreads.Disable()
 			for i in range(len(self.pipelineitems)):
 				if self.pipelineitems[i].IsShown():
 					self.pipelineitems[i].Enable(False)
@@ -279,6 +338,15 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App,Action):
 			self.spin_down.Enable(True)
 			self.spin_up.Refresh()
 			self.spin_down.Refresh()
+			self.chkbox_amp_real.Enable(True)
+			self.chkbox_amp_recip.Enable(True)
+			self.chkbox_support.Enable(True)
+			self.chkbox_phase.Enable(True)
+			self.chkbox_precision.Enable(True)
+			self.amp_real_update_interval.Enable()
+			self.amp_recip_update_interval.Enable()
+			self.support_update_interval.Enable()
+			self.nthreads.Enable()
 			for j in range(len(self.pipelineitems)):
 				self.pipelineitems[j].Enable(True)
 				self.pipelineitems[j].Refresh()
@@ -300,13 +368,11 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App,Action):
 			mainlistidx = self.mainlist.InsertItem(itemcount,"")
 			self.mainlist.CheckItem(mainlistidx)
 			self.mainlist.SetItem(mainlistidx, 1, itemtext)
-			for item in self.subpanel_members:
-				if hasattr(item[1], 'treeitem'):
-					if item[1].treeitem['name'] == itemtext:
-						if item[1].treeitem['type'] == 'operpreview':
-							self.pipelineitems.append(item[1](self.panel2,self.ancestor));
-						else:
-							self.pipelineitems.append(item[1](self.panel2));
+			panelitem = self.subpanel_items_dic[itemtext]
+			if panelitem.treeitem['type'] == 'operpreview':
+				self.pipelineitems.append(panelitem(self.panel2,self.ancestor))
+			else:
+				self.pipelineitems.append(panelitem(self.panel2))
 			self.pipelineitems[-1].Hide()
 			self.hbox2.Add(self.pipelineitems[-1], 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 	def OnExpColTreeItem(self, event):
@@ -345,6 +411,7 @@ class PanelPhase(wx.Panel,wx.TreeCtrl,wx.App,Action):
 			next = self.CurrentListItem - 1
 			self.mainlist.SetItemState(next, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED )
 		else:
+			self.ctrlk = False
 			event.Skip()
 	def OnSelectListItem(self, event):
 		self.CurrentListItem = event.GetIndex()

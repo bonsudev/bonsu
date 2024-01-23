@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: ER.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ def ER\
 		startiter,
 		numiter
 	):
-	from bonsu.phasing.ER import ER
+	from ..phasing.ER import ER
 	er = ER(parent)
 	er.SetStartiter(startiter)
 	er.SetNumiter(numiter)
@@ -44,7 +44,7 @@ def ERMask\
 		numiter,
 		numiter_relax
 	):
-	from bonsu.phasing.ER import ERMask
+	from ..phasing.ER import ERMask
 	er = ERMask(parent)
 	er.SetStartiter(startiter)
 	er.SetNumiter(numiter)
@@ -64,7 +64,7 @@ def ERMaskPC\
 	reset_gamma,
 	accel
 	):
-	from bonsu.phasing.ER import ERMaskPC
+	from ..phasing.ER import ERMaskPC
 	er = ERMaskPC(parent)
 	er.SetStartiter(startiter)
 	er.SetNumiter(numiter)

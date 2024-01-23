@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: common.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -23,17 +23,11 @@ import os
 import numpy
 from wx.lib.embeddedimage import PyEmbeddedImage
 from time import time
-MAX_INT = 2**31 - 1
-MIN_INT = -2**31
-MAX_INT_16 = 2**15 - 1
-MIN_INT_16 = -2**15
+MAX_INT = numpy.iinfo(numpy.int32).max
+MIN_INT = numpy.iinfo(numpy.int32).min
+MAX_INT_16 = numpy.iinfo(numpy.int16).max
+MIN_INT_16 = numpy.iinfo(numpy.int16).min
 CNTR_CLIP = 0.999
-FFTW_ESTIMATE = 1 << 6
-FFTW_MEASURE = 0
-FFTW_PATIENT = 1 << 5
-FFTW_EXHAUSTIVE = 1 << 3
-FFTW_TORECIP = 1
-FFTW_TOREAL = -1
 FFTW_PSLEEP = 0.1
 #----------------------------------------------------------------------
 maincollapse = PyEmbeddedImage(

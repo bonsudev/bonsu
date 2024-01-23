@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: CSHIO.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ def CSHIO\
 		cs_eta,
 		relax
 	):
-	from bonsu.phasing.CSHIO import CSHIO
+	from ..phasing.CSHIO import CSHIO
 	cshio = CSHIO(parent)
 	cshio.SetStartiter(startiter)
 	cshio.SetNumiter(numiter)

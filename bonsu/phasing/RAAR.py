@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: phasing/RAAR.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -28,18 +28,15 @@ class RAAR(PhaseAbstract):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self, parent)
-		from ..lib.prfftw import raar
-		self.algorithm = raar
+		from ..lib.prutillib import rsraar
+		self._rsraar = rsraar
+	def RSCons(self):
+		self._rsraar(self.seqdata, self.rho_m1, self.support, self.beta, self.nthreads)
 		self.numiter_relax = 0
 	def SetNumiterRelax(self,numiter_relax):
 		self.numiter_relax = numiter_relax
 	def GetNumiterRelax(self):
 		return self.numiter_relax
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,\
-		self.beta,self.startiter,self.numiter,self.ndim,self.rho_m1,self.nn,self.residual,self.citer_flow,\
-		self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-		self.updatereal,self.updaterecip,self.updatelog,self.numiter_relax)
 class SWRAAR(RAAR,ShrinkWrap):
 	"""
 	Relaxed Average Alternating Reflection (RAAR) algorithm.
@@ -54,19 +51,10 @@ class RAARPC(PhaseAbstractPC):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstractPC.__init__(self, parent)
-		from ..lib.prfftw import raarmaskpc
-		self.algorithm = raarmaskpc
-	def Algorithm(self):
-		SeqArrayObjects = [self.seqdata,self.expdata,self.support,self.mask,self.psf,\
-									self.rho_m1,self.pca_inten,self.pca_rho_m1_ft,self.pca_Idm_iter,\
-									self.pca_Idmdiv_iter,self.pca_IdmdivId_iter,self.tmpdata1,self.tmpdata2,\
-									self.nn,self.ndim, self.nn2,self.startiter,self.numiter,self.citer_flow]
-		SeqObjects = [self.residual,self.residualRL,\
-								self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-								self.updatereal,self.updaterecip, self.updatelog, self.updatelog2,\
-								self.gammaHWHM, self.reset_gamma, self.niterrl, self.niterrlpre, self.niterrlinterval, self.ze[0], self.ze[1], self.ze[2],\
-								self.beta,self.accel]
-		self.algorithm(SeqObjects,SeqArrayObjects)
+		from ..lib.prutillib import rsraar
+		self._rsraar = rsraar
+	def RSCons(self):
+		self._rsraar(self.seqdata, self.rho_m1, self.support, self.beta, self.nthreads)
 class SWRAARPC(RAARPC,ShrinkWrap):
 	"""
 	RAAR Mask with Partial Coherence Optimisation algorithm.
@@ -77,4 +65,5 @@ class SWRAARPC(RAARPC,ShrinkWrap):
 		ShrinkWrap.__init__(self)
 	def Start(self):
 		self.SetNumiterRLpre(self.niterrlpretmp - self.startiter)
-		self.Algorithm()
+		if self.citer_flow[1] == 0:
+			self.Phase()

@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: wrap.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -74,6 +74,6 @@ def WrapArrayAmp(array):
 		arrayfinal = numpy.array(numpy.dstack((h1,h2)), dtype=numpy.double, copy=True, order='C')
 		return arrayfinal
 def WrapArray(array, direction=1):
-	from ..lib.prfftw import wrap
+	from ..lib.prutillib import wrap
 	wrap(array, direction)
 	return array

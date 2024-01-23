@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: functions.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -134,7 +134,7 @@ def Sequence_BlankLineFill(\
 				tmparray = NewArray(self,*array.shape)
 			except:
 				return
-			from ..lib.prfftw import blanklinefill
+			from ..lib.prutillib import blanklinefill
 			blanklinefill(array, tmparray, kx,ky,kz, roiids[0][0], roiids[0][1], roiids[1][0], roiids[1][1], roiids[2][0], roiids[2][1])
 			del tmparray
 			try:
@@ -641,8 +641,8 @@ def Sequence_Mask(\
 			return
 		else:
 			mask = numpy.asarray(array, dtype=numpy.cdouble, order='C')
-			from ..lib.prfftw import rangereplace
-			rangereplace(mask, frac_min, frac_max, 0.0, 1.0)
+			from ..lib.prutillib import rangereplace
+			rangereplace(mask, frac_min, frac_max, 0.0, 1.0, self.citer_flow[7])
 			try:
 				SaveArray(self, filename_out,mask)
 			except:
@@ -690,6 +690,37 @@ def Sequence_Bin(\
 						subshp = array[i::binx,j::biny,k::binz].shape
 						arraybin[(nx-subshp[0]):nx,(ny-subshp[1]):ny,(nz-subshp[2]):nz] += array[i::binx,j::biny,k::binz]
 			SaveArray(self, filename_out,arraybin)
+def Sequence_Scale_Array_Dims(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Preparing scaled dimensions array...")
+		sinx =  int(pipelineitem.sdims[0].value.GetValue())
+		siny =  int(pipelineitem.sdims[1].value.GetValue())
+		sinz =  int(pipelineitem.sdims[2].value.GetValue())
+		filename_in = pipelineitem.input_filename.objectpath.GetValue()
+		filename_out = pipelineitem.output_filename.objectpath.GetValue()
+		try:
+			array = LoadArray(self, filename_in)
+		except:
+			msg = "Could not load array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+		shp = array.shape
+		nx = shp[0]*sinx
+		ny = shp[1]*siny
+		nz = shp[2]*sinz
+		nshp = numpy.array((nx, ny, nz),dtype=numpy.int64)
+		try:
+			arrayscaled = NewArray(self,nx,ny,nz)
+		except:
+			return
+		else:
+			arrayscaled[:] = numpy.kron(array.real, numpy.ones((sinx,siny,sinz))) + 1j*numpy.kron(array.imag, numpy.ones((sinx,siny,sinz)))
+			SaveArray(self, filename_out, arrayscaled)
 def Sequence_AutoCentre(\
 	self,
 	pipelineitem
@@ -771,8 +802,8 @@ def Sequence_Median_Filter(\
 				tmparray = NewArray(self,*array.shape)
 			except:
 				return
-			from ..lib.prfftw import medianfilter
-			medianfilter(array, tmparray, kx,ky,kz, maxdev)
+			from ..lib.prutillib import median_replace_voxel
+			median_replace_voxel(array, tmparray, kx,ky,kz, maxdev, self.citer_flow[7])
 			try:
 				SaveArray(self, filename_out, array)
 			except:
@@ -798,8 +829,8 @@ def Sequence_GaussianFill(\
 			self.pipeline_started = False
 			return
 		else:
-			from ..lib.prfftw import gaussian_fill
-			gaussian_fill(array, sigma)
+			from ..lib.prutillib import gaussian_fill
+			gaussian_fill(array, sigma, self.citer_flow[7])
 			try:
 				SaveArray(self, filename_out, array)
 			except:
@@ -825,15 +856,15 @@ def Sequence_FFT(\
 			self.pipeline_started = False
 			return
 		else:
-			from ..lib.prfftw import fft
-			from ..lib.prfftw import wrap
+			from ..lib.prutillib import fft
+			from ..lib.prutillib import wrap
 			if direction == "Fourier Space":
 				wrap(array, 1)
-				fft(array, 1)
+				fft(array, 1, self.citer_flow[7])
 				wrap(array, -1)
 			else:
 				wrap(array, 1)
-				fft(array, -1)
+				fft(array, -1, self.citer_flow[7])
 				wrap(array, -1)
 			try:
 				SaveArray(self, filename_out, array)
@@ -866,11 +897,11 @@ def Sequence_Convolve(\
 				wx.CallAfter(self.UserMessage, title, msg)
 				self.pipeline_started = False
 				return
-			from ..lib.prfftw import convolve
-			from ..lib.prfftw import wrap
+			from ..lib.prutillib import convolve_ntmp as convolve
+			from ..lib.prutillib import wrap
 			wrap(array1, 1)
 			wrap(array2, 1)
-			convolve(array1, array2)
+			convolve(array1, array2, self.citer_flow[7])
 			wrap(array1, -1)
 			wrap(array2, -1)
 			try:
@@ -897,7 +928,7 @@ def Sequence_Conjugate_Reflect(\
 			self.pipeline_started = False
 			return
 		else:
-			from ..lib.prfftw import conj_reflect
+			from ..lib.prutillib import conj_reflect
 			conj_reflect(array)
 			try:
 				SaveArray(self, filename_out, array)
@@ -925,8 +956,8 @@ def Sequence_Threshold(\
 			self.pipeline_started = False
 			return
 		else:
-			from ..lib.prfftw import threshold
-			threshold(array, frac_min, frac_max, 0.0)
+			from ..lib.prutillib import threshold
+			threshold(array, frac_min, frac_max, 0.0, self.citer_flow[7])
 			array[numpy.isnan(array)] = 0 + 0j
 			try:
 				SaveArray(self, filename_out, array)
@@ -1557,7 +1588,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.scalebar_amp_real.Modified()
 		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
@@ -1664,7 +1694,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
@@ -1778,7 +1807,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
@@ -1911,7 +1939,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
@@ -2020,7 +2047,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
@@ -2134,7 +2160,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.image_phase_real.Modified()
 		panelvisual.image_probe = panelvisual.image_phase_real
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
@@ -2320,7 +2345,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
@@ -2423,7 +2447,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real)
@@ -2498,7 +2521,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.color_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.color_phase_real.SetInputData(panelvisual.image2D_phase_real)
@@ -2574,7 +2596,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real)
@@ -2602,7 +2623,6 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.color_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.color_phase_real.SetInputData(panelvisual.image2D_phase_real)
@@ -2757,11 +2777,7 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
-		panelvisual.scalebar_amp_real.SetWidth(0.07)
-		panelvisual.scalebar_amp_real.SetHeight(0.90)
-		panelvisual.scalebar_amp_real.SetPosition(0.01,0.1)
 		panelvisual.scalebar_amp_real.Modified()
 		panelvisual.filter_support.SetInputData(panelvisual.image_phase_real)
 		panelvisual.filter_support.ComputeNormalsOn()
@@ -3017,10 +3033,16 @@ def Sequence_Transform(\
 			vtk_points.SetDataTypeToDouble()
 			vtk_points.SetNumberOfPoints(array.size)
 			if (pipelineitem.chkbox_ccdflip.GetValue() == True):
-				X = numpy.array([[float(shp[0]-x-1)*mx, float(y)*my, float(z)*mz] for z in range(shp[2]) for y in range(shp[1]) for x in range(shp[0])], dtype=numpy.double)
+				X = numpy.zeros((shp[2]*shp[1]*shp[0],3), dtype=numpy.double)
+				X[:,0] = mx*numpy.tile(numpy.arange(shp[0])[::-1], shp[1]*shp[2])
+				X[:,1] = my*numpy.tile(numpy.repeat(numpy.arange(shp[1]), shp[0]), shp[2])
+				X[:,2] = mz*numpy.repeat(numpy.arange(shp[2]), shp[0]*shp[1])
 				self.coordarray[:] = nmeter * numpy.dot(T,X.T).T
 			else:
-				X = numpy.array([[float(x)*mx, float(y)*my, float(z)*mz] for z in range(shp[2]) for y in range(shp[1]) for x in range(shp[0])], dtype=numpy.double)
+				X = numpy.zeros((shp[2]*shp[1]*shp[0],3), dtype=numpy.double)
+				X[:,0] = mx*numpy.tile(numpy.arange(shp[0]), shp[1]*shp[2])
+				X[:,1] = my*numpy.tile(numpy.repeat(numpy.arange(shp[1]), shp[0]), shp[2])
+				X[:,2] = mz*numpy.repeat(numpy.arange(shp[2]), shp[0]*shp[1])
 				self.coordarray[:] = nmeter * numpy.dot(T,X.T).T
 			vtk_coordarray = numpy_support.numpy_to_vtk(self.coordarray)
 			vtk_points.SetData(vtk_coordarray)
@@ -3118,7 +3140,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.scalebar_amp_real.Modified()
 		panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
@@ -3225,7 +3246,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
@@ -3339,7 +3359,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
@@ -3467,7 +3486,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
@@ -3570,7 +3588,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
@@ -3683,7 +3700,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
@@ -3870,7 +3886,6 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.filter_amp_real.SetInputData(panelvisual.object_amp)
 		panelvisual.filter_amp_real.ComputeNormalsOn()
@@ -3999,7 +4014,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.scalebar_amp_real.Modified()
 		panelvisual.filter_amp_real.SetInputData(panelvisual.image_amp_real_vtk)
@@ -4095,7 +4109,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.lut_phase_real.SetRamp(0)
 		panelvisual.lut_phase_real.Build()
 		panelvisual.scalebar_phase_real.SetTitle("")
-		panelvisual.scalebar_phase_real.SetOrientationToVertical()
 		panelvisual.scalebar_phase_real.SetLookupTable(panelvisual.lut_phase_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
@@ -4173,7 +4186,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.plane.SetOrigin(ox,oy,oz)
 		panelvisual.plane.SetNormal(nx,ny,nz)
@@ -4243,7 +4255,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real_vtk)
@@ -4309,7 +4320,6 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.lut_amp_real.SetRamp(0)
 		panelvisual.lut_amp_real.Build()
 		panelvisual.scalebar_amp_real.SetTitle("")
-		panelvisual.scalebar_amp_real.SetOrientationToVertical()
 		panelvisual.scalebar_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetLookupTable(panelvisual.lut_amp_real)
 		panelvisual.color_amp_real.SetInputData(panelvisual.image2D_amp_real_vtk)

@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: phasing/abstract.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -23,14 +23,19 @@ import wx
 from math import sqrt
 from time import sleep
 from ..operations.loadarray import NewArray
-from ..operations.loadarray import _NewArrayPair, NewArrayPair
+from ..operations.loadarray import NewArrayPair
 from ..operations.memory import GetVirtualMemory
-from ..lib.prfftw import fftw_create_plan
-from ..lib.prfftw import fftw_destroy_plan
-from ..lib.prfftw import fftw_stride
-from ..interface.common import FFTW_ESTIMATE, FFTW_MEASURE
-from ..interface.common import FFTW_PATIENT, FFTW_EXHAUSTIVE
-from ..interface.common import FFTW_TORECIP, FFTW_TOREAL, FFTW_PSLEEP
+from ..interface.common import FFTW_PSLEEP
+from ..lib.fftwlib import FFTW_ESTIMATE, FFTW_MEASURE
+from ..lib.fftwlib import FFTW_PATIENT, FFTW_EXHAUSTIVE
+from ..lib.fftwlib import FFTW_TORECIP, FFTW_TOREAL
+from ..lib.fftwlib import fftw_createplan as fftw_create_plan
+from ..lib.fftwlib import fftw_destroyplan as fftw_destroy_plan
+from ..lib.fftwlib import fftw_stride
+from ..lib.fftwlib import fftw_create_plan_pair
+from ..lib.prutillib import residual, updateamps, sumofsqs, rshio
+from ..lib.prutillib import wrap_nomem
+from ..lib.prutillib import conv_nmem_nplan
 class PhaseAbstract():
 	"""
 	Phasing Base Class
@@ -98,11 +103,9 @@ class PhaseAbstract():
 		fftw_stride(self.seqdata,self.seqdata,self.plan,FFTW_TOREAL,1)
 		n = self.citer_flow[0]
 		self.residual[n] = self.res/self.sos
-		amp = numpy.absolute(self.seqdata)
-		sos1 = numpy.sum(amp*amp)
+		sos1 = sumofsqs(self.seqdata, self.nthreads)
 		self.RSCons()
-		amp = numpy.absolute(self.seqdata)
-		sos2 = numpy.sum(amp*amp)
+		sos2 = sumofsqs(self.seqdata, self.nthreads)
 		norm = sqrt(sos1/sos2)
 		self.seqdata[:] = norm*self.seqdata[:]
 		if self.citer_flow[3] > 0 and self.update_count_real == self.citer_flow[3]:
@@ -125,14 +128,17 @@ class PhaseAbstract():
 	def SetDimensions(self):
 		self.nn = numpy.asarray( self.seqdata.shape, numpy.int32 )
 		self.ndim = int(self.seqdata.ndim)
-	def Prepare(self):
+	def _Prepare(self):
 		"""
 		Prepare algorithm.
 		"""
 		if self.MemoryIsShort():
 			return True
 		if self.parent != None:
-			self.rho_m1 = NewArray(self.parent, *self.seqdata.shape)
+			if self.citer_flow[12] > 0:
+				self.rho_m1 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.csingle)
+			else:
+				self.rho_m1 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.cdouble)
 		else:
 			self.rho_m1 = numpy.empty_like(self.seqdata)
 			self.SetResidual()
@@ -142,9 +148,9 @@ class PhaseAbstract():
 		"""
 		Prepare algorithm using FFTW python interface.
 		"""
-		return self.Prepare2()
-	def Prepare2(self):
-		if self.Prepare():
+		return self.Prepare()
+	def Prepare(self):
+		if self._Prepare():
 			return True
 		self.SetSOS()
 		if self.plan == None:
@@ -189,26 +195,13 @@ class PhaseAbstract():
 		"""
 		return self.sos
 	def SetRes(self):
-		dif = numpy.absolute(self.seqdata) - numpy.absolute(self.expdata)
-		if isinstance(self.mask, numpy.ndarray):
-			self.res = numpy.sum(dif * dif * numpy.real(self.mask))
-		else:
-			self.res = numpy.sum(dif * dif)
+		self.res = residual(self.seqdata, self.expdata, self.mask, self.nthreads)
 	def GetRes(self):
 		return self.res
 	def SetAmplitudes(self):
-		amp = numpy.absolute(self.expdata)
-		phase = numpy.angle(self.seqdata)
-		realmask = numpy.real(self.mask)
-		unmask = realmask > 0.0
-		if isinstance(self.mask, numpy.ndarray):
-			self.seqdata[unmask] = amp[unmask]*numpy.cos(phase[unmask]) + 1j*amp[unmask]*numpy.sin(phase[unmask])
-		else:
-			self.seqdata[:] = amp*numpy.cos(phase) + 1j*amp*numpy.sin(phase)
+		updateamps(self.seqdata, self.expdata, self.mask, self.nthreads)
 	def RSCons(self):
-		realsupport = numpy.real(self.support)
-		nosupport = realsupport < 0.5
-		self.seqdata[nosupport] = self.rho_m1[nosupport] - self.seqdata[nosupport] * self.beta
+		rshio(self.seqdata, self.rho_m1, self.support, self.beta, self.nthreads)
 	def SetStartiter(self,startiter):
 		"""
 		Set the starting iteration number.
@@ -330,10 +323,7 @@ class PhaseAbstract():
 		Start the reconstruction process.
 		"""
 		if self.citer_flow[1] == 0:
-			if self.plan == None:
-				self.Algorithm()
-			else:
-				self.Phase()
+			self.Phase()
 	def Stop(self):
 		"""
 		Stop the reconstruction process.
@@ -363,6 +353,9 @@ class PhaseAbstractPC(PhaseAbstract):
 		self.ze = [0,0,0]
 		self.reset_gamma = 0
 		self.accel = 1
+		self.gamma_count = 0
+		self.itnsty_sum = 0.0
+		self.gamma_sum = 0.0
 		self.__narrays__ = 14
 	def SetResidualRL(self):
 		self.residualRL = numpy.zeros(self.numiter, dtype=numpy.double)
@@ -381,9 +374,9 @@ class PhaseAbstractPC(PhaseAbstract):
 		Create a point-spread function with Lorentz distribution.
 		This will use the HWHM specified using SetGammaHWHM.
 		"""
-		from bonsu.lib.prfftw import lorentzftfill
-		self.psf = numpy.empty_like(self.seqdata)
-		lorentzftfill(self.psf, self.gammaHWHM)
+		from ..lib.prutillib import lorentz_ft_fill
+		self.psf = numpy.empty_like(self.seqdata, dtype=numpy.cdouble)
+		lorentz_ft_fill(self.psf, self.gammaHWHM, self.nthreads)
 	def SetNumiterRLpre(self, niterrlpre):
 		"""
 		Set the number of iterations before RL optimisation.
@@ -446,7 +439,21 @@ class PhaseAbstractPC(PhaseAbstract):
 		return self.reset_gamma
 	def SetAccel(self, accel):
 		self.accel = accel
-	def Prepare(self):
+	def NewPlan(self, flag=FFTW_MEASURE):
+		data = self.rho_m1
+		data1 = self.tmpdata1
+		data2 = self.tmpdata2
+		self.plan = fftw_create_plan(data,self.nthreads,FFTW_MEASURE)
+		self.planpair = fftw_create_plan_pair(data1,data2,self.nthreads,FFTW_MEASURE)
+	def MaskGamma(self, pca_gamma_ft):
+		shape = pca_gamma_ft.shape
+		idx = []
+		for i in range( len(shape) ):
+			st = (shape[i] - self.ze[i])//2
+			ed = st + self.ze[i]
+			idx.append(numpy.s_[st, ed])
+		pca_gamma_ft[idx] = 0.0
+	def _Prepare(self):
 		if self.MemoryIsShort():
 			return
 		self.niterrlpretmp = self.niterrlpre
@@ -460,7 +467,10 @@ class PhaseAbstractPC(PhaseAbstract):
 		if self.nn[1] == 1: self.nn2[1] = self.nn[1];
 		if self.nn[2] == 1: self.nn2[2] = self.nn[2];
 		if self.parent != None:
-			self.rho_m1 = NewArray(self.parent, *self.seqdata.shape)
+			if self.citer_flow[12] > 0:
+				self.rho_m1 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.csingle)
+			else:
+				self.rho_m1 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.cdouble)
 			self.pca_inten = NewArray(self.parent, *self.seqdata.shape)
 			self.pca_rho_m1_ft = NewArray(self.parent, *self.seqdata.shape)
 			self.pca_Idm_iter = NewArray(self.parent, *self.seqdata.shape)
@@ -470,16 +480,131 @@ class PhaseAbstractPC(PhaseAbstract):
 			self.updatelog2 = self._updatelog2a
 		else:
 			self.rho_m1 = numpy.empty_like(self.seqdata)
-			self.pca_inten = numpy.empty_like(self.seqdata)
-			self.pca_rho_m1_ft = numpy.empty_like(self.seqdata)
-			self.pca_Idm_iter = numpy.empty_like(self.seqdata)
-			self.pca_Idmdiv_iter = numpy.empty_like(self.seqdata)
-			self.pca_IdmdivId_iter = numpy.empty_like(self.seqdata)
-			self.tmpdata1,self.tmpdata2 = _NewArrayPair(self.nn2[0],self.nn2[1],self.nn2[2])
+			self.pca_inten = numpy.empty_like(self.seqdata, dtype=numpy.cdouble)
+			self.pca_rho_m1_ft = numpy.empty_like(self.seqdata, dtype=numpy.cdouble)
+			self.pca_Idm_iter = numpy.empty_like(self.seqdata, dtype=numpy.cdouble)
+			self.pca_Idmdiv_iter = numpy.empty_like(self.seqdata, dtype=numpy.cdouble)
+			self.pca_IdmdivId_iter = numpy.empty_like(self.seqdata, dtype=numpy.cdouble)
+			self.tmpdata1 = numpy.empty((self.nn2[0],self.nn2[1],self.nn2[2]), dtype=numpy.cdouble)
+			self.tmpdata2 = numpy.empty((self.nn2[0],self.nn2[1],self.nn2[2]), dtype=numpy.cdouble)
 			self.updatelog2 = self._updatelog2b
 			self.SetResidual()
 			self.SetResidualRL()
 		self.SetDimensions()
+	def Phase(self):
+		self.gamma_count = self.niterrlinterval + 1
+		wrap_nomem(self.psf, self.tmpdata1, 1)
+		self.gamma_sum = numpy.sum(numpy.abs(self.psf))
+		self.psf[:] = self.psf / self.gamma_sum
+		self.MaskGamma(self.psf)
+		for i in range(self.startiter, self.startiter+self.numiter, 1):
+			if self.citer_flow[1] == 2:
+				self.DestroyPlan()
+				break
+			self.DoIter()
+		wrap_nomem(self.psf, self.tmpdata1, -1)
+	def MakeIdIter(self, rho, rhom1, pca_Id_iter):
+		pca_Id_iter.real[:] = 2.0*rho.real*rho.real + 2.0*rho.imag*rho.imag - rhom1.real*rhom1.real - rhom1.imag*rhom1.imag
+		pca_Id_iter.imag[:] = 0.0
+	def DivideIIdIter(self, expdata, pca_Idm_iter, pca_Idmdiv_iter):
+		inten = expdata.real*expdata.real + expdata.imag*expdata.imag
+		divis = pca_Idm_iter.real*pca_Idm_iter.real + pca_Idm_iter.imag*pca_Idm_iter.imag
+		pca_Idmdiv_iter.real[:] = inten*pca_Idm_iter.real/divis
+		pca_Idmdiv_iter.imag[:] = - inten*pca_Idm_iter.imag/divis
+	def SetPCAmplitudes(self):
+		self.pca_inten.real[:] = self.seqdata.real*self.seqdata.real + self.seqdata.imag*self.seqdata.imag
+		self.pca_inten.imag[:] = 0.0
+		wrap_nomem(self.pca_inten, self.tmpdata1, -1)
+		wrap_nomem(self.psf, self.tmpdata1, -1)
+		conv_nmem_nplan(self.pca_inten, self.psf, self.tmpdata1, self.tmpdata2, self.planpair, self.nthreads)
+		wrap_nomem(self.pca_inten, self.tmpdata1, 1)
+		wrap_nomem(self.psf, self.tmpdata1, 1)
+		expamp = numpy.absolute(self.expdata)
+		amp = numpy.absolute(self.seqdata)
+		phase = numpy.angle(self.seqdata)
+		pcamp = numpy.sqrt(numpy.absolute(self.pca_inten))
+		self.seqdata.real[:] = (expamp*amp/pcamp)*numpy.cos(phase)
+		self.seqdata.imag[:] = (expamp*amp/pcamp)*numpy.sin(phase)
+	def DoRLIter(self):
+		self.pca_Idmdiv_iter[:] = 0.0
+		self.MakeIdIter(self.seqdata, self.pca_rho_m1_ft, self.pca_Idm_iter)
+		self.itnsty_sum = numpy.sum(numpy.absolute(self.pca_Idm_iter))
+		self.pca_IdmdivId_iter[:] = self.pca_Idm_iter[:]
+		self.pca_IdmdivId_iter[:] = numpy.conjugate(numpy.flip(self.pca_IdmdivId_iter, axis=numpy.arange(self.pca_IdmdivId_iter.ndim)))
+		wrap_nomem(self.pca_Idm_iter, self.tmpdata1, -1)
+		wrap_nomem(self.psf, self.tmpdata1, -1)
+		conv_nmem_nplan(self.pca_Idm_iter, self.psf, self.tmpdata1, self.tmpdata2, self.planpair, self.nthreads)
+		wrap_nomem(self.pca_Idm_iter, self.tmpdata1, 1)
+		wrap_nomem(self.psf, self.tmpdata1, 1)
+		self.DivideIIdIter(self.expdata, self.pca_Idm_iter, self.pca_Idmdiv_iter)
+		wrap_nomem(self.pca_IdmdivId_iter, self.tmpdata1, -1)
+		wrap_nomem(self.pca_Idmdiv_iter, self.tmpdata1, -1)
+		conv_nmem_nplan(self.pca_IdmdivId_iter, self.pca_Idmdiv_iter, self.tmpdata1, self.tmpdata2, self.planpair, self.nthreads)
+		wrap_nomem(self.pca_IdmdivId_iter, self.tmpdata1, 1)
+		wrap_nomem(self.pca_Idmdiv_iter, self.tmpdata1, 1)
+		self.pca_IdmdivId_iter[:] = self.pca_IdmdivId_iter / self.itnsty_sum
+		self.pca_IdmdivId_iter[:] = numpy.power(self.pca_IdmdivId_iter, self.accel, dtype=numpy.cdouble)
+		self.psf[:] = self.psf * self.pca_IdmdivId_iter
+		self.MaskGamma(self.psf)
+		self.residualRL[0] = numpy.sum(numpy.absolute(self.pca_IdmdivId_iter)) / self.seqdata.size
+		self.updatelog2()
+		self.citer_flow[8] += 1
+		self.gamma_sum = numpy.sum(numpy.absolute(self.psf))
+		self.psf[:] = self.psf / self.gamma_sum
+	def DoIter(self):
+		while self.citer_flow[1] == 1:
+			sleep(FFTW_PSLEEP)
+		self.rho_m1[:] = self.seqdata[:]
+		fftw_stride(self.seqdata,self.seqdata,self.plan,FFTW_TORECIP,1)
+		if( (self.citer_flow[0] - self.startiter+1) == self.niterrlpre ):
+			self.pca_rho_m1_ft[:] = self.seqdata[:]
+		if( self.gamma_count > self.niterrlinterval and (self.citer_flow[0] - self.startiter+1) > self.niterrlpre):
+			if self.reset_gamma > 0:
+				self.LorentzFillPSF()
+				wrap_nomem(self.psf, self.tmpdata1, 1)
+				self.gamma_sum = numpy.sum(numpy.abs(self.psf))
+				self.psf[:] = self.psf / self.gamma_sum
+				self.MaskGamma(self.psf)
+			self.citer_flow[8] = 0
+			for i in range(0, self.niterrl, 1):
+				if( self.citer_flow[1] == 2 ):
+					break
+				self.DoRLIter()
+			self.gamma_count = 1
+			self.pca_rho_m1_ft[:] = self.seqdata[:]
+		if self.citer_flow[5] > 0 and self.update_count_recip == self.citer_flow[5]:
+			self.visual_amp_recip[:] = numpy.absolute(self.seqdata)
+			if self.citer_flow[6] > 0:  self.visual_phase_recip[:] = numpy.angle(self.seqdata);
+			self.update_count_recip = 0
+			self.updaterecip()
+		else:
+			self.update_count_recip += 1
+		self.SetRes()
+		if (self.citer_flow[0] - self.startiter+1) > self.niterrlpre:
+			self.SetPCAmplitudes()
+		else:
+			self.SetAmplitudes()
+		fftw_stride(self.seqdata,self.seqdata,self.plan,FFTW_TOREAL,1)
+		n = self.citer_flow[0]
+		self.residual[n] = self.res/self.sos
+		sos1 = sumofsqs(self.seqdata, self.nthreads)
+		self.RSCons()
+		sos2 = sumofsqs(self.seqdata, self.nthreads)
+		norm = sqrt(sos1/sos2)
+		self.seqdata[:] = norm*self.seqdata[:]
+		if self.citer_flow[3] > 0 and self.update_count_real == self.citer_flow[3]:
+			self.visual_amp_real[:] = numpy.absolute(self.seqdata)
+			if self.citer_flow[6] > 0: self.visual_phase_real[:] = numpy.angle(self.seqdata);
+			self.update_count_real = 0
+			self.updatereal()
+		else:
+			self.update_count_real += 1
+		self.updatelog()
+		self.citer_flow[0] += 1
+		self.gamma_count += 1
+	def DestroyPlan(self):
+		fftw_destroy_plan(self.plan)
+		fftw_destroy_plan(self.planpair)
 	def CleanData(self):
 		self.seqdata = None
 		self.expdata = None

@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: phasing/ShrinkWrap.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -19,24 +19,23 @@
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
 import numpy
-import sys
 class ShrinkWrap():
 	"""
 	Shrink Wrap algorithm.
 	"""
 	def __init__(self):
-		from ..lib.prfftw import gaussian_fill
+		from ..lib.prutillib import gaussian_fill
 		self.gaussian_fill = gaussian_fill
-		from ..lib.prfftw import wrap
+		from ..lib.prutillib import wrap
 		self.wrap  = wrap
-		from ..lib.prfftw import threshold
+		from ..lib.prutillib import threshold
 		self.threshold = threshold
-		from ..lib.prfftw import rangereplace
+		from ..lib.prutillib import rangereplace
 		self.rangereplace = rangereplace
-		from ..lib.prfftw import convolve
-		self.convolve = convolve
-		from ..lib.prfftw import medianfilter
-		self.medianfilter = medianfilter
+		from ..lib.prutillib import convolve_ntmp
+		self.convolve = convolve_ntmp
+		from ..lib.prutillib import median_replace_voxel
+		self.medianfilter = median_replace_voxel
 		self.sw_cycle = 10
 		self.sw_sigma = 2.0
 		self.sw_threshold = 0.2
@@ -85,24 +84,22 @@ class ShrinkWrap():
 		"""
 		self.temparray = numpy.empty_like(self.seqdata)
 		self.temparray2 = numpy.empty_like(self.seqdata)
-		self.gaussian_fill(self.temparray, self.sw_sigma)
+		self.gaussian_fill(self.temparray, self.sw_sigma, self.nthreads)
 		self.wrap(self.temparray, 1)
-		self.citer_flow[4] = self.sw_cycle
 		self.sw_startiter_tmp = self.startiter
 		self.sw_numiter_tmp = self.numiter
 		self.IterLoops = (self.numiter + self.sw_cycle - 1)//self.sw_cycle
 	def UpdateSupport(self):
-		if self.citer_flow[4] > 0:
-			print("Updating support ...")
-			self.support[:] = numpy.abs(self.seqdata).copy()
-			maxvalue = numpy.abs(self.support).max()
-			self.threshold(self.support, (self.sw_threshold*maxvalue), maxvalue, 0.0)
-			self.medianfilter(self.support, self.temparray2, 3,3,3, 0.0)
-			self.wrap(self.support, 1)
-			self.convolve(self.support, self.temparray)
-			self.wrap(self.support, -1)
-			self.rangereplace(self.support, (self.sw_threshold*maxvalue), sys.float_info.max, 0.0, 1.0)
-			print("done.")
+		print("Updating support ...")
+		self.support[:] = numpy.abs(self.seqdata).copy()
+		maxvalue = numpy.abs(self.support).max()
+		self.threshold(self.support, (self.sw_threshold*maxvalue), maxvalue, 0.0, self.nthreads)
+		self.medianfilter(self.support, self.temparray2, 3,3,3, 0.0, self.nthreads)
+		self.wrap(self.support, 1)
+		self.convolve(self.support, self.temparray, self.nthreads)
+		self.wrap(self.support, -1)
+		self.rangereplace(self.support, (self.sw_threshold*maxvalue), numpy.finfo(numpy.double).max, 0.0, 1.0, self.nthreads)
+		print("done.")
 	def SWStart(self):
 		"""
 		Start the shrink wrap reconstruction process.

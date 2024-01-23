@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: phasing/HIO.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -28,13 +28,6 @@ class HIO(PhaseAbstract):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self, parent)
-		from ..lib.prfftw import hio
-		self.algorithm = hio
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,\
-		self.beta,self.startiter,self.numiter,self.ndim,self.rho_m1,self.nn,self.residual,self.citer_flow,\
-		self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-		self.updatereal,self.updaterecip,self.updatelog)
 class SWHIO(HIO,ShrinkWrap):
 	"""
 	Fienup's hybrid input-output (HIO) algorithm.
@@ -49,18 +42,11 @@ class HIOMask(PhaseAbstract):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self,parent)
-		from ..lib.prfftw import hiomask
-		self.algorithm = hiomask
 		self.numiter_relax = 0
 	def SetNumiterRelax(self,numiter_relax):
 		self.numiter_relax = numiter_relax
 	def GetNumiterRelax(self):
 		return self.numiter_relax
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,\
-		self.beta,self.startiter,self.numiter,self.ndim,self.rho_m1,self.nn,self.residual,self.citer_flow,\
-		self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-		self.updatereal,self.updaterecip,self.updatelog,self.numiter_relax)
 class SWHIOMask(HIOMask,ShrinkWrap):
 	"""
 	Fienup's hybrid input-output (HIO) algorithm with the addition of a
@@ -77,13 +63,10 @@ class HIOPlus(PhaseAbstract):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self,parent)
-		from ..lib.prfftw import hioplus
-		self.algorithm = hioplus
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,\
-		self.beta,self.startiter,self.numiter,self.ndim,self.rho_m1,self.nn,self.residual,self.citer_flow,\
-		self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-		self.updatereal,self.updaterecip,self.updatelog)
+		from ..lib.prutillib import rshiop
+		self._rshiop = rshiop
+	def RSCons(self):
+		self._rshiop(self.seqdata, self.rho_m1, self.support, self.beta, self.nthreads)
 class SWHIOPlus(HIOPlus,ShrinkWrap):
 	"""
 	Fienup's hybrid input-output (HIO) algorithm with non-negativity constraint
@@ -100,10 +83,12 @@ class PCHIO(PhaseAbstract):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self,parent)
-		from ..lib.prfftw import pchio
-		self.algorithm = pchio
+		from ..lib.prutillib import rspchio
+		self._rspchio = rspchio
 		self.phasemax = 3.1416
 		self.phasemin = -3.1416
+	def RSCons(self):
+		self._rspchio(self.seqdata, self.rho_m1, self.support, self.beta, self.phasemax, self.phasemin, self.nthreads)
 	def SetMaxphase(self, max):
 		"""
 		Set phase maximum.
@@ -124,11 +109,6 @@ class PCHIO(PhaseAbstract):
 		Get phase minimum.
 		"""
 		return self.phasemin
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,\
-		self.beta,self.startiter,self.numiter,self.ndim,self.phasemax,self.phasemin,self.rho_m1,self.nn,self.residual,self.citer_flow,\
-		self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-		self.updatereal,self.updaterecip,self.updatelog)
 class SWPCHIO(PCHIO,ShrinkWrap):
 	"""
 	Fienup's hybrid input-output (HIO) algorithm with phase constraint
@@ -145,11 +125,13 @@ class PGCHIO(PhaseAbstract):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self,parent)
-		from ..lib.prfftw import pgchio
-		self.algorithm = pgchio
+		from ..lib.prutillib import rspgchio
+		self._rspgchio = rspgchio
 		self.phasemax = 3.1416
 		self.phasemin = -3.1416
 		self.q = [1.0,1.0,1.0]
+	def RSCons(self):
+		self._rspgchio(self.seqdata, self.rho_m1, self.support, self.tmpdata, self.beta, self.phasemax, self.phasemin, self.q[0], self.q[1], self.q[2], self.nthreads)
 	def SetMaxphase(self, max):
 		"""
 		Set phase maximum.
@@ -180,21 +162,20 @@ class PGCHIO(PhaseAbstract):
 		Get Q-vector tuple
 		"""
 		return self.q
-	def Prepare(self):
+	def _Prepare(self):
 		if self.parent != None:
 			from ..operations.loadarray import NewArray
-			self.rho_m1 = NewArray(self.parent, *self.seqdata.shape)
-			self.tmpdata = NewArray(self.parent, *self.seqdata.shape)
+			if self.citer_flow[12] > 0:
+				self.rho_m1 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.csingle)
+				self.tmpdata = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.csingle)
+			else:
+				self.rho_m1 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.cdouble)
+				self.tmpdata = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.cdouble)
 		else:
 			self.rho_m1 = numpy.empty_like(self.seqdata)
+			self.tmpdata = numpy.empty_like(self.seqdata)
 			self.SetResidual()
 		self.SetDimensions()
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,self.tmpdata,\
-		self.beta,self.startiter,self.numiter,self.ndim,self.phasemax,self.phasemin,\
-		self.q[0],self.q[1],self.q[2],self.rho_m1,self.nn,self.residual,self.citer_flow,\
-		self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-		self.updatereal,self.updaterecip,self.updatelog)
 class SWPGCHIO(PGCHIO,ShrinkWrap):
 	"""
 	Fienup's hybrid input-output (HIO) algorithm with phase gradient constraint
@@ -210,19 +191,6 @@ class HIOMaskPC(PhaseAbstractPC):
 	"""
 	def __init__(self, parent=None):
 		PhaseAbstractPC.__init__(self, parent)
-		from ..lib.prfftw import hiomaskpc
-		self.algorithm = hiomaskpc
-	def Algorithm(self):
-		SeqArrayObjects = [self.seqdata,self.expdata,self.support,self.mask,self.psf,\
-									self.rho_m1,self.pca_inten,self.pca_rho_m1_ft,self.pca_Idm_iter,\
-									self.pca_Idmdiv_iter,self.pca_IdmdivId_iter,self.tmpdata1,self.tmpdata2,\
-									self.nn,self.ndim, self.nn2,self.startiter,self.numiter,self.citer_flow]
-		SeqObjects = [self.residual,self.residualRL,\
-								self.visual_amp_real,self.visual_phase_real,self.visual_amp_recip,self.visual_phase_recip,\
-								self.updatereal,self.updaterecip, self.updatelog, self.updatelog2,\
-								self.gammaHWHM, self.reset_gamma, self.niterrl, self.niterrlpre, self.niterrlinterval, self.ze[0], self.ze[1], self.ze[2],\
-								self.beta,self.accel]
-		self.algorithm(SeqObjects,SeqArrayObjects)
 class SWHIOMaskPC(HIOMaskPC,ShrinkWrap):
 	"""
 	HIO Mask with Partial Coherence Optimisation.
@@ -233,4 +201,5 @@ class SWHIOMaskPC(HIOMaskPC,ShrinkWrap):
 		ShrinkWrap.__init__(self)
 	def Start(self):
 		self.SetNumiterRLpre(self.niterrlpretmp - self.startiter)
-		self.Algorithm()
+		if self.citer_flow[1] == 0:
+			self.Phase()

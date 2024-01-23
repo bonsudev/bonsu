@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: phasing/SO2D.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -19,13 +19,24 @@
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
 import numpy
+from math import sqrt
+from time import sleep
 from .abstract import PhaseAbstract
 from .ShrinkWrap import ShrinkWrap
+from ..lib.fftwlib import fftw_stride
+from ..lib.fftwlib import FFTW_TORECIP, FFTW_TOREAL
+from ..interface.common import FFTW_PSLEEP
 class SO2D(PhaseAbstract):
 	def __init__(self, parent=None):
 		PhaseAbstract.__init__(self, parent)
-		from ..lib.prfftw import so2dmask
-		self.algorithm = so2dmask
+		from ..lib.prutillib import sumofsqs
+		from ..lib.prutillib import SOGradStep
+		from ..lib.prutillib import SOMinMaxtau
+		from ..lib.prutillib import SupportScaleAddArray
+		self._sumofsqs = sumofsqs
+		self._SOGradStep = SOGradStep
+		self._SOMinMaxtau = SOMinMaxtau
+		self._SupportScaleAddArray = SupportScaleAddArray
 		self.alpha = 1.0
 		self.epsilon = numpy.zeros((5),dtype=numpy.double)
 		self.step = numpy.zeros((7),dtype=numpy.double)
@@ -138,12 +149,17 @@ class SO2D(PhaseAbstract):
 		Get value above |psi|/|psi_0| that will reset the step length to that of the initial value.
 		"""
 		return self.psiresetratio
-	def Prepare(self):
+	def _Prepare(self):
 		if self.parent != None:
 			from ..operations.loadarray import NewArray
-			self.rho_m1 = NewArray(self.parent, *self.seqdata.shape)
-			self.rho_m2 = NewArray(self.parent, *self.seqdata.shape)
-			self.grad = NewArray(self.parent, *self.seqdata.shape)
+			if self.citer_flow[12] > 0:
+				self.rho_m1 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.csingle)
+				self.rho_m2 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.csingle)
+				self.grad = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.csingle)
+			else:
+				self.rho_m1 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.cdouble)
+				self.rho_m2 = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.cdouble)
+				self.grad = NewArray(self.parent, *self.seqdata.shape, dtype=numpy.cdouble)
 		else:
 			self.rho_m1 = numpy.empty_like(self.seqdata)
 			self.rho_m2 = numpy.empty_like(self.seqdata)
@@ -156,14 +172,54 @@ class SO2D(PhaseAbstract):
 		self.step[4] = self.psiresetratio
 		self.step[5] = self.taumax
 		self.step[6] = self.reweightiter
+		self._psi = numpy.zeros((2), dtype = numpy.double)
+		self._H = numpy.zeros((2,2), dtype = numpy.double)
+		self._Hav = numpy.zeros((2,2), dtype = numpy.double)
+		self._tau = numpy.zeros((2), dtype = numpy.double)
+		self._tauav = numpy.zeros((2), dtype = numpy.double)
+		self.algiter = 0
 		self.SetDimensions()
-	def Algorithm(self):
-		self.algorithm(self.seqdata,self.expdata,self.support,self.mask,\
-			self.alpha,self.beta,self.startiter,self.numiter,self.step,self.numsoiter,\
-			self.epsilon,self.rho_m1,self.rho_m2,self.grad,\
-			self.residual,self.citer_flow,self.visual_amp_real,self.visual_phase_real,\
-			self.visual_amp_recip,self.visual_phase_recip,\
-			self.updatereal,self.updaterecip,self.updatelog)
+	def DoIter(self):
+		while self.citer_flow[1] == 1:
+			sleep(FFTW_PSLEEP);
+		self.rho_m2[:] = self.rho_m2[:]
+		self.rho_m1[:] = self.seqdata[:]
+		fftw_stride(self.seqdata,self.seqdata,self.plan,FFTW_TORECIP,1)
+		if self.citer_flow[5] > 0 and self.update_count_recip == self.citer_flow[5]:
+			self.visual_amp_recip[:] = numpy.absolute(self.seqdata)
+			if self.citer_flow[6] > 0:  self.visual_phase_recip[:] = numpy.angle(self.seqdata);
+			self.update_count_recip = 0
+			self.updaterecip()
+		else:
+			self.update_count_recip += 1
+		self.SetRes()
+		self.SetAmplitudes()
+		fftw_stride(self.seqdata,self.seqdata,self.plan,FFTW_TOREAL,1)
+		n = self.citer_flow[0]
+		self.residual[n] = self.res/self.sos
+		sos1 = self._sumofsqs(self.seqdata, self.nthreads)
+		self._SOGradStep(self.seqdata, self.support, self.rho_m1, self.rho_m2, self.grad,\
+							self.step, self.citer_flow, self.startiter ,self.nthreads)
+		self._SOMinMaxtau(self.seqdata, self.support, self.rho_m1, self.rho_m2, self.grad,\
+							self.expdata, self.mask, self.step, self.citer_flow, self.startiter,\
+							self._tau, self._tauav, self._H, self._Hav, self._psi, self.algiter,\
+							self.numsoiter, self.alpha, self.beta, self.plan, self.nthreads)
+		self.epsilon[1] = sqrt(self._psi[0]*self._psi[0]+self._psi[1]*self._psi[1])/(self.seqdata.size)
+		self.epsilon[2] = self._tau[0]; self.epsilon[3] = self._tau[1];
+		self._SupportScaleAddArray(self.seqdata, self.support, self.rho_m1, self.rho_m2, self.grad,\
+									self._tau, 1.0, 1.0, self.step, self.citer_flow, self.startiter, self.nthreads)
+		sos2 = self._sumofsqs(self.seqdata, self.nthreads)
+		norm = sqrt(sos1/sos2)
+		self.seqdata[:] = norm*self.seqdata[:]
+		if self.citer_flow[3] > 0 and self.update_count_real == self.citer_flow[3]:
+			self.visual_amp_real[:] = numpy.absolute(self.seqdata)
+			if self.citer_flow[6] > 0: self.visual_phase_real[:] = numpy.angle(self.seqdata);
+			self.update_count_real = 0
+			self.updatereal()
+		else:
+			self.update_count_real += 1
+		self.updatelog()
+		self.citer_flow[0] += 1
 class SWSO2D(SO2D,ShrinkWrap):
 	def __init__(self):
 		SO2D.__init__(self)

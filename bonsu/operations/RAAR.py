@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: RAAR.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ def RAAR\
 		numiter,
 		numiter_relax
 	):
-	from bonsu.phasing.RAAR import RAAR
+	from ..phasing.RAAR import RAAR
 	raar = RAAR(parent)
 	raar.SetStartiter(startiter)
 	raar.SetNumiter(numiter)
@@ -55,7 +55,7 @@ def RAARMaskPC\
 	reset_gamma,
 	accel
 	):
-	from bonsu.phasing.RAAR import RAARPC
+	from ..phasing.RAAR import RAARPC
 	raar = RAARPC(parent)
 	raar.SetStartiter(startiter)
 	raar.SetNumiter(numiter)

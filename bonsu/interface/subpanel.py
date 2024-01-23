@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: subpanel.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -2406,6 +2406,33 @@ class SubPanel_Bin(wx.Panel):
 		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+class SubPanel_Scale_Array_Dims(wx.Panel):
+	treeitem = {'name':  'Scale Array Dims' , 'type': 'operpre'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_Scale_Array_Dims(selff, pipelineitem)
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = StaticTextNew(self, label="Scale Array Dimensions")
+		title.SetToolTipNew("Input array dimensions will be scaled "+os.linesep+"according to the values below.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.output_filename = TextPanelObject(self, "Output File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		title2 = wx.StaticText(self, label="Scale dimensions: ")
+		vbox.Add(title2 ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.sdims=[{} for i in range(3)]
+		self.sdims[0] = SpinnerObject(self,"x",MAX_INT_16,1,1,1,20,60)
+		self.sdims[1] = SpinnerObject(self,"y",MAX_INT_16,1,1,1,20,60)
+		self.sdims[2] = SpinnerObject(self,"z",MAX_INT_16,1,1,1,20,60)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		hbox.Add(self.sdims[0], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox.Add(self.sdims[1], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		hbox.Add(self.sdims[2], 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
 class SubPanel_AutoCentre(wx.Panel):
 	treeitem = {'name':  'Auto Centre' , 'type': 'operpre'}
 	def sequence(self, selff, pipelineitem):
@@ -3007,6 +3034,8 @@ class SubPanel_View_Array(wx.ScrolledWindow):
 			self.hbox5.ShowItems(False)
 			self.hbox7.ShowItems(False)
 			self.Layout()
+		w,h = self.Sizer.GetMinSize()
+		self.SetVirtualSize((w,h))
 class SubPanel_Random(wx.Panel):
 	treeitem = {'name':  'Random Start' , 'type': 'algsstart'}
 	def sequence(self, selff, pipelineitem):
@@ -3145,7 +3174,7 @@ class SubPanel_RAAR(wx.Panel):
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
+		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.49,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -3337,7 +3366,8 @@ class SubPanel_PCHIO(wx.Panel):
 		self.SetSizer( vbox )
 class QDialog(wx.Dialog):
 	def __init__(self, parent, subpanel):
-		wx.Dialog.__init__(self, parent, title="Calculate Q-vector", size=(300, 180),style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+		wx.Dialog.__init__(self, parent, title="Calculate Q-vector", size=(300, 300),style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+		self.SetSizeHints(300,250,-1,-1)
 		self.subpanel = subpanel
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		self.ttheta = NumberObject(self,"2 theta:",self.subpanel.ttheta,80)
@@ -3358,7 +3388,7 @@ class QDialog(wx.Dialog):
 		self.cancel = wx.Button(self, label='Cancel', size=(70, 30))
 		hbox.Add(self.ok, 1,flag=wx.EXPAND)
 		hbox.Add(self.cancel, 1, flag=wx.EXPAND)
-		vbox.Add(hbox ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		vbox.Add(hbox ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetSizer(vbox)
 		self.ok.Bind(wx.EVT_BUTTON, self.OnOk)
 		self.cancel.Bind(wx.EVT_BUTTON, self.OnCancel)
@@ -3636,6 +3666,8 @@ class SubPanel_ShrinkWrap(wx.ScrolledWindow):
 			self.vboxPGCHIO.ShowItems(show=False)
 			self.vboxSO2D.ShowItems(show=True)
 		self.Layout()
+		w,h = self.Sizer.GetMinSize()
+		self.SetVirtualSize((w,h))
 class SubPanel_CSHIO(wx.Panel):
 	treeitem = {'name':  'CSHIO' , 'type': 'algs'}
 	def sequence(self, selff, pipelineitem):
@@ -3951,7 +3983,7 @@ class SubPanel_RAARMaskPC(wx.Panel):
 		vbox.Add(self.support, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.mask = TextPanelObject(self,"Mask: ","",100,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
 		vbox.Add(self.mask, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
-		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.9,100,100)
+		self.beta = SpinnerObject(self,"Beta: ",1.0,0.0,0.01,0.49,100,100)
 		vbox.Add(self.beta, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.niter = SpinnerObject(self,"Iterations: ",MAX_INT,1,1,1,100,100)
 		vbox.Add(self.niter, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
@@ -4305,6 +4337,8 @@ class SubPanel_View_Object(wx.ScrolledWindow):
 			self.hbox4.ShowItems(False)
 			self.hbox5.ShowItems(False)
 			self.Layout()
+		w,h = self.Sizer.GetMinSize()
+		self.SetVirtualSize((w,h))
 class SubPanel_View_VTK(wx.ScrolledWindow):
 	treeitem = {'name':  'View VTK Array' , 'type': 'operpreview'}
 	def sequence(self, selff, pipelineitem):
@@ -4410,6 +4444,8 @@ class SubPanel_View_VTK(wx.ScrolledWindow):
 			self.hbox3.ShowItems(True)
 			self.hbox4.ShowItems(True)
 			self.Layout()
+		w,h = self.Sizer.GetMinSize()
+		self.SetVirtualSize((w,h))
 class SubPanel_InterpolateObject(wx.Panel):
 	treeitem = {'name':  'Interpolate Object' , 'type': 'operpre'}
 	def sequence(self, selff, pipelineitem):

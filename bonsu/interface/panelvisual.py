@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelvisual.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ from wx.lib.plot.polyobjects import PlotGraphics
 class AnimateDialog(wx.Dialog):
 	def __init__(self, parent):
 		wx.Dialog.__init__(self, parent, title="Animate Scene", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-		self.SetSizeHints(450,300,-1,-1)
+		self.SetSizeHints(450,345,-1,-1)
 		self.count = 0
 		self.count_total = 0
 		self.xstep = 0
@@ -71,16 +71,20 @@ class AnimateDialog(wx.Dialog):
 		self.steps = SpinnerObject(self,"Steps: ",MAX_INT_16,1,1,36,75,80)
 		hbox3.Add(self.steps ,0, flag=wx.EXPAND|wx.RIGHT, border=5)
 		sboxs1.Add(hbox3, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		sboxs1.Add((-1, 10))
 		vbox.Add(sboxs1, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.delay = SpinnerObject(self,"Delay (ms): ",MAX_INT_16,0,10,0,75,80)
+		vbox.Add((-1, 10))
 		vbox.Add(self.delay ,0, flag=wx.EXPAND|wx.RIGHT, border=5)
 		vbox.Add((-1, 10))
+		hbox4 = wx.BoxSizer(wx.HORIZONTAL)
 		self.chkbox_save = wx.CheckBox(self, -1, 'Save scene', size=(200, 20))
 		self.chkbox_save.SetValue(False)
-		vbox.Add(self.chkbox_save, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
-		vbox.Add((-1, 5))
+		hbox4.Add(self.chkbox_save, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
+		hbox4.Add((5, -1))
 		self.filename_path = TextPanelObject(self, "Filename: ", "",80,"PNG files (*.png)|*.png|JPEG files (*.jpg)|*.jpg|PPM files (*.ppm)|*.ppm|All files (*.*)|*.*")
-		vbox.Add(self.filename_path, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		hbox4.Add(self.filename_path, 1,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		vbox.Add(hbox4, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		vbox.Add((-1, 5))
 		self.gauge = wx.Gauge(self, range=100, size=(400, 20))
 		vbox.Add(self.gauge, 1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=25)
@@ -156,12 +160,12 @@ class MeasureDialog(wx.Dialog):
 		self.nb.AddPage(MeasureAngle(self.nb), "Angle")
 		self.nb.AddPage(OrientXYZ(self.nb), "Orientation")
 		self.nb.AddPage(QVector(self.nb), "Q Vector")
+		self.nb.AddPage(RPolyW(self.nb), "Polygon")
 		sizer = wx.BoxSizer()
 		sizer.Add(self.nb, 1, wx.EXPAND)
 		self.SetSizer(sizer)
 		self.Fit()
 		self.Layout()
-		self.Show()
 	def Update(self):
 		self.nb.GetPage(0).linewidget.SetEnabled(0)
 		bounds = self.panelvisual.image_probe.GetBounds()
@@ -187,20 +191,31 @@ class MeasureDialog(wx.Dialog):
 		self.panelvisual.anglewidget = None
 		del self.panelvisual.meauredialog
 		self.nb.GetPage(3).OnExit()
+		self.nb.GetPage(4).OnExit()
 		self.Destroy()
 		self.panelvisual.EnablePanelPhase(enable=True)
-class QVector(wx.Panel):
+class RPolyW(wx.Panel):
 	def __init__(self,parent):
 		wx.Panel.__init__(self, parent)
 		self.panelvisual = self.GetParent().GetParent().GetParent()
-		self.rot = [0.0, 0.0, 0.0]
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
+		self.nrpolys = self.panelvisual.nrpolys
+		self.rpoly = self.panelvisual.rpoly
+		self.rpolyp = self.panelvisual.rpolyp
+		self.rpolymapper = self.panelvisual.rpolymapper
+		self.rpolyactor = self.panelvisual.rpolyactor
+		self.rpoly_enabled = [False for i in range(self.nrpolys)]
+		self.rpolyidx = 0
+		self.rpoly_so = SpinnerObject(self,"Polygon No.:",self.nrpolys,1,1,self.rpolyidx+1,150,50)
+		self.rpoly_so.spin.SetEventFunc(self.OnRPolyChange)
+		self.rpoly_so.value.Bind(wx.EVT_KEY_DOWN, self.OnRPolyKey)
 		self.chkbox_enable = CheckBoxNew(self, -1, 'Enable', size=(120, 25))
 		self.chkbox_enable.SetToolTipNew("Enable Widget")
 		self.chkbox_enable.SetValue(False)
 		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, self.chkbox_enable)
-		self.hbox_btn.Add(self.chkbox_enable, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=260)
+		self.hbox_btn.Add(self.rpoly_so, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=20)
+		self.hbox_btn.Add(self.chkbox_enable, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=20)
 		self.vbox.Add(self.hbox_btn, 0, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.TOP | wx.EXPAND, border=5)
 		self.vbox.Add((-1, 10))
 		self.sbox1 = wx.StaticBox(self, label="Origin", style=wx.BORDER_DEFAULT)
@@ -215,15 +230,6 @@ class QVector(wx.Panel):
 		self.p2x = NumberObject(self,"x:",0.0,60)
 		self.p2y = NumberObject(self,"y:",0.0,60)
 		self.p2z = NumberObject(self,"z:",0.0,60)
-		self.p1x.value.SetValue(str(self.panelvisual.qvpr[0]))
-		self.p1y.value.SetValue(str(self.panelvisual.qvpr[1]))
-		self.p1z.value.SetValue(str(self.panelvisual.qvpr[2]))
-		self.p2x.value.SetValue(str(self.panelvisual.qvpr[3]))
-		self.p2y.value.SetValue(str(self.panelvisual.qvpr[4]))
-		self.p2z.value.SetValue(str(self.panelvisual.qvpr[5]))
-		self.rot[0] = self.panelvisual.qvpr[6]
-		self.rot[1] = self.panelvisual.qvpr[7]
-		self.rot[2] = self.panelvisual.qvpr[8]
 		self.p1x.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
 		self.p1y.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
 		self.p1z.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
@@ -243,12 +249,254 @@ class QVector(wx.Panel):
 		self.vbox.Add(self.sboxs2, 0, flag=wx.LEFT | wx.TOP | wx.EXPAND)
 		self.vbox.Add((-1, 10))
 		self.hbox_c = wx.BoxSizer(wx.HORIZONTAL)
-		self.labelr = SpinnerObject(self,"Red:",1.0,0.0,0.1,1.0,100,50)
-		self.labelg = SpinnerObject(self,"Green:",1.0,0.0,0.1,0.0,100,50)
-		self.labelb = SpinnerObject(self,"Blue:",1.0,0.0,0.1,0.5,100,50)
+		self.labelr = SpinnerObject(self,"Red:",1.0,0.0,0.1,1.0,100,100)
+		self.labelg = SpinnerObject(self,"Green:",1.0,0.0,0.1,0.0,100,100)
+		self.labelb = SpinnerObject(self,"Blue:",1.0,0.0,0.1,0.5,100,100)
 		self.labelr.spin.SetEventFunc(self.OnColour)
 		self.labelg.spin.SetEventFunc(self.OnColour)
 		self.labelb.spin.SetEventFunc(self.OnColour)
+		self.labelr.value.Bind(wx.EVT_KEY_DOWN, self.OnColourKey)
+		self.labelg.value.Bind(wx.EVT_KEY_DOWN, self.OnColourKey)
+		self.labelb.value.Bind(wx.EVT_KEY_DOWN, self.OnColourKey)
+		self.hbox_c.Add(self.labelr, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox_c.Add(self.labelg, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox_c.Add(self.labelb, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.vbox.Add(self.hbox_c, 0, flag=wx.LEFT | wx.TOP | wx.EXPAND)
+		self.hbox_attrib1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.hbox_attrib2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.rpolysides = SpinnerObject(self,"Sides:",128,4,1,4,100,100)
+		self.rpolyradius = SpinnerObject(self,"Radius:",MAX_INT_16,1,1,1,100,100)
+		self.rpolyrotX = SpinnerObject(self,"Rotate X:",360,0,1,0,100,100)
+		self.rpolyrotY = SpinnerObject(self,"Rotate Y:",360,0,1,0,100,100)
+		self.rpolyrotZ = SpinnerObject(self,"Rotate Z:",360,0,1,0,100,100)
+		self.rpolyopac = SpinnerObject(self,"Opacity:",1.0,0.0,0.1,1.0,100,100)
+		self.rpolysides.spin.SetEventFunc(self.OnAttribSpin)
+		self.rpolyradius.spin.SetEventFunc(self.OnAttribSpin)
+		self.rpolyrotX.spin.SetEventFunc(self.OnAttribSpin)
+		self.rpolyrotY.spin.SetEventFunc(self.OnAttribSpin)
+		self.rpolyrotZ.spin.SetEventFunc(self.OnAttribSpin)
+		self.rpolyopac.spin.SetEventFunc(self.OnAttribSpin)
+		self.rpolysides.value.Bind(wx.EVT_KEY_DOWN, self.OnAttribKey)
+		self.rpolyradius.value.Bind(wx.EVT_KEY_DOWN, self.OnAttribKey)
+		self.rpolyrotX.value.Bind(wx.EVT_KEY_DOWN, self.OnAttribKey)
+		self.rpolyrotY.value.Bind(wx.EVT_KEY_DOWN, self.OnAttribKey)
+		self.rpolyrotZ.value.Bind(wx.EVT_KEY_DOWN, self.OnAttribKey)
+		self.rpolyopac.value.Bind(wx.EVT_KEY_DOWN, self.OnAttribKey)
+		self.hbox_attrib1.Add(self.rpolysides, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox_attrib1.Add(self.rpolyradius, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox_attrib2.Add(self.rpolyrotX, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox_attrib2.Add(self.rpolyrotY, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox_attrib2.Add(self.rpolyrotZ, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox_attrib1.Add(self.rpolyopac, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.vbox.Add(self.hbox_attrib1, 0, flag=wx.LEFT | wx.TOP | wx.EXPAND)
+		self.vbox.Add(self.hbox_attrib2, 0, flag=wx.LEFT | wx.TOP | wx.EXPAND)
+		self.EnablePointCoordsDisplay(0)
+		self.SetSizer(self.vbox)
+		self.Fit()
+		self.Show()
+		self.renderers = self.panelvisual.renWin.GetRenderWindow().GetRenderers()
+		self.renderers.InitTraversal()
+		no_renderers = self.renderers.GetNumberOfItems()
+		self.renderer = self.renderers.GetItemAsObject(no_renderers-1)
+		for i in range(self.nrpolys):
+			self.renderer.AddViewProp(self.rpolyactor[i])
+		self.LoadValues(self.rpolyidx)
+		self.panelvisual.ancestor.GetParent().Refresh()
+	def OnRPolyKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
+			self.OnRPolyChange(None)
+		else:
+			event.Skip()
+	def OnRPolyChange(self,event):
+		self.SaveValues(self.rpolyidx)
+		self.rpolyidx = int(self.rpoly_so.value.GetValue()) - 1
+		self.chkbox_enable.SetValue(self.rpoly_enabled[self.rpolyidx])
+		self.LoadValues(self.rpolyidx)
+		self.panelvisual.ancestor.GetParent().Refresh()
+		self.OnChkbox(None)
+	def LoadValues(self, idx):
+		self.p1x.value.SetValue(str(self.panelvisual.rpolyp[idx][0]))
+		self.p1y.value.SetValue(str(self.panelvisual.rpolyp[idx][1]))
+		self.p1z.value.SetValue(str(self.panelvisual.rpolyp[idx][2]))
+		self.p2x.value.SetValue(str(self.panelvisual.rpolyp[idx][3]))
+		self.p2y.value.SetValue(str(self.panelvisual.rpolyp[idx][4]))
+		self.p2z.value.SetValue(str(self.panelvisual.rpolyp[idx][5]))
+		r,g,b = self.rpolyactor[idx].GetProperty().GetColor()
+		self.labelr.value.SetValue(str(r))
+		self.labelg.value.SetValue(str(g))
+		self.labelb.value.SetValue(str(b))
+		self.rpolyradius.value.SetValue(str(self.rpoly[idx].GetRadius()))
+		self.rpolysides.value.SetValue(str(self.rpoly[idx].GetNumberOfSides()))
+		XYZ = self.rpolyactor[idx].GetOrientation()
+		self.rpolyrotX.value.SetValue(str(XYZ[0]))
+		self.rpolyrotY.value.SetValue(str(XYZ[1]))
+		self.rpolyrotZ.value.SetValue(str(XYZ[2]))
+		self.rpolyopac.value.SetValue(str(self.rpolyactor[idx].GetProperty().GetOpacity()))
+	def SaveValues(self, idx):
+		self.panelvisual.rpolyp[idx][0] = float(self.p1x.value.GetValue())
+		self.panelvisual.rpolyp[idx][1] = float(self.p1y.value.GetValue())
+		self.panelvisual.rpolyp[idx][2] = float(self.p1z.value.GetValue())
+		self.panelvisual.rpolyp[idx][3] = float(self.p2x.value.GetValue())
+		self.panelvisual.rpolyp[idx][4] = float(self.p2y.value.GetValue())
+		self.panelvisual.rpolyp[idx][5] = float(self.p2z.value.GetValue())
+	def OnChkbox(self, event):
+		self.rpoly_enabled[self.rpolyidx] = self.chkbox_enable.GetValue()
+		if(self.chkbox_enable.GetValue() == True):
+			self.rpolyactor[self.rpolyidx].VisibilityOn()
+			self.EnablePointCoordsDisplay(1)
+			self.panelvisual.ancestor.GetParent().Refresh()
+		else:
+			self.rpolyactor[self.rpolyidx].VisibilityOff()
+			self.EnablePointCoordsDisplay(0)
+			self.panelvisual.ancestor.GetParent().Refresh()
+	def EnablePointCoordsDisplay(self, enabled):
+		if enabled == 0:
+			self.p1x.Disable()
+			self.p1y.Disable()
+			self.p1z.Disable()
+			self.p2x.Disable()
+			self.p2y.Disable()
+			self.p2z.Disable()
+			self.rpolysides.Disable()
+			self.rpolyradius.Disable()
+			self.rpolyopac.Disable()
+			self.rpolyrotX.Disable()
+			self.rpolyrotY.Disable()
+			self.rpolyrotZ.Disable()
+			self.labelr.Disable()
+			self.labelg.Disable()
+			self.labelb.Disable()
+		else:
+			self.p1x.Enable()
+			self.p1y.Enable()
+			self.p1z.Enable()
+			self.p2x.Enable()
+			self.p2y.Enable()
+			self.p2z.Enable()
+			self.rpolysides.Enable()
+			self.rpolyradius.Enable()
+			self.rpolyopac.Enable()
+			self.rpolyrotX.Enable()
+			self.rpolyrotY.Enable()
+			self.rpolyrotZ.Enable()
+			self.labelr.Enable()
+			self.labelg.Enable()
+			self.labelb.Enable()
+	def OnColourKey(self, event):
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
+			self.OnColour(None)
+		else:
+			event.Skip()
+	def OnColour(self, event):
+		r = float(self.labelr.value.GetValue())
+		g = float(self.labelg.value.GetValue())
+		b = float(self.labelb.value.GetValue())
+		self.rpolyactor[self.rpolyidx].GetProperty().SetColor(r,g,b)
+		self.panelvisual.ancestor.GetParent().Refresh()
+	def OnAttribKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
+			self.OnAttribSpin(None)
+		else:
+			event.Skip()
+	def OnAttribSpin(self, event):
+		sides = int(self.rpolysides.value.GetValue())
+		radius = float(self.rpolyradius.value.GetValue())
+		opac = float(self.rpolyopac.value.GetValue())
+		rotX = float(self.rpolyrotX.value.GetValue())
+		rotY = float(self.rpolyrotY.value.GetValue())
+		rotZ = float(self.rpolyrotZ.value.GetValue())
+		self.rpoly[self.rpolyidx].SetNumberOfSides(sides)
+		self.rpoly[self.rpolyidx].SetRadius(radius)
+		self.rpolyactor[self.rpolyidx].GetProperty().SetOpacity(opac)
+		self.rpolyactor[self.rpolyidx].SetOrientation(rotX,rotY,rotZ)
+		self.panelvisual.ancestor.GetParent().Refresh()
+	def SetPointCoords(self, event):
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
+			try:
+				p1 = [float(self.p1x.value.GetValue()),float(self.p1y.value.GetValue()),float(self.p1z.value.GetValue())]
+				p2 = [float(self.p2x.value.GetValue()),float(self.p2y.value.GetValue()),float(self.p2z.value.GetValue())]
+			except:
+				pass
+			else:
+				self.rpoly[self.rpolyidx].SetCenter(*p1)
+				self.rpoly[self.rpolyidx].SetNormal(*p2)
+			self.panelvisual.ancestor.GetParent().Refresh()
+		else:
+			event.Skip()
+	def OnExit(self):
+		for i in range(self.nrpolys):
+			self.rpolyactor[i].VisibilityOff()
+		try:
+			self.SaveValues(self.rpolyidx)
+		except:
+			pass
+		renderers = self.panelvisual.renWin.GetRenderWindow().GetRenderers()
+		renderers.InitTraversal()
+		no_renderers = renderers.GetNumberOfItems()
+		renderer = renderers.GetItemAsObject(no_renderers-1)
+		for i in range(self.nrpolys):
+			renderer.RemoveViewProp(self.rpolyactor[i])
+class QVector(wx.Panel):
+	def __init__(self,parent):
+		wx.Panel.__init__(self, parent)
+		self.panelvisual = self.GetParent().GetParent().GetParent()
+		self.rot = [0.0, 0.0, 0.0]
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+		self.hbox_btn = wx.BoxSizer(wx.HORIZONTAL)
+		self.nqvector = self.panelvisual.nqvector
+		self.qvec_enabled = [False for i in range(self.nqvector)]
+		self.qvecidx = 0
+		self.qvectors = SpinnerObject(self,"Q-Vector No.:",self.nqvector,1,1,self.qvecidx+1,150,50)
+		self.qvectors.spin.SetEventFunc(self.OnQVecChange)
+		self.qvectors.value.Bind(wx.EVT_KEY_DOWN, self.OnQVecKey)
+		self.chkbox_enable = CheckBoxNew(self, -1, 'Enable', size=(120, 25))
+		self.chkbox_enable.SetToolTipNew("Enable Widget")
+		self.chkbox_enable.SetValue(False)
+		self.Bind(wx.EVT_CHECKBOX, self.OnChkbox, self.chkbox_enable)
+		self.hbox_btn.Add(self.qvectors, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=20)
+		self.hbox_btn.Add(self.chkbox_enable, flag=wx.LEFT | wx.RIGHT | wx.EXPAND, border=20)
+		self.vbox.Add(self.hbox_btn, 0, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.TOP | wx.EXPAND, border=5)
+		self.vbox.Add((-1, 10))
+		self.sbox1 = wx.StaticBox(self, label="Origin", style=wx.BORDER_DEFAULT)
+		self.sboxs1 = wx.StaticBoxSizer(self.sbox1,wx.HORIZONTAL)
+		self.sbox2 = wx.StaticBox(self, label="Direction", style=wx.BORDER_DEFAULT)
+		self.sboxs2 = wx.StaticBoxSizer(self.sbox2,wx.HORIZONTAL)
+		self.vbox_p1 = wx.BoxSizer(wx.VERTICAL)
+		self.vbox_p2 = wx.BoxSizer(wx.VERTICAL)
+		self.p1x = NumberObject(self,"x:",0.0,60)
+		self.p1y = NumberObject(self,"y:",0.0,60)
+		self.p1z = NumberObject(self,"z:",0.0,60)
+		self.p2x = NumberObject(self,"x:",0.0,60)
+		self.p2y = NumberObject(self,"y:",0.0,60)
+		self.p2z = NumberObject(self,"z:",0.0,60)
+		self.p1x.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p1y.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p1z.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p2x.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p2y.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.p2z.value.Bind(wx.EVT_KEY_DOWN, self.SetPointCoords)
+		self.vbox_p1.Add(self.p1x ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.vbox_p1.Add(self.p1y ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.vbox_p1.Add(self.p1z ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.sboxs1.Add(self.vbox_p1, 1, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.TOP | wx.EXPAND, border=5)
+		self.sboxs1.Add((-1, 10))
+		self.vbox.Add(self.sboxs1, 0, flag=wx.LEFT | wx.TOP | wx.EXPAND)
+		self.vbox_p2.Add(self.p2x ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.vbox_p2.Add(self.p2y ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.vbox_p2.Add(self.p2z ,1, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+		self.sboxs2.Add(self.vbox_p2, 1, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.TOP | wx.EXPAND, border=5)
+		self.vbox.Add(self.sboxs2, 0, flag=wx.LEFT | wx.TOP | wx.EXPAND)
+		self.vbox.Add((-1, 10))
+		self.hbox_c = wx.BoxSizer(wx.HORIZONTAL)
+		self.labelr = SpinnerObject(self,"Red:",1.0,0.0,0.1,1.0,100,100)
+		self.labelg = SpinnerObject(self,"Green:",1.0,0.0,0.1,0.0,100,100)
+		self.labelb = SpinnerObject(self,"Blue:",1.0,0.0,0.1,0.5,100,100)
+		self.labelr.spin.SetEventFunc(self.OnColour)
+		self.labelg.spin.SetEventFunc(self.OnColour)
+		self.labelb.spin.SetEventFunc(self.OnColour)
+		self.labelr.value.Bind(wx.EVT_KEY_DOWN, self.OnColourKey)
+		self.labelg.value.Bind(wx.EVT_KEY_DOWN, self.OnColourKey)
+		self.labelb.value.Bind(wx.EVT_KEY_DOWN, self.OnColourKey)
 		self.hbox_c.Add(self.labelr, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.hbox_c.Add(self.labelg, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.hbox_c.Add(self.labelb, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
@@ -257,6 +505,7 @@ class QVector(wx.Panel):
 		self.hbox_len = wx.BoxSizer(wx.HORIZONTAL)
 		self.restip = SpinnerObject(self,"Tip res.:",128,4,1,6,100,100)
 		self.resshaft = SpinnerObject(self,"Shaft res.:",128,3,1,6,100,100)
+		self.opac = SpinnerObject(self,"Opacity:",1.0,0.0,0.1,1.0,100,100)
 		self.lentip = SpinnerObject(self,"Tip len.:",1.0,0.0,0.05,0.35,100,100)
 		self.radtip = SpinnerObject(self,"Tip rad.:",1.0,0.0,0.01,0.1,100,100)
 		self.radshaft = SpinnerObject(self,"Shaft rad.:",1.0,0.0,0.01,0.03,100,100)
@@ -265,8 +514,16 @@ class QVector(wx.Panel):
 		self.lentip.spin.SetEventFunc(self.OnRes)
 		self.radtip.spin.SetEventFunc(self.OnRes)
 		self.radshaft.spin.SetEventFunc(self.OnRes)
+		self.opac.spin.SetEventFunc(self.OnRes)
+		self.restip.value.Bind(wx.EVT_KEY_DOWN, self.OnResKey)
+		self.resshaft.value.Bind(wx.EVT_KEY_DOWN, self.OnResKey)
+		self.lentip.value.Bind(wx.EVT_KEY_DOWN, self.OnResKey)
+		self.radtip.value.Bind(wx.EVT_KEY_DOWN, self.OnResKey)
+		self.radshaft.value.Bind(wx.EVT_KEY_DOWN, self.OnResKey)
+		self.opac.value.Bind(wx.EVT_KEY_DOWN, self.OnResKey)
 		self.hbox_res.Add(self.restip, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.hbox_res.Add(self.resshaft, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
+		self.hbox_res.Add(self.opac, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.hbox_len.Add(self.lentip, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.hbox_len.Add(self.radtip, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
 		self.hbox_len.Add(self.radshaft, 1 , flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=2)
@@ -283,24 +540,60 @@ class QVector(wx.Panel):
 		self.renderers.InitTraversal()
 		no_renderers = self.renderers.GetNumberOfItems()
 		self.renderer = self.renderers.GetItemAsObject(no_renderers-1)
-		self.renderer.AddViewProp(self.qactor)
-		r,g,b = self.qactor.GetProperty().GetColor()
+		for i in range(self.nqvector):
+			self.renderer.AddViewProp(self.qactor[i])
+		self.LoadValues(self.qvecidx)
+		self.panelvisual.ancestor.GetParent().Refresh()
+	def OnQVecKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
+			self.OnQVecChange(None)
+		else:
+			event.Skip()
+	def OnQVecChange(self,event):
+		self.SaveValues(self.qvecidx)
+		self.qvecidx = int(self.qvectors.value.GetValue()) - 1
+		self.chkbox_enable.SetValue(self.qvec_enabled[self.qvecidx])
+		self.LoadValues(self.qvecidx)
+		self.panelvisual.ancestor.GetParent().Refresh()
+		self.OnChkbox(None)
+	def LoadValues(self, idx):
+		self.p1x.value.SetValue(str(self.panelvisual.qvpr[idx][0]))
+		self.p1y.value.SetValue(str(self.panelvisual.qvpr[idx][1]))
+		self.p1z.value.SetValue(str(self.panelvisual.qvpr[idx][2]))
+		self.p2x.value.SetValue(str(self.panelvisual.qvpr[idx][3]))
+		self.p2y.value.SetValue(str(self.panelvisual.qvpr[idx][4]))
+		self.p2z.value.SetValue(str(self.panelvisual.qvpr[idx][5]))
+		self.rot[0] = self.panelvisual.qvpr[idx][6]
+		self.rot[1] = self.panelvisual.qvpr[idx][7]
+		self.rot[2] = self.panelvisual.qvpr[idx][8]
+		r,g,b = self.qactor[idx].GetProperty().GetColor()
 		self.labelr.value.SetValue(str(r))
 		self.labelg.value.SetValue(str(g))
 		self.labelb.value.SetValue(str(b))
-		self.restip.value.SetValue(str(self.qarrow.GetTipResolution()))
-		self.resshaft.value.SetValue(str(self.qarrow.GetShaftResolution()))
-		self.lentip.value.SetValue(str(self.qarrow.GetTipLength()))
-		self.radtip.value.SetValue(str(self.qarrow.GetTipRadius()))
-		self.radshaft.value.SetValue(str(self.qarrow.GetShaftRadius()))
-		self.panelvisual.ancestor.GetParent().Refresh()
+		self.restip.value.SetValue(str(self.qarrow[idx].GetTipResolution()))
+		self.resshaft.value.SetValue(str(self.qarrow[idx].GetShaftResolution()))
+		self.lentip.value.SetValue(str(self.qarrow[idx].GetTipLength()))
+		self.radtip.value.SetValue(str(self.qarrow[idx].GetTipRadius()))
+		self.radshaft.value.SetValue(str(self.qarrow[idx].GetShaftRadius()))
+		self.opac.value.SetValue(str(self.qactor[idx].GetProperty().GetOpacity()))
+	def SaveValues(self, idx):
+		self.panelvisual.qvpr[idx][0] = float(self.p1x.value.GetValue())
+		self.panelvisual.qvpr[idx][1] = float(self.p1y.value.GetValue())
+		self.panelvisual.qvpr[idx][2] = float(self.p1z.value.GetValue())
+		self.panelvisual.qvpr[idx][3] = float(self.p2x.value.GetValue())
+		self.panelvisual.qvpr[idx][4] = float(self.p2y.value.GetValue())
+		self.panelvisual.qvpr[idx][5] = float(self.p2z.value.GetValue())
+		self.panelvisual.qvpr[idx][6] = self.rot[0]
+		self.panelvisual.qvpr[idx][7] = self.rot[1]
+		self.panelvisual.qvpr[idx][8] = self.rot[2]
 	def OnChkbox(self, event):
-		if(event.GetEventObject().GetValue() == True):
-			self.qactor.VisibilityOn()
+		self.qvec_enabled[self.qvecidx] = self.chkbox_enable.GetValue()
+		if(self.chkbox_enable.GetValue() == True):
+			self.qactor[self.qvecidx].VisibilityOn()
 			self.EnablePointCoordsDisplay(1)
 			self.panelvisual.ancestor.GetParent().Refresh()
 		else:
-			self.qactor.VisibilityOff()
+			self.qactor[self.qvecidx].VisibilityOff()
 			self.EnablePointCoordsDisplay(0)
 			self.panelvisual.ancestor.GetParent().Refresh()
 	def EnablePointCoordsDisplay(self,enabled):
@@ -313,6 +606,7 @@ class QVector(wx.Panel):
 			self.p2z.Disable()
 			self.restip.Disable()
 			self.resshaft.Disable()
+			self.opac.Disable()
 			self.lentip.Disable()
 			self.radtip.Disable()
 			self.radshaft.Disable()
@@ -328,46 +622,56 @@ class QVector(wx.Panel):
 			self.p2z.Enable()
 			self.restip.Enable()
 			self.resshaft.Enable()
+			self.opac.Enable()
 			self.lentip.Enable()
 			self.radtip.Enable()
 			self.radshaft.Enable()
 			self.labelr.Enable()
 			self.labelg.Enable()
 			self.labelb.Enable()
+	def OnColourKey(self, event):
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
+			self.OnColour(None)
+		else:
+			event.Skip()
 	def OnColour(self, event):
 		r = float(self.labelr.value.GetValue())
 		g = float(self.labelg.value.GetValue())
 		b = float(self.labelb.value.GetValue())
-		self.qactor.GetProperty().SetColor(r,g,b)
+		self.qactor[self.qvecidx].GetProperty().SetColor(r,g,b)
 		self.panelvisual.ancestor.GetParent().Refresh()
+	def OnResKey(self,event):
+		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
+			self.OnRes(None)
+		else:
+			event.Skip()
 	def OnRes(self, event):
 		restip = int(self.restip.value.GetValue())
 		resshaft = int(self.resshaft.value.GetValue())
 		lentip = float(self.lentip.value.GetValue())
 		radtip = float(self.radtip.value.GetValue())
 		radshaft = float(self.radshaft.value.GetValue())
-		self.qarrow.SetTipResolution(restip)
-		self.qarrow.SetShaftResolution(resshaft)
-		self.qarrow.SetTipRadius(radtip)
-		self.qarrow.SetShaftRadius(radshaft)
-		self.qarrow.SetTipLength(lentip)
+		opac = float(self.opac.value.GetValue())
+		self.qarrow[self.qvecidx].SetTipResolution(restip)
+		self.qarrow[self.qvecidx].SetShaftResolution(resshaft)
+		self.qarrow[self.qvecidx].SetTipRadius(radtip)
+		self.qarrow[self.qvecidx].SetShaftRadius(radshaft)
+		self.qarrow[self.qvecidx].SetTipLength(lentip)
+		self.qactor[self.qvecidx].GetProperty().SetOpacity(opac)
 		self.panelvisual.ancestor.GetParent().Refresh()
 	def OnExit(self):
-		self.qactor.VisibilityOff()
-		self.panelvisual.qvpr[0] = float(self.p1x.value.GetValue())
-		self.panelvisual.qvpr[1] = float(self.p1y.value.GetValue())
-		self.panelvisual.qvpr[2] = float(self.p1z.value.GetValue())
-		self.panelvisual.qvpr[3] = float(self.p2x.value.GetValue())
-		self.panelvisual.qvpr[4] = float(self.p2y.value.GetValue())
-		self.panelvisual.qvpr[5] = float(self.p2z.value.GetValue())
-		self.panelvisual.qvpr[6] = self.rot[0]
-		self.panelvisual.qvpr[7] = self.rot[1]
-		self.panelvisual.qvpr[8] = self.rot[2]
+		for i in range(self.nqvector):
+			self.qactor[i].VisibilityOff()
+		try:
+			self.SaveValues(self.qvecidx)
+		except:
+			pass
 		renderers = self.panelvisual.renWin.GetRenderWindow().GetRenderers()
 		renderers.InitTraversal()
 		no_renderers = renderers.GetNumberOfItems()
 		renderer = renderers.GetItemAsObject(no_renderers-1)
-		renderer.RemoveViewProp(self.qactor)
+		for i in range(self.nqvector):
+			renderer.RemoveViewProp(self.qactor[i])
 	def SetPointCoords(self, event):
 		if event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER:
 			try:
@@ -381,16 +685,16 @@ class QVector(wx.Panel):
 				if r == 0.0:
 					return
 				rxz = numpy.sqrt((p2[0]-p1[0])*(p2[0]-p1[0])+(p2[2]-p1[2])*(p2[2]-p1[2]))
-				self.qactor.SetPosition(*p1)
+				self.qactor[self.qvecidx].SetPosition(*p1)
 				alphaz = numpy.arctan2((p2[1]-p1[1]), rxz)*180.0/numpy.pi
 				alphay = -numpy.arctan2((p2[2]-p1[2]), (p2[0]-p1[0]))*180.0/numpy.pi
-				self.qactor.RotateWXYZ(-self.rot[1], 0, 1, 0)
-				self.qactor.RotateWXYZ(-self.rot[2], 0, 0, 1)
-				self.qactor.RotateWXYZ(alphaz, 0, 0, 1)
-				self.qactor.RotateWXYZ(alphay, 0, 1, 0)
+				self.qactor[self.qvecidx].RotateWXYZ(-self.rot[1], 0, 1, 0)
+				self.qactor[self.qvecidx].RotateWXYZ(-self.rot[2], 0, 0, 1)
+				self.qactor[self.qvecidx].RotateWXYZ(alphaz, 0, 0, 1)
+				self.qactor[self.qvecidx].RotateWXYZ(alphay, 0, 1, 0)
 				self.rot[2] = alphaz
 				self.rot[1] = alphay
-				self.qactor.SetScale(r,r,r)
+				self.qactor[self.qvecidx].SetScale(r,r,r)
 			self.panelvisual.ancestor.GetParent().Refresh()
 		else:
 			event.Skip()
@@ -1092,14 +1396,13 @@ class ContourDialog(wx.Dialog):
 		self.SetSizer( self.vbox )
 		self.Fit()
 		self.Layout()
-		self.Show()
 	def OnExit(self,event):
 		del self.panelvisual.contourdialog
 		self.Destroy()
 		if self.panelvisual.ancestor.GetPage(0).pipeline_started == False:
 			self.panelvisual.EnablePanelPhase(enable=True)
 	def OnContourRealKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnContourReal(event)
@@ -1126,7 +1429,7 @@ class ContourDialog(wx.Dialog):
 				event.Skip()
 				self.panelvisual.RefreshScene()
 	def OnContourRecipKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnContourRecip(event)
@@ -1149,7 +1452,7 @@ class ContourDialog(wx.Dialog):
 				event.Skip()
 				self.panelvisual.RefreshScene()
 	def OnContourSupportKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnContourSupport(event)
@@ -1493,12 +1796,11 @@ class SBDialog(wx.Dialog):
 		self.vbox.Add((-1, 30))
 		self.SetSizer(self.vbox)
 		self.Fit()
-		self.Show()
 	def OnExit(self,event):
 		del self.panelvisual.SBdialog
 		self.Destroy()
 	def OnLabelRGBKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnLabelRGB(event)
@@ -1555,7 +1857,7 @@ class SBDialog(wx.Dialog):
 			self.labelfontsize.Enable()
 		self.panelvisual.RefreshScene()
 	def OnDimKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnDim(event)
@@ -1572,7 +1874,7 @@ class SBDialog(wx.Dialog):
 		self.panelvisual.scalebar_phase_recip.SetHeight(y)
 		self.panelvisual.RefreshScene()
 	def OnPosKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnPos(event)
@@ -1585,7 +1887,7 @@ class SBDialog(wx.Dialog):
 		self.panelvisual.scalebar_phase_recip.SetPosition(x,y)
 		self.panelvisual.RefreshScene()
 	def OnNLabelsKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnNLabels(event)
@@ -1660,12 +1962,11 @@ class LightDialog(wx.Dialog):
 		self.vbox.Add((-1, 20))
 		self.SetSizer(self.vbox)
 		self.Fit()
-		self.Show()
 	def OnExit(self,event):
 		del self.panelvisual.Lightdialog
 		self.Destroy()
 	def OnAmbientKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnAmbient(event)
@@ -1677,7 +1978,7 @@ class LightDialog(wx.Dialog):
 		self.panelvisual.actor_phase_recip.GetProperty().SetAmbient(value)
 		self.panelvisual.RefreshScene()
 	def OnDiffuseKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnDiffuse(event)
@@ -1689,7 +1990,7 @@ class LightDialog(wx.Dialog):
 		self.panelvisual.actor_phase_recip.GetProperty().SetDiffuse(value)
 		self.panelvisual.RefreshScene()
 	def OnSpecularKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnSpecular(event)
@@ -1701,7 +2002,7 @@ class LightDialog(wx.Dialog):
 		self.panelvisual.actor_phase_recip.GetProperty().SetSpecular(value)
 		self.panelvisual.RefreshScene()
 	def OnSpecularpowerKey(self, event):
-		if event.GetKeyCode() != (wx.WXK_RETURN or wx.WXK_NUMPAD_ENTER):
+		if event.GetKeyCode() not in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
 			event.Skip()
 		else:
 			self.OnSpecularpower(event)
@@ -1758,7 +2059,6 @@ class LUTDialog(wx.Dialog):
 		self.SetSizer(self.sizer)
 		self.Fit()
 		self.Layout()
-		self.Show()
 	def GetRadioChoice(self, idx):
 		choice = self.panelphase.cmls[idx][0]
 		reverse = self.panelphase.cmls[idx][1]
@@ -1911,6 +2211,10 @@ class PanelVisual(wx.Panel,wx.App):
 		self.scalebar_phase_recip.SetWidth(0.07)
 		self.scalebar_phase_recip.SetHeight(0.80)
 		self.scalebar_phase_recip.SetPosition(0.01,0.1)
+		self.scalebar_amp_real.SetOrientationToVertical()
+		self.scalebar_phase_real.SetOrientationToVertical()
+		self.scalebar_amp_recip.SetOrientationToVertical()
+		self.scalebar_phase_recip.SetOrientationToVertical()
 		self.color_amp_real = vtk.vtkImageMapToColors()
 		self.color_phase_real = vtk.vtkImageMapToColors()
 		self.color_amp_recip = vtk.vtkImageMapToColors()
@@ -2039,20 +2343,48 @@ class PanelVisual(wx.Panel,wx.App):
 		self.axestransformRZ = 0.0
 		self.axes.SetUserTransform(self.axestransform)
 		self.widget = vtk.vtkOrientationMarkerWidget()
-		self.qarrow = vtk.vtkArrowSource()
-		self.qarrow.SetShaftRadius(0.05)
-		self.qarrow.SetTipLength(0.3)
-		self.qarrow.InvertOff()
-		self.qmapper = vtk.vtkPolyDataMapper()
-		self.qmapper.SetInputConnection(self.qarrow.GetOutputPort())
-		self.qactor = vtk.vtkActor()
-		self.qactor.PickableOff()
-		self.qactor.DragableOff()
-		self.qactor.SetMapper(self.qmapper)
-		self.qactor.GetProperty().SetColor(1,0,0.5)
-		self.qactor.GetProperty().SetOpacity(1.0)
-		self.qactor.VisibilityOff()
-		self.qvpr = [0]*9
+		self.nrpolys = 10
+		self.rpoly = []
+		self.rpolymapper = []
+		self.rpolyactor = []
+		self.rpolyp = []
+		for i in range(self.nrpolys):
+			self.rpoly.append(vtk.vtkRegularPolygonSource())
+			self.rpoly[-1].SetCenter(0,0,0)
+			self.rpoly[-1].SetNormal(1,0,0)
+			self.rpoly[-1].SetRadius(1)
+			self.rpoly[-1].SetNumberOfSides(4)
+			self.rpolymapper.append(vtk.vtkPolyDataMapper())
+			self.rpolymapper[-1].SetInputConnection(self.rpoly[-1].GetOutputPort())
+			self.rpolyactor.append(vtk.vtkActor())
+			self.rpolyactor[-1].PickableOff()
+			self.rpolyactor[-1].DragableOff()
+			self.rpolyactor[-1].SetMapper(self.rpolymapper[-1])
+			self.rpolyactor[-1].GetProperty().SetColor(1,0,0.5)
+			self.rpolyactor[-1].GetProperty().SetOpacity(1.0)
+			self.rpolyactor[-1].VisibilityOff()
+			self.rpolyactor[-1].VisibilityOff()
+			self.rpolyp.append([0]*6)
+		self.nqvector = 10
+		self.qarrow = []
+		self.qmapper = []
+		self.qactor = []
+		self.qvpr = []
+		for i in range(self.nqvector):
+			self.qarrow.append(vtk.vtkArrowSource())
+			self.qarrow[-1].SetShaftRadius(0.05)
+			self.qarrow[-1].SetTipLength(0.3)
+			self.qarrow[-1].InvertOff()
+			self.qmapper.append(vtk.vtkPolyDataMapper())
+			self.qmapper[-1].SetInputConnection(self.qarrow[-1].GetOutputPort())
+			self.qactor.append(vtk.vtkActor())
+			self.qactor[-1].PickableOff()
+			self.qactor[-1].DragableOff()
+			self.qactor[-1].SetMapper(self.qmapper[-1])
+			self.qactor[-1].GetProperty().SetColor(1,0,0.5)
+			self.qactor[-1].GetProperty().SetOpacity(1.0)
+			self.qactor[-1].VisibilityOff()
+			self.qvpr.append([0]*9)
 		self.vbox = wx.BoxSizer(wx.VERTICAL)
 		self.hboxrender = wx.BoxSizer(wx.HORIZONTAL)
 		self.vtkpanel_holder = wx.StaticText(self, label=' ')

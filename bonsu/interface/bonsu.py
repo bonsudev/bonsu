@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: bonsu.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -20,10 +20,10 @@
 #############################################
 __author__ = "Marcus C. Newton"
 __maintainer__ = "Marcus C. Newton"
-__copyright__ = "Copyright 2011 - 2023 Marcus C. Newton"
+__copyright__ = "Copyright 2011 - 2024 Marcus C. Newton"
 __credits__ = ["Marcus C. Newton"]
 __license__ = "GPL v3"
-__version__ = "3.6.2"
+__version__ = "3.7.0"
 __appname__ = "Bonsu"
 __email__ = "Bonsu.Devel@gmail.com"
 __website__ = "github.com/bonsudev/bonsu"

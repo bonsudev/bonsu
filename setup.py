@@ -2,7 +2,7 @@
 #############################################
 ##   Filename: setup.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -19,19 +19,15 @@
 ##
 ## Contact: Bonsu.Devel@gmail.com
 #############################################
-from setuptools import setup, Extension
+from setuptools import setup
+from setuptools import Extension
+from Cython.Build import cythonize
 import os, datetime
 from sys import argv
 from sys import platform
-from sys import modules as sysmodules
 from sys import prefix
 import numpy
 args = argv[1:]
-def CheckPython():
-	from sys import version_info
-	if version_info < (3,7):
-		from sys import exit
-		exit('Python < 3.7 is not supported. Please upgrade.')
 def SetBuildDate():
 	filename_bonsu = os.path.join(os.path.dirname(__file__), 'bonsu', 'interface', 'bonsu.py')
 	f1_bonsu = open(filename_bonsu, 'r')
@@ -46,139 +42,68 @@ def SetBuildDate():
 	f2_bonsu.writelines(lines)
 	f1_bonsu.close()
 	f2_bonsu.close()
-def Build( type=args[0] ):
-	bonsu_description = """ Bonsu is a collection of tools and algorithms primarily for
-	the reconstruction of phase information from diffraction intensity measurements.
-	"""
-	debug_compile_args = "-Wall"
-	SETUP_REQUIRES = [
-		"wx (>=4.1.0)",
-		"numpy",
-		"vtk (>=8.0.0)",
-		"h5py",
-		"pillow"]
-	if type == 'develop':
-		INSTALL_REQUIRES = []
-		EXTRAS_REQUIRE = {}
-	else:
-		INSTALL_REQUIRES = [
-			"wxpython >=4.1.0",
-			"numpy",
-			"vtk >=8.0.0",
-			"h5py",
-			"pillow"]
-		EXTRAS_REQUIRE = {
-			'hdf5plugin':  ["hdf5plugin"]}
-	sourcelist = [
-		'bonsu/lib/prfftwmodule.cxx',
-		'bonsu/lib/prfftwhiomask.cxx',
-		'bonsu/lib/prfftwhio.cxx',
-		'bonsu/lib/prfftwhioplus.cxx',
-		'bonsu/lib/prfftwpchiomask.cxx',
-		'bonsu/lib/prfftwpgchiomask.cxx',
-		'bonsu/lib/prfftwer.cxx',
-		'bonsu/lib/prfftwermask.cxx',
-		'bonsu/lib/prfftwpoermask.cxx',
-		'bonsu/lib/prfftwraar.cxx',
-		'bonsu/lib/prfftwhpr.cxx',
-		'bonsu/lib/prfftwermaskpc.cxx',
-		'bonsu/lib/prfftwhprmaskpc.cxx',
-		'bonsu/lib/prfftwraarmaskpc.cxx',
-		'bonsu/lib/prfftwso2d.cxx',
-		'bonsu/lib/prfftwcshio.cxx',
-		'bonsu/lib/prfftwhiomaskpc.cxx',
-		'bonsu/lib/median.cxx',
-		'bonsu/lib/blanklinereplace.cxx']
-	package_data_dict = {
+def GetPkgData( type=args[0] ):
+	SetBuildDate()
+	package_data = {
 		'bonsu.licence': ['gpl.txt'],
 		'bonsu.changelog': ['CHANGELOG.md'],
 		'bonsu.interface': ['cms.npy'],
 		'bonsu.image': ['bonsu.ico', 'bonsu.icns'],
 		'bonsu.docs': ['*.*', '_images/*.*', '_images/math/*.*', '_static/*.*']}
-	data_files = []
-	modprfftw_lib =  ['fftw3']
-	if type.startswith('bdist_wheel'):
-		SETUP_REQUIRES.append("wheel")
-	if os.environ.get('BONSU_SETUP_REQUIRES', '1') == '0':
-		SETUP_REQUIRES = []
+	if platform.startswith('win'):
+		extra_package_data = {'bonsu.lib': ['libfftw3-3.dll', 'libfftw3f-3.dll']}
+		package_data.update(extra_package_data)
 	if type == 'sdist':
-		extra_package_data = {
-		'bonsu.lib':['prfftwmodule.h']
+		lib_pkg_data = {
+		'bonsu.lib':['fftwlib.pxd', 'fftwlib.pyx', 'prutillib.pyx']
 		}
-		package_data_dict.update(extra_package_data)
-	elif platform.startswith('win'):
-		extra_package_data = {'bonsu.lib': ['libfftw3-3.dll']}
-		package_data_dict.update(extra_package_data)
+		package_data.update(lib_pkg_data)
+	return package_data
+def GetExtMods():
+	debug_compile_args = '-Wall'
+	openmp_compile_args = ''
+	openmp_link_args = ''
+	extra_links = []
+	libraries_fftw = ['fftw3', 'fftw3f']
 	if platform.startswith('linux'):
-		modprfftw_lib.append('fftw3_threads')
-		sourcelist.append('bonsu/lib/libphase-pthread.cxx')
-		sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
-		if type == 'sdist':
-			sourcelist.append('bonsu/lib/libphase.cxx')
-			sourcelist.append('bonsu/lib/prfftwrs.cxx')
-	elif platform.startswith('win'):
-		sourcelist.append('bonsu/lib/libphase.cxx')
-		sourcelist.append('bonsu/lib/prfftwrs.cxx')
-		if type == 'sdist':
-			sourcelist.append('bonsu/lib/libphase-pthread.cxx')
-			sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
+		openmp_compile_args = '-fopenmp'
+		openmp_link_args = '-fopenmp'
+		extra_links.append(openmp_link_args)
+		libraries_fftw.append('fftw3_threads')
+		libraries_fftw.append('fftw3f_threads')
 	elif platform.startswith('darwin'):
-		modprfftw_lib.append('fftw3_threads')
-		sourcelist.append('bonsu/lib/libphase.cxx')
-		sourcelist.append('bonsu/lib/prfftwrs.cxx')
-		if type == 'sdist':
-			sourcelist.append('bonsu/lib/libphase-pthread.cxx')
-			sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
+		openmp_compile_args = '-fopenmp'
+		openmp_link_args = '-fopenmp'
+		libraries_fftw.append('fftw3_threads')
+		libraries_fftw.append('fftw3f_threads')
+	elif platform.startswith('win'):
+		openmp_compile_args = '/openmp'
+		openmp_link_args = ''
 	else:
-		sourcelist.append('bonsu/lib/libphase.cxx')
-		sourcelist.append('bonsu/lib/prfftwrs.cxx')
-		if type == 'sdist':
-			sourcelist.append('bonsu/lib/libphase-pthread.cxx')
-			sourcelist.append('bonsu/lib/prfftwrs-pthread.cxx')
-	include_dirs = ['include']
-	include_dirs.append(numpy.get_include())
-	include_dirs.append(os.path.join(numpy.get_include(), 'numpy'))
-	include_dirs.append(os.path.join(prefix,'include'))
-	modprfftw = Extension(
-		'prfftw',
-		include_dirs = include_dirs,
-		libraries = modprfftw_lib,
-		extra_compile_args = [debug_compile_args],
-		sources = sourcelist)
-	setup(
-		name = 'Bonsu',
-		version = "3.6.2",
-		license = 'GPL3',
-		description = 'Bonsu - The Interactive Phase Retrieval Suite',
-		author = 'Marcus C. Newton',
-		maintainer = 'Marcus C. Newton',
-		author_email = 'Bonsu.Devel@gmail.com',
-		url = 'https://github.com/bonsudev/bonsu',
-		packages = ['bonsu',
-							'bonsu.interface',
-							'bonsu.operations',
-							'bonsu.lib',
-							'bonsu.sequences',
-							'bonsu.phasing',
-							'bonsu.licence',
-							'bonsu.image',
-							'bonsu.docs',
-							'bonsu.changelog'],
-		ext_package = 'bonsu.lib',
-		ext_modules = [modprfftw],
-		entry_points={
-			# 'console_scripts': ['bonsu = bonsu.interface.bonsu:main'],
-			'gui_scripts': ['bonsu = bonsu.interface.bonsu:main'],
-			},
-		package_data = package_data_dict,
-		data_files = data_files,
-		requires = SETUP_REQUIRES,
-		install_requires = INSTALL_REQUIRES,
-		extras_require = EXTRAS_REQUIRE,
-		python_requires = '>=3.7',
-		long_description = bonsu_description
-	)
-if __name__ == '__main__':
-	CheckPython()
-	SetBuildDate()
-	Build()
+		openmp_compile_args = '-fopenmp'
+		openmp_link_args = '-fopenmp'
+		extra_links.append(openmp_link_args)
+	fftwlib = Extension(
+		'bonsu.lib.fftwlib',
+		include_dirs = ['include', numpy.get_include()],
+		libraries = libraries_fftw,
+		language="c++",
+		extra_compile_args = [debug_compile_args, openmp_compile_args],
+		extra_link_args=extra_links,
+		define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+		sources = [os.path.join('bonsu', 'lib', 'fftwlib.pyx')])
+	prutillib = Extension(
+		'bonsu.lib.prutillib',
+		include_dirs = ['include', numpy.get_include()],
+		language="c++",
+		extra_compile_args = [debug_compile_args, openmp_compile_args],
+		extra_link_args=extra_links,
+		define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+		sources = [os.path.join('bonsu', 'lib', 'prutillib.pyx')])
+	ext_modules_lst = [*cythonize(fftwlib, compiler_directives={'language_level' : "3"}),\
+						*cythonize(prutillib, compiler_directives={'language_level' : "3"})]
+	return ext_modules_lst
+setup(
+	ext_modules = GetExtMods(),
+	package_data = GetPkgData()
+)

@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: POER.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ def POER\
 		startiter,
 		numiter
 	):
-	from bonsu.phasing.ER import POER
+	from ..phasing.ER import POER
 	er = POER(parent)
 	er.SetStartiter(startiter)
 	er.SetNumiter(numiter)

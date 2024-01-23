@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: instance.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -176,6 +176,12 @@ def GetInstanceObject(panelphase, i):
 		object.append( panelphase.pipelineitems[i].bdims[0].value.GetValue() )
 		object.append( panelphase.pipelineitems[i].bdims[1].value.GetValue() )
 		object.append( panelphase.pipelineitems[i].bdims[2].value.GetValue() )
+	if subpanelname == 'Scale Array Dims':
+		object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
+		object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
+		object.append( panelphase.pipelineitems[i].sdims[0].value.GetValue() )
+		object.append( panelphase.pipelineitems[i].sdims[1].value.GetValue() )
+		object.append( panelphase.pipelineitems[i].sdims[2].value.GetValue() )
 	if subpanelname == 'Auto Centre':
 		object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 		object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
@@ -737,6 +743,16 @@ def SetInstanceObject(panelphase, instance, idx, subpanel_items):
 			panelphase.pipelineitems[idx].bdims[0].value.SetValue(object[2])
 			panelphase.pipelineitems[idx].bdims[1].value.SetValue(object[3])
 			panelphase.pipelineitems[idx].bdims[2].value.SetValue(object[4])
+			DoListCheck(panelphase, object, idx)
+		if subpanelname == 'Scale Array Dims':
+			panelphase.pipelineitems.insert(idx, SubPanel_Scale_Array_Dims(panelphase.panel2))
+			panelphase.pipelineitems[idx].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[idx], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[idx].input_filename.objectpath.SetValue(object[0])
+			panelphase.pipelineitems[idx].output_filename.objectpath.SetValue(object[1])
+			panelphase.pipelineitems[idx].sdims[0].value.SetValue(object[2])
+			panelphase.pipelineitems[idx].sdims[1].value.SetValue(object[3])
+			panelphase.pipelineitems[idx].sdims[2].value.SetValue(object[4])
 			DoListCheck(panelphase, object, idx)
 		if subpanelname == 'Auto Centre':
 			panelphase.pipelineitems.insert(idx, SubPanel_AutoCentre(panelphase.panel2))

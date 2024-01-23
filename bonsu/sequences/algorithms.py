@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: algorithms.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -503,7 +503,10 @@ class SequenceBase():
 			self.Prepare()
 	def LoadExpData(self):
 		try:
-			self.parent.expdata = LoadArray(self.parent, self.expdata_path)
+			if self.parent.citer_flow[12] > 0:
+				self.parent.expdata = LoadArray(self.parent, self.expdata_path, dtype=numpy.csingle)
+			else:
+				self.parent.expdata = LoadArray(self.parent, self.expdata_path, dtype=numpy.cdouble)
 			if self.pipelineitem.chkbox_sqrt_expamps.GetValue() == True:
 				numpy.sqrt(self.parent.expdata, self.parent.expdata)
 			self.parent.expdata[:] = WrapArray(self.parent.expdata).copy()
@@ -523,7 +526,10 @@ class SequenceBase():
 				return True
 		else:
 			try:
-				self.parent.support = LoadArray(self.parent, self.support_path)
+				if self.parent.citer_flow[12] > 0:
+					self.parent.support = LoadArray(self.parent, self.support_path, dtype=numpy.csingle)
+				else:
+					self.parent.support = LoadArray(self.parent, self.support_path, dtype=numpy.cdouble)
 			except:
 				msg = "Could not load array from: \n"+ self.support_path + "\nPlease check the log."
 				self.MsgDlg(msg)
@@ -595,7 +601,10 @@ class SequenceBaseMask(SequenceBase):
 			return True
 	def LoadMask(self):
 		try:
-			self.parent.mask = LoadArray(self.parent, self.mask_path)
+			if self.parent.citer_flow[12] > 0:
+				self.parent.mask = LoadArray(self.parent, self.mask_path, dtype=numpy.csingle)
+			else:
+				self.parent.mask = LoadArray(self.parent, self.mask_path, dtype=numpy.cdouble)
 			self.parent.mask[:] = WrapArray(self.parent.mask).copy()
 		except:
 			msg = "Could not load array from: \n"+ self.mask_path + "\nPlease check the log."
@@ -662,10 +671,10 @@ class SequenceBasePC(SequenceBaseMask):
 			return True
 	def LoadPSF(self):
 		try:
-			from ..lib.prfftw import lorentzftfill
+			from ..lib.prutillib import lorentz_ft_fill
 			if self.parent.psf is None:
 				self.parent.psf = NewArray(self.parent, *self.parent.seqdata.shape)
-				lorentzftfill(self.parent.psf,self.gammaHWHM)
+				lorentz_ft_fill(self.parent.psf,self.gammaHWHM, self.parent.citer_flow[7])
 		except MemoryError:
 			msg = "Could not load PSF array. Insufficient memory."
 			self.MsgDlg(msg)
@@ -885,23 +894,17 @@ class Sequence_ShrinkWrap(SequenceBaseMask):
 		SequenceBaseMask.__init__(self, parent, pipelineitem)
 		if parent.pipeline_started == True:
 			if parent.citer_flow[1] == 2: return;
-			from ..lib.prfftw import threshold
-			from ..lib.prfftw import rangereplace
-			from ..lib.prfftw import convolve_sw
-			from ..lib.prfftw import medianfilter
-			from ..lib.prfftw import wrap_nomem
-			from ..lib.prfftw import copy_amp
-			from ..lib.prfftw import copy_abs
-			from ..lib.prfftw import max_value
+			from ..lib.prutillib import threshold
+			from ..lib.prutillib import rangereplace
+			from ..lib.prutillib import convolve_ntmp
+			from ..lib.prutillib import median_replace_voxel
+			from ..lib.prutillib import wrap_nomem
 			self.threshold = threshold
 			self.rangereplace = rangereplace
-			self.convolve = convolve_sw
-			self.medianfilter = medianfilter
+			self.convolve = convolve_ntmp
+			self.medianfilter = median_replace_voxel
 			self.wrap = wrap_nomem
-			self.copy_abs = copy_abs
-			self.copy_amp = copy_amp
 			self.maxvalue = numpy.zeros((2), dtype=numpy.double)
-			self.max_value = max_value
 			self.beta = float(self.pipelineitem.beta.value.GetValue())
 			self.startiter = int(self.pipelineitem.start_iter)
 			self.numiter = int(self.pipelineitem.niter.value.GetValue())
@@ -943,10 +946,14 @@ class Sequence_ShrinkWrap(SequenceBaseMask):
 			self.StartPhasing()
 	def LoadTmp(self):
 		try:
-			from ..lib.prfftw import gaussian_fill
-			self.parent.temparray = NewArray(self, *self.parent.support.shape)
-			self.parent.temparray2 = NewArray(self, *self.parent.support.shape)
-			gaussian_fill(self.parent.temparray, self.sigma)
+			from ..lib.prutillib import gaussian_fill
+			if self.parent.citer_flow[12] > 0:
+				self.parent.temparray = NewArray(self, *self.parent.support.shape, dtype=numpy.csingle)
+				self.parent.temparray2 = NewArray(self, *self.parent.support.shape, dtype=numpy.csingle)
+			else:
+				self.parent.temparray = NewArray(self, *self.parent.support.shape, dtype=numpy.cdouble)
+				self.parent.temparray2 = NewArray(self, *self.parent.support.shape, dtype=numpy.cdouble)
+			gaussian_fill(self.parent.temparray, self.sigma, self.parent.citer_flow[7])
 			self.wrap(self.parent.temparray, self.parent.temparray2, 1)
 		except:
 			msg = "Insufficient memory for temporary arrays."
@@ -955,18 +962,19 @@ class Sequence_ShrinkWrap(SequenceBaseMask):
 		else:
 			return False
 	def UpdateSupport(self):
+		self.parent.ancestor.GetPage(0).queue_info.put("Updating support ...")
+		self.parent.support.real[:] = numpy.abs(self.parent.seqdata)
+		self.parent.support.imag[:] = 0.0
+		self.maxvalue[0] = self.parent.support.real.max()
+		self.threshold(self.parent.support, (self.frac*self.maxvalue[0]), self.maxvalue[0], 0.0, self.parent.citer_flow[7])
+		self.medianfilter(self.parent.support, self.parent.temparray2, 3,3,3, 0.0, self.parent.citer_flow[7])
+		self.wrap(self.parent.support, self.parent.temparray2, 1)
+		self.convolve(self.parent.support, self.parent.temparray, self.parent.citer_flow[7])
+		self.wrap(self.parent.support, self.parent.temparray2, -1)
+		self.rangereplace(self.parent.support, (self.frac*self.maxvalue[0]), sys.float_info.max, 0.0, 1.0, self.parent.citer_flow[7])
 		if self.parent.ancestor.GetPage(0).citer_flow[4] > 0:
-			self.parent.ancestor.GetPage(0).queue_info.put("Updating support ...")
-			self.copy_abs(self.parent.seqdata, self.parent.support)
-			self.max_value(self.parent.support.real, self.maxvalue)
-			self.threshold(self.parent.support, (self.frac*self.maxvalue[0]), self.maxvalue[0], 0.0)
-			self.medianfilter(self.parent.support, self.parent.temparray2, 3,3,3, 0.0)
-			self.wrap(self.parent.support, self.parent.temparray2, 1)
-			self.convolve(self.parent.support, self.parent.temparray)
-			self.wrap(self.parent.support, self.parent.temparray2, -1)
-			self.rangereplace(self.parent.support, (self.frac*self.maxvalue[0]), sys.float_info.max, 0.0, 1.0)
-			self.copy_amp(self.parent.support, self.parent.visual_support)
-			self.parent.ancestor.GetPage(0).queue_info.put("... done.")
+			self.parent.visual_support[:] = numpy.abs(self.parent.support)
+		self.parent.ancestor.GetPage(0).queue_info.put("... done.")
 	def UpdateVisualSupport(self):
 			if self.parent.ancestor.GetPage(0).citer_flow[4] > 0:
 				wx.CallAfter(self.parent.ancestor.GetPage(1).UpdateSupport,)

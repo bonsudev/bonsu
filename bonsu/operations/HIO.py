@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: HIO.py
 ##
-##    Copyright (C) 2011 - 2023 Marcus C. Newton
+##    Copyright (C) 2011 - 2024 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ def HIO\
 		startiter,
 		numiter
 	):
-	from bonsu.phasing.HIO import HIO
+	from ..phasing.HIO import HIO
 	hio = HIO(parent)
 	hio.SetStartiter(startiter)
 	hio.SetNumiter(numiter)
@@ -47,7 +47,7 @@ def HIOMask\
 		numiter,
 		numiter_relax
 	):
-	from bonsu.phasing.HIO import HIOMask
+	from ..phasing.HIO import HIOMask
 	hio = HIOMask(parent)
 	hio.SetStartiter(startiter)
 	hio.SetNumiter(numiter)
@@ -63,7 +63,7 @@ def HIOPlus\
 		startiter,
 		numiter
 	):
-	from bonsu.phasing.HIO import HIOPlus
+	from ..phasing.HIO import HIOPlus
 	hio = HIOPlus(parent)
 	hio.SetStartiter(startiter)
 	hio.SetNumiter(numiter)
@@ -80,7 +80,7 @@ def PCHIO\
 		phasemax,
 		phasemin
 	):
-	from bonsu.phasing.HIO import PCHIO
+	from ..phasing.HIO import PCHIO
 	hio = PCHIO(parent)
 	hio.SetStartiter(startiter)
 	hio.SetNumiter(numiter)
@@ -102,7 +102,7 @@ def PGCHIO\
 		qy,
 		qz
 	):
-	from bonsu.phasing.HIO import PGCHIO
+	from ..phasing.HIO import PGCHIO
 	hio = PGCHIO(parent)
 	hio.SetStartiter(startiter)
 	hio.SetNumiter(numiter)
@@ -127,7 +127,7 @@ def HIOMaskPC\
 	reset_gamma,
 	accel
 	):
-	from bonsu.phasing.HIO import HIOMaskPC
+	from ..phasing.HIO import HIOMaskPC
 	hio = HIOMaskPC(parent)
 	hio.SetStartiter(startiter)
 	hio.SetNumiter(numiter)
