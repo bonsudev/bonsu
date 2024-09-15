@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+      <title>Library Reference</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="_static/documentation_options.js?v=86e43a22"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+      <link rel="shortcut icon" href="_static/bonsu.ico"/>
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Library Reference - Visualisation Tools" href="libref-visualtools.html" />
+  <link rel="prev" title="History and Licence" href="licence.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="bonsu.html" class="home-link">
+    
+      <img class="logo" src="_static/bonsu.png" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="bonsu.html#bonsu-3-7-1-documentation">bonsu 3.7.1 documentation</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="intro.html" class="reference internal ">Introduction</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="setup.html" class="reference internal ">Installation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="usage.html" class="reference internal ">General Usage</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="licence.html" class="reference internal ">History and Licence</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">Library Reference</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#library-reference" class="reference internal">Library Reference</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libscript.html" class="reference internal ">Scripting with Bonsu</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="bonsu.html">Docs</a> &raquo;</li>
+    
+    <li>Library Reference</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="licence.html"
+       title="previous chapter">← History and Licence</a>
+  </li>
+  <li class="next">
+    <a href="libref-visualtools.html"
+       title="next chapter">Library Reference - Visualisation Tools →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="library-reference">
+<span id="libref"></span><h1>Library Reference<a class="headerlink" href="#library-reference" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="libref-visualtools.html">Library Reference - Visualisation Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="libref-visualtools.html#comments">Comments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-visualtools.html#nexus-file-viewer-for-i16">Nexus File Viewer for I16</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-visualtools.html#laxarus-viewer">Laxarus Viewer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-visualtools.html#view-array">View Array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-visualtools.html#view-dual-array">View Dual-Array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-visualtools.html#view-object">View Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-visualtools.html#view-support">View Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-visualtools.html#view-vtk-array">View VTK Array</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="libref-importtools.html">Library Reference - Import Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="libref-importtools.html#array-to-memory">Array to Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-importtools.html#empty-array">Empty Array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-importtools.html#hdf5-to-numpy">HDF5 to Numpy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-importtools.html#image-to-numpy">Image to Numpy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-importtools.html#load-co-ordinates">Load Co-ordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-importtools.html#load-psf">Load PSF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-importtools.html#spe-to-numpy">SPE to Numpy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="libref-exporttools.html">Library Reference - Export Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="libref-exporttools.html#array-to-vtk">Array to VTK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-exporttools.html#memory-to-array">Memory to Array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-exporttools.html#object-to-vtk">Object to VTK</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="libref-functions.html">Library Reference - Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#auto-centre">Auto Centre</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#bin">Bin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#scale-array-dims">Scale Array Dims</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#blank-line-fill-array">Blank Line Fill Array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#centred-resize">Centred Resize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#conjugate-reflect">Conjugate Reflect</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#convolve">Convolve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#crop-pad">Crop Pad</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#cuboid-support">Cuboid Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#polyhedron-support">Polyhedron Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#fourier-transform">Fourier Transform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#gaussian-fill">Gaussian Fill</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#interpolate-object">Interpolate Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#affine-transform">Affine Transform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#mask">Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#median-filter">Median Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#python-script">Python Script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#rotate-support">Rotate Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#scale-array">Scale Array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#sum-or-subtract-array">Sum or Subtract Array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#threshold-data">Threshold Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#transpose-array">Transpose Array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#voxel-replace">Voxel Replace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-functions.html#wrap-data">Wrap Data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="libref-algorithms.html">Library Reference – Phasing Algorithms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#random-start">Random Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#array-start">Array Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hybrid-input-output-hio">Hybrid Input-Output (HIO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hio-mask">HIO Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hio-plus">HIO Plus</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#phase-constrained-hio-pchio">Phase Constrained HIO (PCHIO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#phase-gradient-constrained-hio-pgchio">Phase Gradient Constrained HIO (PGCHIO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#error-reduction-er">Error Reduction (ER)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#er-mask">ER Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#phase-only-er-poer">Phase Only ER (POER)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#relaxed-average-alternating-reflection-raar">Relaxed Average Alternating Reflection (RAAR)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hybrid-projection-reflection-hpr">Hybrid Projection Reflection (HPR)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#compressed-sensing-hio-cshio">Compressed Sensing HIO (CSHIO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hio-mask-with-partial-coherence-optimisation-hio-mask-pc">HIO Mask with Partial Coherence Optimisation (HIO Mask PC)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#er-mask-with-partial-coherence-optimisation-er-mask-pc">ER Mask with Partial Coherence Optimisation (ER Mask PC)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#hpr-mask-with-partial-coherence-optimisation-hpr-mask-pc">HPR Mask with Partial Coherence Optimisation (HPR Mask PC)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#raar-mask-with-partial-coherence-optimisation-raar-mask-pc">RAAR Mask with Partial Coherence Optimisation (RAAR Mask PC)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#reweighted-2d-saddle-point-optimisation-so2d">Reweighted 2D Saddle Point Optimisation (SO2D)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-algorithms.html#shrink-wrap">Shrink Wrap</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="libref-operations.html">Library Reference - Phasing Operations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="libref-operations.html#save-sequence">Save Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-operations.html#save-support">Save Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-operations.html#save-residual">Save Residual</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-operations.html#save-psf">Save PSF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-operations.html#co-ordinate-transformation">Co-ordinate Transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="libref-operations.html#save-co-ordinates">Save Co-ordinates</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="licence.html"
+       title="previous chapter">← History and Licence</a>
+  </li>
+  <li class="next">
+    <a href="libref-visualtools.html"
+       title="next chapter">Library Reference - Visualisation Tools →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2011 - 2024, Marcus C. Newton.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

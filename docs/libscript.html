@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+      <title>Scripting with Bonsu</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="_static/documentation_options.js?v=86e43a22"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+      <link rel="shortcut icon" href="_static/bonsu.ico"/>
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="prev" title="Library Reference - Phasing Operations" href="libref-operations.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="bonsu.html" class="home-link">
+    
+      <img class="logo" src="_static/bonsu.png" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="bonsu.html#bonsu-3-7-1-documentation">bonsu 3.7.1 documentation</a></span>
+      </p>
+      <ul class="current">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="intro.html" class="reference internal ">Introduction</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="setup.html" class="reference internal ">Installation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="usage.html" class="reference internal ">General Usage</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="licence.html" class="reference internal ">History and Licence</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libref.html" class="reference internal ">Library Reference</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 current">
+            
+              <a href="#" class="reference internal current">Scripting with Bonsu</a>
+            
+
+            
+              <ul>
+                
+                  <li class="toctree-l2"><a href="#core-concepts" class="reference internal">Core concepts</a></li>
+                
+                  <li class="toctree-l2"><a href="#custom-algorithms" class="reference internal">Custom Algorithms</a></li>
+                
+                  <li class="toctree-l2"><a href="#concurrent-phase-retrieval" class="reference internal">Concurrent Phase Retrieval</a></li>
+                
+                  <li class="toctree-l2"><a href="#class-reference" class="reference internal">Class Reference</a></li>
+                
+              </ul>
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="bonsu.html">Docs</a> &raquo;</li>
+    
+    <li>Scripting with Bonsu</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="libref-operations.html"
+       title="previous chapter">← Library Reference - Phasing Operations</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="scripting-with-bonsu">
+<span id="libscript"></span><h1>Scripting with Bonsu<a class="headerlink" href="#scripting-with-bonsu" title="Link to this heading">¶</a></h1>
+<section id="core-concepts">
+<h2>Core concepts<a class="headerlink" href="#core-concepts" title="Link to this heading">¶</a></h2>
+<p>Bonsu provides an object-oriented scripting interface to each algorithm for ease and interoperability with additional Python modules.  To begin using this interface, import the phasing module as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">bonsu</span> <span class="kn">import</span> <span class="n">phasing</span>
+</pre></div>
+</div>
+<p>Once imported, the phasing module provides access to all phase retrieval algorithms.  For a complete list see <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">Library Reference – Phasing Algorithms</span></a>.</p>
+<p>Each algorithm will take a number of NumPy arrays as input. Input data is loaded and prepared in wrap around order. It is therefore also necessary to utilise the <a class="reference internal" href="libref-functions.html#libref-functions-wrap"><span class="std std-ref">Wrap Data</span></a> function.  Note that the data must be stored in a “C”-ordered double precision complex Numpy array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">expdata</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;expdata.npy&quot;</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">cdouble</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">expdata</span><span class="p">,</span> <span class="n">expdata</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expdata</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">phasing</span><span class="o">.</span><span class="n">WrapArray</span><span class="p">(</span><span class="n">expdata</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The data <code class="docutils literal notranslate"><span class="pre">mask</span></code> in wrap around order is also needed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;mask.npy&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">phasing</span><span class="o">.</span><span class="n">WrapArray</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>An array to contain the reconstructed object is also needed and can be created in a number of ways, with data initialised as needed, i.e. random data or initial starting data from a previous reconstruction.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seqdata</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">expdata</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seqdata</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="c1"># initialise as 1.0.</span>
+</pre></div>
+</div>
+<p>To utilise the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">HIO Mask</span></a> algorithm, create an instance as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span> <span class="o">=</span> <span class="n">phasing</span><span class="o">.</span><span class="n">HIOMask</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Then initialise the remaining parameters for 100 iterations:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">SetStartiter</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">SetNumiter</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">SetNumthreads</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">SetBeta</span><span class="p">(</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">SetExpdata</span><span class="p">(</span><span class="n">expdata</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">SetSupport</span><span class="p">(</span><span class="n">support</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">SetMask</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">SetSeqdata</span><span class="p">(</span><span class="n">seqdata</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To begin reconstruction we first prepare the algorithm as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">Prepare</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Execution then follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In a threaded or non-blocking use of the algorithm, it is possible the pause, resume and stop the reconstruction using the following methods:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">Pause</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">Resume</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hio</span><span class="o">.</span><span class="n">Stop</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The output of the reconstruction is saved as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;output.npy&quot;</span><span class="p">,</span> <span class="n">seqdata</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each algorithm can use <code class="docutils literal notranslate"><span class="pre">Shrink</span> <span class="pre">Wrap</span></code> to modify the support during reconstruction.  Prefix the algorithm name with <code class="docutils literal notranslate"><span class="pre">SW</span></code> to utilise the <code class="docutils literal notranslate"><span class="pre">Shrink</span> <span class="pre">Wrap</span></code> version of the algorithm.  For example, to use the <code class="docutils literal notranslate"><span class="pre">Shrink</span> <span class="pre">Wrap</span></code> version of the <a class="reference internal" href="libref-algorithms.html#libref-algorithms"><span class="std std-ref">HIO Mask</span></a> algorithm, import and instantiate the following:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span> <span class="o">=</span> <span class="n">phasing</span><span class="o">.</span><span class="n">SWHIOMask</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Then initialise the remaining parameters as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetStartiter</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetNumiter</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetNumthreads</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetExpdata</span><span class="p">(</span><span class="n">expdata</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetSupport</span><span class="p">(</span><span class="n">support</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetMask</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetSeqdata</span><span class="p">(</span><span class="n">seqdata</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">Prepare</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Methods unqiue to the <code class="docutils literal notranslate"><span class="pre">Shrink</span> <span class="pre">Wrap</span></code> implementation that require initialisation are as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetSWCyclelength</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetSWThreshold</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SetSWSigma</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To begin reconstruction we also first prepare the <code class="docutils literal notranslate"><span class="pre">Shrink</span> <span class="pre">Wrap</span></code> algorithm as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SWPrepare</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Execution then follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">swhio</span><span class="o">.</span><span class="n">SWStart</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="custom-algorithms">
+<span id="libscript-customalgorithms"></span><h2>Custom Algorithms<a class="headerlink" href="#custom-algorithms" title="Link to this heading">¶</a></h2>
+<p>Bonsu provides tools to build custom projection algorithms.  To build a custom algorithm, create a script that imports an abstract algorithm class and subclasses the <code class="docutils literal notranslate"><span class="pre">DoIter</span></code> and <code class="docutils literal notranslate"><span class="pre">RSCons</span></code> methods.  <code class="docutils literal notranslate"><span class="pre">DoIter</span></code> is called at each iteration of the algorithm.  It will apply the real-space and Fourier-space constraints.  <code class="docutils literal notranslate"><span class="pre">RSCons</span></code> is a method called by <code class="docutils literal notranslate"><span class="pre">DoIter</span></code> to apply the real-space constraint.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bonsu.phasing.abstract</span> <span class="kn">import</span> <span class="n">PhaseAbstract</span>
+
+<span class="k">class</span> <span class="nc">MyAlgorithm</span><span class="p">(</span><span class="n">PhaseAbstract</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        My custom HIO algorithm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">DoIter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rho_m1</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[:]</span>
+                <span class="n">fftw_stride</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="p">,</span><span class="n">FFTW_TORECIP</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">SetRes</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">SetAmplitudes</span><span class="p">()</span>
+                <span class="n">fftw_stride</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">plan</span><span class="p">,</span><span class="n">FFTW_TOREAL</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">citer_flow</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">res</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">sos</span>
+                <span class="n">amp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">)</span>
+                <span class="n">sos1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">amp</span><span class="o">*</span><span class="n">amp</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">RSCons</span><span class="p">()</span>
+                <span class="n">amp</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">)</span>
+                <span class="n">sos2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">amp</span><span class="o">*</span><span class="n">amp</span><span class="p">)</span>
+                <span class="n">norm</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">sos1</span><span class="o">/</span><span class="n">sos2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">norm</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[:]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">citer_flow</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">def</span> <span class="nf">RSCons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">realsupport</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">)</span>
+                <span class="n">nosupport</span> <span class="o">=</span> <span class="n">realsupport</span> <span class="o">&lt;</span> <span class="mf">0.5</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[</span><span class="n">nosupport</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho_m1</span><span class="p">[</span><span class="n">nosupport</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqdata</span><span class="p">[</span><span class="n">nosupport</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span>
+</pre></div>
+</div>
+<p>The custom algorithm is then instantiated as before:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">myalg</span> <span class="o">=</span> <span class="n">MyAlgorithm</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Initialisation of parameters proceeds as before.  To begin reconstruction prepare the algorithm as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">myalg</span><span class="o">.</span><span class="n">PrepareCustom</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Execution then follows as before:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">myalg</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="concurrent-phase-retrieval">
+<h2>Concurrent Phase Retrieval<a class="headerlink" href="#concurrent-phase-retrieval" title="Link to this heading">¶</a></h2>
+<p>Bonsu provides tools to reconstruct atomic displacement field information (and subsequently strain field information) via concurrent phase reconstruction using diffraction pattern data that is obtained from multiple Bragg reflections of a single crystal. The method used is described in detail in the following publication: <a class="reference external" href="https://doi.org/10.1103/PhysRevB.102.014104">Newton, Phys. Rev. B 102, 014104 (2020)</a> .</p>
+<p>The concurrent phase retrieval method can in principle utilise any projection algorithm implemented using the <a class="reference internal" href="#libscript-customalgorithms"><span class="std std-ref">Custom Algorithm interface</span></a>.  The following example illustrates how to use utilise the method using the standard Abstract Algorithm class (HIO).  Please note that diffraction pattern data should undergo <a class="reference internal" href="libref-operations.html#libref-operations-coord"><span class="std std-ref">co-ordinate transformation</span></a> and <a class="reference internal" href="libref-functions.html#libref-interpolate-object"><span class="std std-ref">interpolation</span></a> onto a regular grid prior to commencement of the reconstruction process.  Please also note that no checking of the data type (numpy.cdouble) and consistency in the array dimensions is performed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bonsu.phasing.concurrent</span> <span class="kn">import</span> <span class="n">PhaseConcurrent</span>
+<span class="kn">from</span> <span class="nn">bonsu.phasing.abstract</span> <span class="kn">import</span> <span class="n">PhaseAbstract</span>
+<span class="kn">from</span> <span class="nn">bonsu.phasing.wrap</span> <span class="kn">import</span> <span class="n">WrapArray</span>
+
+<span class="c1"># Specify number of diffraction patterns / Q-vectors</span>
+<span class="n">NQ</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="c1"># Instantiate class object</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">PhaseConcurrent</span><span class="p">()</span>
+<span class="c1"># Specify class object of phase retrieval algorithm used for reconstruction</span>
+<span class="c1"># Define your own and use here, if preferred.</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetBaseClass</span><span class="p">(</span><span class="n">PhaseAbstract</span><span class="p">)</span>
+<span class="c1"># Set number of concurrent datasets / Q-vectors</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetNQ</span><span class="p">(</span><span class="n">NQ</span><span class="p">)</span>
+
+<span class="c1"># Set Q-vectors</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetQ</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetQ</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetQ</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetQ</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># Define names of files</span>
+<span class="n">expnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;diffamp0.npy&quot;</span><span class="p">,</span><span class="s2">&quot;diffamp1.npy&quot;</span><span class="p">,</span><span class="s2">&quot;diffamp2.npy&quot;</span><span class="p">,</span><span class="s2">&quot;diffamp3.npy&quot;</span><span class="p">]</span>
+<span class="n">masknames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mask0.npy&quot;</span><span class="p">,</span><span class="s2">&quot;mask1.npy&quot;</span><span class="p">,</span><span class="s2">&quot;mask2.npy&quot;</span><span class="p">,</span><span class="s2">&quot;mask3.npy&quot;</span><span class="p">]</span>
+<span class="n">supportname</span> <span class="o">=</span> <span class="s2">&quot;support.npy&quot;</span>
+
+<span class="c1"># Use names above to load arrays into list of length NQ</span>
+<span class="n">amps</span> <span class="o">=</span> <span class="p">[</span><span class="n">WrapArray</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">expnames</span><span class="p">]</span>
+<span class="n">masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">WrapArray</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">masknames</span><span class="p">]</span>
+<span class="n">supports</span> <span class="o">=</span> <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">supportname</span><span class="p">)]</span><span class="o">*</span><span class="n">NQ</span>
+<span class="n">seqdatas</span> <span class="o">=</span> <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span> <span class="k">for</span> <span class="n">amp</span> <span class="ow">in</span> <span class="n">amps</span><span class="p">]</span>
+
+<span class="c1"># Class methods below are the same as those in the phase retrieval algorithm</span>
+<span class="c1"># class but will instead take a list of length NQ.</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetExpdata</span><span class="p">(</span><span class="n">amps</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetSupport</span><span class="p">(</span><span class="n">supports</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetMask</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetSeqdata</span><span class="p">(</span><span class="n">seqdatas</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetBeta</span><span class="p">([</span><span class="mf">0.9</span><span class="p">]</span><span class="o">*</span><span class="n">NQ</span><span class="p">)</span>
+
+<span class="c1"># Set iterations</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetStartiter</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetNumiter</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="c1"># Number of FFTW threads for each concurrent reconstruction.</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SetNumthreads</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Prepare</span>
+<span class="n">d</span><span class="o">.</span><span class="n">Prepare</span><span class="p">()</span>
+<span class="c1"># Start</span>
+<span class="n">d</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+
+<span class="c1"># Save reconstructed phase for each Q-vector</span>
+<span class="c1"># Filenames are automatically indexed.</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SaveSequences</span><span class="p">(</span><span class="s2">&quot;output.npy&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save displacement field</span>
+<span class="n">d</span><span class="o">.</span><span class="n">SaveDField</span><span class="p">(</span><span class="s2">&quot;dfield.npy&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="class-reference">
+<h2>Class Reference<a class="headerlink" href="#class-reference" title="Link to this heading">¶</a></h2>
+<section id="module-bonsu.phasing.abstract">
+<span id="abstract-classes"></span><h3>Abstract Classes<a class="headerlink" href="#module-bonsu.phasing.abstract" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.abstract.</span></span><span class="sig-name descname"><span class="pre">PhaseAbstract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Phasing Base Class</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.PrepareCustom">
+<span class="sig-name descname"><span class="pre">PrepareCustom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.PrepareCustom" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare algorithm using FFTW python interface.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.SetSOS">
+<span class="sig-name descname"><span class="pre">SetSOS</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.SetSOS" title="Link to this definition">¶</a></dt>
+<dd><p>Set Sum of Squares.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.GetSOS">
+<span class="sig-name descname"><span class="pre">GetSOS</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.GetSOS" title="Link to this definition">¶</a></dt>
+<dd><p>Get Sum of Squares.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.SetStartiter">
+<span class="sig-name descname"><span class="pre">SetStartiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">startiter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.SetStartiter" title="Link to this definition">¶</a></dt>
+<dd><p>Set the starting iteration number.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.SetNumiter">
+<span class="sig-name descname"><span class="pre">SetNumiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">numiter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.SetNumiter" title="Link to this definition">¶</a></dt>
+<dd><p>Set the number of iterations of the
+algorithm to perform.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.SetNumthreads">
+<span class="sig-name descname"><span class="pre">SetNumthreads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.SetNumthreads" title="Link to this definition">¶</a></dt>
+<dd><p>Set the number of FFTW threads.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.SetSeqdata">
+<span class="sig-name descname"><span class="pre">SetSeqdata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seqdata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.SetSeqdata" title="Link to this definition">¶</a></dt>
+<dd><p>Set the reconstruction data array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.GetSeqdata">
+<span class="sig-name descname"><span class="pre">GetSeqdata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.GetSeqdata" title="Link to this definition">¶</a></dt>
+<dd><p>Get the reconstruction data array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.SetExpdata">
+<span class="sig-name descname"><span class="pre">SetExpdata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expdata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.SetExpdata" title="Link to this definition">¶</a></dt>
+<dd><p>Set the raw experimental amplitude data array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.GetExpdata">
+<span class="sig-name descname"><span class="pre">GetExpdata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.GetExpdata" title="Link to this definition">¶</a></dt>
+<dd><p>Get the raw experimental amplitude data array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.SetSupport">
+<span class="sig-name descname"><span class="pre">SetSupport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">support</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.SetSupport" title="Link to this definition">¶</a></dt>
+<dd><p>Set the support array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.GetSupport">
+<span class="sig-name descname"><span class="pre">GetSupport</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.GetSupport" title="Link to this definition">¶</a></dt>
+<dd><p>Get the support array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.SetMask">
+<span class="sig-name descname"><span class="pre">SetMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.SetMask" title="Link to this definition">¶</a></dt>
+<dd><p>Set the mask data array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.GetMask">
+<span class="sig-name descname"><span class="pre">GetMask</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.GetMask" title="Link to this definition">¶</a></dt>
+<dd><p>Set the mask data array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.SetBeta">
+<span class="sig-name descname"><span class="pre">SetBeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.SetBeta" title="Link to this definition">¶</a></dt>
+<dd><p>Set beta relaxation parameter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.GetBeta">
+<span class="sig-name descname"><span class="pre">GetBeta</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.GetBeta" title="Link to this definition">¶</a></dt>
+<dd><p>Get beta relaxation parameter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.Pause">
+<span class="sig-name descname"><span class="pre">Pause</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.Pause" title="Link to this definition">¶</a></dt>
+<dd><p>Pause the reconstruction process.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.Resume">
+<span class="sig-name descname"><span class="pre">Resume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.Resume" title="Link to this definition">¶</a></dt>
+<dd><p>Resume the reconstruction process.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.Start">
+<span class="sig-name descname"><span class="pre">Start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.Start" title="Link to this definition">¶</a></dt>
+<dd><p>Start the reconstruction process.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstract.Stop">
+<span class="sig-name descname"><span class="pre">Stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstract.Stop" title="Link to this definition">¶</a></dt>
+<dd><p>Stop the reconstruction process.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.abstract.</span></span><span class="sig-name descname"><span class="pre">PhaseAbstractPC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Phasing Partial Coherence Base Class</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.SetPSF">
+<span class="sig-name descname"><span class="pre">SetPSF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">psf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetPSF" title="Link to this definition">¶</a></dt>
+<dd><p>Set point-spread function from data array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.GetPSF">
+<span class="sig-name descname"><span class="pre">GetPSF</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetPSF" title="Link to this definition">¶</a></dt>
+<dd><p>Get point-spread function from data array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.LorentzFillPSF">
+<span class="sig-name descname"><span class="pre">LorentzFillPSF</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.LorentzFillPSF" title="Link to this definition">¶</a></dt>
+<dd><p>Create a point-spread function with Lorentz distribution.
+This will use the HWHM specified using SetGammaHWHM.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.SetNumiterRLpre">
+<span class="sig-name descname"><span class="pre">SetNumiterRLpre</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">niterrlpre</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetNumiterRLpre" title="Link to this definition">¶</a></dt>
+<dd><p>Set the number of iterations before RL optimisation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.GetNumiterRLpre">
+<span class="sig-name descname"><span class="pre">GetNumiterRLpre</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetNumiterRLpre" title="Link to this definition">¶</a></dt>
+<dd><p>Get the number of iterations before RL optimisation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.SetNumiterRL">
+<span class="sig-name descname"><span class="pre">SetNumiterRL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">niterrl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetNumiterRL" title="Link to this definition">¶</a></dt>
+<dd><p>Set the number of RL iterations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.GetNumiterRL">
+<span class="sig-name descname"><span class="pre">GetNumiterRL</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetNumiterRL" title="Link to this definition">¶</a></dt>
+<dd><p>Get the number of RL iterations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.SetNumiterRLinterval">
+<span class="sig-name descname"><span class="pre">SetNumiterRLinterval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">niterrlinterval</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetNumiterRLinterval" title="Link to this definition">¶</a></dt>
+<dd><p>Set number of iterations between each RL optimisation cycle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.GetNumiterRLinterval">
+<span class="sig-name descname"><span class="pre">GetNumiterRLinterval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetNumiterRLinterval" title="Link to this definition">¶</a></dt>
+<dd><p>Get number of iterations between each RL optimisation cycle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.SetGammaHWHM">
+<span class="sig-name descname"><span class="pre">SetGammaHWHM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gammaHWHM</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetGammaHWHM" title="Link to this definition">¶</a></dt>
+<dd><p>Set the half-width half-maximum of the Lorentz distribution.
+This is utilised in the LorentzFillPSF method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.GetGammaHWHM">
+<span class="sig-name descname"><span class="pre">GetGammaHWHM</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetGammaHWHM" title="Link to this definition">¶</a></dt>
+<dd><p>Get the half-width half-maximum of the Lorentz distribution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.SetPSFZeroEnd">
+<span class="sig-name descname"><span class="pre">SetPSFZeroEnd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ze</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.SetPSFZeroEnd" title="Link to this definition">¶</a></dt>
+<dd><p>Voxels upto a distance of [i,j,k] from the perimeter of the
+PSF array are set to zero. This can improve stability of
+the algorithm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.abstract.PhaseAbstractPC.GetPSFZeroEnd">
+<span class="sig-name descname"><span class="pre">GetPSFZeroEnd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.abstract.PhaseAbstractPC.GetPSFZeroEnd" title="Link to this definition">¶</a></dt>
+<dd><p>Get zero voxels perimeter size.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-bonsu.phasing.ShrinkWrap">
+<dt class="sig sig-object py" id="bonsu.phasing.ShrinkWrap.ShrinkWrap">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.ShrinkWrap.</span></span><span class="sig-name descname"><span class="pre">ShrinkWrap</span></span><a class="headerlink" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="Link to this definition">¶</a></dt>
+<dd><p>Shrink Wrap algorithm.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.ShrinkWrap.ShrinkWrap.SetSWCyclelength">
+<span class="sig-name descname"><span class="pre">SetSWCyclelength</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cycle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SetSWCyclelength" title="Link to this definition">¶</a></dt>
+<dd><p>Set interval of iterations after which the support is updated.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.ShrinkWrap.ShrinkWrap.GetSWCyclelength">
+<span class="sig-name descname"><span class="pre">GetSWCyclelength</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.GetSWCyclelength" title="Link to this definition">¶</a></dt>
+<dd><p>Get interval of iterations after which the support is updated.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.ShrinkWrap.ShrinkWrap.SetSWSigma">
+<span class="sig-name descname"><span class="pre">SetSWSigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SetSWSigma" title="Link to this definition">¶</a></dt>
+<dd><p>Set standard deviation of the Gaussian smoothing function for the support.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.ShrinkWrap.ShrinkWrap.GetSWSigma">
+<span class="sig-name descname"><span class="pre">GetSWSigma</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.GetSWSigma" title="Link to this definition">¶</a></dt>
+<dd><p>Get standard deviation of the Gaussian smoothing function for the support.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.ShrinkWrap.ShrinkWrap.SetSWThreshold">
+<span class="sig-name descname"><span class="pre">SetSWThreshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thresh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SetSWThreshold" title="Link to this definition">¶</a></dt>
+<dd><p>Set fractional value below which sequence data is not used when creating the new support.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.ShrinkWrap.ShrinkWrap.GetSWThreshold">
+<span class="sig-name descname"><span class="pre">GetSWThreshold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.GetSWThreshold" title="Link to this definition">¶</a></dt>
+<dd><p>Get fractional value below which sequence data is not used when creating the new support.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.ShrinkWrap.ShrinkWrap.SWPrepare">
+<span class="sig-name descname"><span class="pre">SWPrepare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SWPrepare" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare shrink wrap algorithm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.ShrinkWrap.ShrinkWrap.SWStart">
+<span class="sig-name descname"><span class="pre">SWStart</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap.SWStart" title="Link to this definition">¶</a></dt>
+<dd><p>Start the shrink wrap reconstruction process.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-bonsu.phasing.HIO">
+<span id="hybrid-input-output-classes"></span><h3>Hybrid Input-Output Classes<a class="headerlink" href="#module-bonsu.phasing.HIO" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.HIO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">HIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.HIO" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.SWHIO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">SWHIO</span></span><a class="headerlink" href="#bonsu.phasing.HIO.SWHIO" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.HIO.HIO" title="bonsu.phasing.HIO.HIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">HIO</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm.
+Shrink wrapped.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.HIOMask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">HIOMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.HIOMask" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm with the addition of a Fourier space constraint mask.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.SWHIOMask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">SWHIOMask</span></span><a class="headerlink" href="#bonsu.phasing.HIO.SWHIOMask" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.HIO.HIOMask" title="bonsu.phasing.HIO.HIOMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">HIOMask</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm with the addition of a
+Fourier space constraint mask.
+Shrink wrapped.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.HIOPlus">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">HIOPlus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.HIOPlus" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm with non-negativity constraint
+and with the addition of a Fourier space constraint mask.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.SWHIOPlus">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">SWHIOPlus</span></span><a class="headerlink" href="#bonsu.phasing.HIO.SWHIOPlus" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.HIO.HIOPlus" title="bonsu.phasing.HIO.HIOPlus"><code class="xref py py-class docutils literal notranslate"><span class="pre">HIOPlus</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm with non-negativity constraint
+and with the addition of a Fourier space constraint mask.
+Shrink wrapped.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PCHIO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">PCHIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PCHIO" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm with phase constraint
+and with the addition of a Fourier space constraint mask.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PCHIO.SetMaxphase">
+<span class="sig-name descname"><span class="pre">SetMaxphase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PCHIO.SetMaxphase" title="Link to this definition">¶</a></dt>
+<dd><p>Set phase maximum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PCHIO.GetMaxphase">
+<span class="sig-name descname"><span class="pre">GetMaxphase</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PCHIO.GetMaxphase" title="Link to this definition">¶</a></dt>
+<dd><p>Get phase maximum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PCHIO.SetMinphase">
+<span class="sig-name descname"><span class="pre">SetMinphase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PCHIO.SetMinphase" title="Link to this definition">¶</a></dt>
+<dd><p>Set phase minimum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PCHIO.GetMinphase">
+<span class="sig-name descname"><span class="pre">GetMinphase</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PCHIO.GetMinphase" title="Link to this definition">¶</a></dt>
+<dd><p>Get phase minimum.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.SWPCHIO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">SWPCHIO</span></span><a class="headerlink" href="#bonsu.phasing.HIO.SWPCHIO" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.HIO.PCHIO" title="bonsu.phasing.HIO.PCHIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">PCHIO</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm with phase constraint
+and with the addition of a Fourier space constraint mask.
+Shrink wrapped.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PGCHIO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">PGCHIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PGCHIO" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm with phase gradient constraint
+in the Q-vector direction with the addition of a Fourier space constraint mask.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PGCHIO.SetMaxphase">
+<span class="sig-name descname"><span class="pre">SetMaxphase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PGCHIO.SetMaxphase" title="Link to this definition">¶</a></dt>
+<dd><p>Set phase maximum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PGCHIO.GetMaxphase">
+<span class="sig-name descname"><span class="pre">GetMaxphase</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PGCHIO.GetMaxphase" title="Link to this definition">¶</a></dt>
+<dd><p>Get phase maximum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PGCHIO.SetMinphase">
+<span class="sig-name descname"><span class="pre">SetMinphase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PGCHIO.SetMinphase" title="Link to this definition">¶</a></dt>
+<dd><p>Set phase minimum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PGCHIO.GetMinphase">
+<span class="sig-name descname"><span class="pre">GetMinphase</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PGCHIO.GetMinphase" title="Link to this definition">¶</a></dt>
+<dd><p>Get phase minimum.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PGCHIO.SetQ">
+<span class="sig-name descname"><span class="pre">SetQ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PGCHIO.SetQ" title="Link to this definition">¶</a></dt>
+<dd><p>Set Q-vector tuple</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.PGCHIO.GetQ">
+<span class="sig-name descname"><span class="pre">GetQ</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.PGCHIO.GetQ" title="Link to this definition">¶</a></dt>
+<dd><p>Get Q-vector tuple</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.SWPGCHIO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">SWPGCHIO</span></span><a class="headerlink" href="#bonsu.phasing.HIO.SWPGCHIO" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.HIO.PGCHIO" title="bonsu.phasing.HIO.PGCHIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">PGCHIO</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Fienup’s hybrid input-output (HIO) algorithm with phase gradient constraint
+in the Q-vector direction with the addition of a Fourier space constraint mask.
+Shrink wrapped.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.HIOMaskPC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">HIOMaskPC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.HIOMaskPC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC" title="bonsu.phasing.abstract.PhaseAbstractPC"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstractPC</span></code></a></p>
+<p>HIO Mask with Partial Coherence Optimisation.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.SWHIOMaskPC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HIO.</span></span><span class="sig-name descname"><span class="pre">SWHIOMaskPC</span></span><a class="headerlink" href="#bonsu.phasing.HIO.SWHIOMaskPC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.HIO.HIOMaskPC" title="bonsu.phasing.HIO.HIOMaskPC"><code class="xref py py-class docutils literal notranslate"><span class="pre">HIOMaskPC</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>HIO Mask with Partial Coherence Optimisation.
+Shrink wrapped.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HIO.SWHIOMaskPC.Start">
+<span class="sig-name descname"><span class="pre">Start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HIO.SWHIOMaskPC.Start" title="Link to this definition">¶</a></dt>
+<dd><p>Start the reconstruction process.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-bonsu.phasing.ER">
+<span id="error-reduction-classes"></span><h3>Error Reduction Classes<a class="headerlink" href="#module-bonsu.phasing.ER" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.ER.ER">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.ER.</span></span><span class="sig-name descname"><span class="pre">ER</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ER.ER" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Error Reduction (ER) algorithm.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.ER.SWER">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.ER.</span></span><span class="sig-name descname"><span class="pre">SWER</span></span><a class="headerlink" href="#bonsu.phasing.ER.SWER" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.ER.ER" title="bonsu.phasing.ER.ER"><code class="xref py py-class docutils literal notranslate"><span class="pre">ER</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Error Reduction (ER) algorithm.
+Shrink wrapped.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.ER.ERMask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.ER.</span></span><span class="sig-name descname"><span class="pre">ERMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ER.ERMask" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Error Reduction (ER) algorithm with the addition of a Fourier space constraint mask.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.ER.SWERMask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.ER.</span></span><span class="sig-name descname"><span class="pre">SWERMask</span></span><a class="headerlink" href="#bonsu.phasing.ER.SWERMask" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.ER.ERMask" title="bonsu.phasing.ER.ERMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERMask</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Error Reduction (ER) algorithm with the addition of a Fourier space constraint mask.
+Shrink wrapped.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.ER.POER">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.ER.</span></span><span class="sig-name descname"><span class="pre">POER</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ER.POER" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Phase Only Error Reduction (POER) algorithm with the addition of a Fourier space constraint mask.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.ER.ERMaskPC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.ER.</span></span><span class="sig-name descname"><span class="pre">ERMaskPC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ER.ERMaskPC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC" title="bonsu.phasing.abstract.PhaseAbstractPC"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstractPC</span></code></a></p>
+<p>ER Mask with Partial Coherence Optimisation algorithm.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.ER.SWERMaskPC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.ER.</span></span><span class="sig-name descname"><span class="pre">SWERMaskPC</span></span><a class="headerlink" href="#bonsu.phasing.ER.SWERMaskPC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.ER.ERMaskPC" title="bonsu.phasing.ER.ERMaskPC"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERMaskPC</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>ER Mask with Partial Coherence Optimisation algorithm.
+Shrink wrapped.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.ER.SWERMaskPC.Start">
+<span class="sig-name descname"><span class="pre">Start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.ER.SWERMaskPC.Start" title="Link to this definition">¶</a></dt>
+<dd><p>Start the reconstruction process.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-bonsu.phasing.HPR">
+<span id="hybrid-project-reflection-classes"></span><h3>Hybrid Project-Reflection Classes<a class="headerlink" href="#module-bonsu.phasing.HPR" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HPR.HPR">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HPR.</span></span><span class="sig-name descname"><span class="pre">HPR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HPR.HPR" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Hybrid Projection Reflection (HPR) algorithm.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HPR.SWHPR">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HPR.</span></span><span class="sig-name descname"><span class="pre">SWHPR</span></span><a class="headerlink" href="#bonsu.phasing.HPR.SWHPR" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.HPR.HPR" title="bonsu.phasing.HPR.HPR"><code class="xref py py-class docutils literal notranslate"><span class="pre">HPR</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Hybrid Projection Reflection (HPR) algorithm.
+Shrink wrapped.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HPR.HPRPC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HPR.</span></span><span class="sig-name descname"><span class="pre">HPRPC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HPR.HPRPC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC" title="bonsu.phasing.abstract.PhaseAbstractPC"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstractPC</span></code></a></p>
+<p>HPR Mask with Partial Coherence Optimisation algorithm.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.HPR.SWHPRPC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.HPR.</span></span><span class="sig-name descname"><span class="pre">SWHPRPC</span></span><a class="headerlink" href="#bonsu.phasing.HPR.SWHPRPC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.HPR.HPRPC" title="bonsu.phasing.HPR.HPRPC"><code class="xref py py-class docutils literal notranslate"><span class="pre">HPRPC</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>HPR Mask with Partial Coherence Optimisation algorithm.
+Shrink wrapped.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.HPR.SWHPRPC.Start">
+<span class="sig-name descname"><span class="pre">Start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.HPR.SWHPRPC.Start" title="Link to this definition">¶</a></dt>
+<dd><p>Start the reconstruction process.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-bonsu.phasing.RAAR">
+<span id="relaxed-average-alternating-reflection-classes"></span><h3>Relaxed Average Alternating Reflection Classes<a class="headerlink" href="#module-bonsu.phasing.RAAR" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.RAAR.RAAR">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.RAAR.</span></span><span class="sig-name descname"><span class="pre">RAAR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.RAAR.RAAR" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Relaxed Average Alternating Reflection (RAAR) algorithm.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.RAAR.SWRAAR">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.RAAR.</span></span><span class="sig-name descname"><span class="pre">SWRAAR</span></span><a class="headerlink" href="#bonsu.phasing.RAAR.SWRAAR" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.RAAR.RAAR" title="bonsu.phasing.RAAR.RAAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">RAAR</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Relaxed Average Alternating Reflection (RAAR) algorithm.
+Shrink wrapped.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.RAAR.RAARPC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.RAAR.</span></span><span class="sig-name descname"><span class="pre">RAARPC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.RAAR.RAARPC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstractPC" title="bonsu.phasing.abstract.PhaseAbstractPC"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstractPC</span></code></a></p>
+<p>RAAR Mask with Partial Coherence Optimisation algorithm.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.RAAR.SWRAARPC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.RAAR.</span></span><span class="sig-name descname"><span class="pre">SWRAARPC</span></span><a class="headerlink" href="#bonsu.phasing.RAAR.SWRAARPC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.RAAR.RAARPC" title="bonsu.phasing.RAAR.RAARPC"><code class="xref py py-class docutils literal notranslate"><span class="pre">RAARPC</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>RAAR Mask with Partial Coherence Optimisation algorithm.
+Shrink wrapped.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.RAAR.SWRAARPC.Start">
+<span class="sig-name descname"><span class="pre">Start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.RAAR.SWRAARPC.Start" title="Link to this definition">¶</a></dt>
+<dd><p>Start the reconstruction process.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-bonsu.phasing.CSHIO">
+<span id="cshio-classes"></span><h3>CSHIO Classes<a class="headerlink" href="#module-bonsu.phasing.CSHIO" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.CSHIO.</span></span><span class="sig-name descname"><span class="pre">CSHIO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<p>Compressed Sensing HIO (CSHIO) algorithm.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.SetPnorm">
+<span class="sig-name descname"><span class="pre">SetPnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.SetPnorm" title="Link to this definition">¶</a></dt>
+<dd><p>Set p-norm of the Lebesgue space.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.GetPnorm">
+<span class="sig-name descname"><span class="pre">GetPnorm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.GetPnorm" title="Link to this definition">¶</a></dt>
+<dd><p>Get p-norm of the Lebesgue space.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.SetEpsilon">
+<span class="sig-name descname"><span class="pre">SetEpsilon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.SetEpsilon" title="Link to this definition">¶</a></dt>
+<dd><p>Set positive relaxation parameter (epsilon) for the weighted p-norm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.GetEpsilon">
+<span class="sig-name descname"><span class="pre">GetEpsilon</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.GetEpsilon" title="Link to this definition">¶</a></dt>
+<dd><p>Get positive relaxation parameter (epsilon) for the weighted p-norm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.SetEpsilonmin">
+<span class="sig-name descname"><span class="pre">SetEpsilonmin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilonmin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.SetEpsilonmin" title="Link to this definition">¶</a></dt>
+<dd><p>Set minimum value that epsilon can take.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.GetEpsilonmin">
+<span class="sig-name descname"><span class="pre">GetEpsilonmin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.GetEpsilonmin" title="Link to this definition">¶</a></dt>
+<dd><p>Set minimum value that epsilon can take.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.SetDivisor">
+<span class="sig-name descname"><span class="pre">SetDivisor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.SetDivisor" title="Link to this definition">¶</a></dt>
+<dd><p>Set amount by which epsilon is divided when constraint is met.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.GetDivisor">
+<span class="sig-name descname"><span class="pre">GetDivisor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.GetDivisor" title="Link to this definition">¶</a></dt>
+<dd><p>Get amount by which epsilon is divided when constraint is met.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.SetEta">
+<span class="sig-name descname"><span class="pre">SetEta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.SetEta" title="Link to this definition">¶</a></dt>
+<dd><p>Set parameter in the divisor condition.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.CSHIO.GetEta">
+<span class="sig-name descname"><span class="pre">GetEta</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.CSHIO.CSHIO.GetEta" title="Link to this definition">¶</a></dt>
+<dd><p>Get parameter in the divisor condition.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.CSHIO.SWCSHIO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.CSHIO.</span></span><span class="sig-name descname"><span class="pre">SWCSHIO</span></span><a class="headerlink" href="#bonsu.phasing.CSHIO.SWCSHIO" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.CSHIO.CSHIO" title="bonsu.phasing.CSHIO.CSHIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">CSHIO</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+<p>Compressed Sensing HIO (CSHIO) algorithm.
+Shrink wrapped.</p>
+</dd></dl>
+
+</section>
+<section id="module-bonsu.phasing.SO2D">
+<span id="so2d-classes"></span><h3>SO2D Classes<a class="headerlink" href="#module-bonsu.phasing.SO2D" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.SO2D.</span></span><span class="sig-name descname"><span class="pre">SO2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.abstract.PhaseAbstract" title="bonsu.phasing.abstract.PhaseAbstract"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseAbstract</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.SetNumsoiter">
+<span class="sig-name descname"><span class="pre">SetNumsoiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">numsoiter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.SetNumsoiter" title="Link to this definition">¶</a></dt>
+<dd><p>Set total number of iterations performed when optimising the step length.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.GetNumsoiter">
+<span class="sig-name descname"><span class="pre">GetNumsoiter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.GetNumsoiter" title="Link to this definition">¶</a></dt>
+<dd><p>Get total number of iterations performed when optimising the step length.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.SetReweightiter">
+<span class="sig-name descname"><span class="pre">SetReweightiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reweightiter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.SetReweightiter" title="Link to this definition">¶</a></dt>
+<dd><p>Set iteration after which reweighting is applied.
+A negative value implies no reweighting.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.GetReweightiter">
+<span class="sig-name descname"><span class="pre">GetReweightiter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.GetReweightiter" title="Link to this definition">¶</a></dt>
+<dd><p>Get iteration after which reweighting is applied.
+A negative value implies no reweighting.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.SetDtaumax">
+<span class="sig-name descname"><span class="pre">SetDtaumax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtaumax</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.SetDtaumax" title="Link to this definition">¶</a></dt>
+<dd><p>Set maximum amount by which the step can be incremented.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.GetDtaumax">
+<span class="sig-name descname"><span class="pre">GetDtaumax</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.GetDtaumax" title="Link to this definition">¶</a></dt>
+<dd><p>Get maximum amount by which the step can be incremented.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.SetDtaumin">
+<span class="sig-name descname"><span class="pre">SetDtaumin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtaumin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.SetDtaumin" title="Link to this definition">¶</a></dt>
+<dd><p>Set minimum amount by which the step can be incremented.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.GetDtaumin">
+<span class="sig-name descname"><span class="pre">GetDtaumin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.GetDtaumin" title="Link to this definition">¶</a></dt>
+<dd><p>Get minimum amount by which the step can be incremented.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.SetTaumax">
+<span class="sig-name descname"><span class="pre">SetTaumax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">taumax</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.SetTaumax" title="Link to this definition">¶</a></dt>
+<dd><p>Set maximum size for the total step length.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.GetTaumax">
+<span class="sig-name descname"><span class="pre">GetTaumax</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.GetTaumax" title="Link to this definition">¶</a></dt>
+<dd><p>Get maximum size for the total step length.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.SetPsiexitratio">
+<span class="sig-name descname"><span class="pre">SetPsiexitratio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">psiexitratio</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.SetPsiexitratio" title="Link to this definition">¶</a></dt>
+<dd><p>Set value below <a href="#id1"><span class="problematic" id="id2">|psi|</span></a>/<a href="#id3"><span class="problematic" id="id4">|psi_0|</span></a> that will halt step length optimisation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.GetPsiexitratio">
+<span class="sig-name descname"><span class="pre">GetPsiexitratio</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.GetPsiexitratio" title="Link to this definition">¶</a></dt>
+<dd><p>Get value below <a href="#id5"><span class="problematic" id="id6">|psi|</span></a>/<a href="#id7"><span class="problematic" id="id8">|psi_0|</span></a> that will halt step length optimisation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.SetPsiexiterror">
+<span class="sig-name descname"><span class="pre">SetPsiexiterror</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">psiexiterror</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.SetPsiexiterror" title="Link to this definition">¶</a></dt>
+<dd><p>Set value below (psi^(n+1) - psi^(n))/psi^(n) that will halt step length optimisation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.GetPsiexiterror">
+<span class="sig-name descname"><span class="pre">GetPsiexiterror</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.GetPsiexiterror" title="Link to this definition">¶</a></dt>
+<dd><p>Get value below (psi^(n+1) - psi^(n))/psi^(n) that will halt step length optimisation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.SetPsiresetratio">
+<span class="sig-name descname"><span class="pre">SetPsiresetratio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">psiresetratio</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.SetPsiresetratio" title="Link to this definition">¶</a></dt>
+<dd><p>Set value above <a href="#id9"><span class="problematic" id="id10">|psi|</span></a>/<a href="#id11"><span class="problematic" id="id12">|psi_0|</span></a> that will reset the step length to that of the initial value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SO2D.GetPsiresetratio">
+<span class="sig-name descname"><span class="pre">GetPsiresetratio</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bonsu.phasing.SO2D.SO2D.GetPsiresetratio" title="Link to this definition">¶</a></dt>
+<dd><p>Get value above <a href="#id13"><span class="problematic" id="id14">|psi|</span></a>/<a href="#id15"><span class="problematic" id="id16">|psi_0|</span></a> that will reset the step length to that of the initial value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bonsu.phasing.SO2D.SWSO2D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bonsu.phasing.SO2D.</span></span><span class="sig-name descname"><span class="pre">SWSO2D</span></span><a class="headerlink" href="#bonsu.phasing.SO2D.SWSO2D" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bonsu.phasing.SO2D.SO2D" title="bonsu.phasing.SO2D.SO2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">SO2D</span></code></a>, <a class="reference internal" href="#bonsu.phasing.ShrinkWrap.ShrinkWrap" title="bonsu.phasing.ShrinkWrap.ShrinkWrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShrinkWrap</span></code></a></p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="libref-operations.html"
+       title="previous chapter">← Library Reference - Phasing Operations</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2011 - 2024, Marcus C. Newton.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+      <title>Library Reference - Visualisation Tools</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="_static/documentation_options.js?v=86e43a22"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+      <link rel="shortcut icon" href="_static/bonsu.ico"/>
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Library Reference - Import Tools" href="libref-importtools.html" />
+  <link rel="prev" title="Library Reference" href="libref.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="bonsu.html" class="home-link">
+    
+      <img class="logo" src="_static/bonsu.png" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="bonsu.html#bonsu-3-7-1-documentation">bonsu 3.7.1 documentation</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="intro.html" class="reference internal ">Introduction</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="setup.html" class="reference internal ">Installation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="usage.html" class="reference internal ">General Usage</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="licence.html" class="reference internal ">History and Licence</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libref.html" class="reference internal ">Library Reference</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libscript.html" class="reference internal ">Scripting with Bonsu</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="bonsu.html">Docs</a> &raquo;</li>
+    
+      <li><a href="libref.html">Library Reference</a> &raquo;</li>
+    
+    <li>Library Reference - Visualisation Tools</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="libref.html"
+       title="previous chapter">← Library Reference</a>
+  </li>
+  <li class="next">
+    <a href="libref-importtools.html"
+       title="next chapter">Library Reference - Import Tools →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="library-reference-visualisation-tools">
+<span id="libref-visualtools"></span><h1>Library Reference - Visualisation Tools<a class="headerlink" href="#library-reference-visualisation-tools" title="Link to this heading">¶</a></h1>
+<section id="comments">
+<h2>Comments<a class="headerlink" href="#comments" title="Link to this heading">¶</a></h2>
+<p id="index-0">Input comments into the pipeline.</p>
+</section>
+<section id="nexus-file-viewer-for-i16">
+<h2>Nexus File Viewer for I16<a class="headerlink" href="#nexus-file-viewer-for-i16" title="Link to this heading">¶</a></h2>
+<p id="index-1">Diamond Light Source Nexus File Viewer for Beamline I16</p>
+</section>
+<section id="laxarus-viewer">
+<h2>Laxarus Viewer<a class="headerlink" href="#laxarus-viewer" title="Link to this heading">¶</a></h2>
+<p id="index-2">Laxarus XRD Imaging HDF5 Viewer.</p>
+</section>
+<section id="view-array">
+<span id="libref-visualtools-view"></span><h2>View Array<a class="headerlink" href="#view-array" title="Link to this heading">¶</a></h2>
+<p id="index-3">Render an image of the two or three-dimensional input Numpy array to the <a class="reference internal" href="usage.html#usage-visual"><span class="std std-ref">Visualisation tab</span></a>.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
+</dd>
+<dt><strong>Type</strong></dt><dd><ul class="simple">
+<li><p><strong>Amplitude</strong> - An iso-surface of the array amplitude.</p></li>
+<li><p><strong>Phase</strong> - An interactive scalar cut plane of the array phase.</p></li>
+<li><p><strong>Amplitude and Phase</strong> - An iso-surface of the array amplitude and an interactive scalar cut plane of the array phase.</p></li>
+<li><p><strong>Amplitude with Phase</strong> - An iso-surface of the array amplitude with the array phase mapped onto the iso-surface.</p></li>
+<li><p><strong>Amplitude (cut plane)</strong> - An interactive scalar cut plane of the array amplitude.</p></li>
+</ul>
+</dd>
+<dt><strong>Amplitude</strong></dt><dd><ul class="simple">
+<li><p><strong>Iso-surface</strong> - Scalar value for the rendered iso-surface.</p></li>
+<li><p><strong>Opacity</strong> - Opacity of the isosurface when viewing <code class="docutils literal notranslate"><span class="pre">Amplitude</span> <span class="pre">and</span> <span class="pre">Phase</span></code>.</p></li>
+<li><p><strong>Feature angle</strong> - Minimum angle between two surface normals of the rendered object.</p></li>
+</ul>
+</dd>
+<dt><strong>Phase</strong></dt><dd><ul class="simple">
+<li><p><strong>Max</strong> - Maximum phase.</p></li>
+<li><p><strong>Min</strong> - Minimum phase.</p></li>
+</ul>
+</dd>
+<dt><strong>Origin</strong></dt><dd><p>Origin point of the interactive scalar cut plane.</p>
+</dd>
+<dt><strong>Normal</strong></dt><dd><p>Normal vector to the interactive scalar cut plane.</p>
+</dd>
+<dt><strong>Spacing</strong></dt><dd><p>Spacing of the input array indices.</p>
+</dd>
+<dt><strong>View Axes</strong></dt><dd><p>Optionally view the axes of the array.</p>
+</dd>
+</dl>
+</section>
+<section id="view-dual-array">
+<h2>View Dual-Array<a class="headerlink" href="#view-dual-array" title="Link to this heading">¶</a></h2>
+<p id="index-4">Render an image of the three-dimensional input Numpy array to the <a class="reference internal" href="usage.html#usage-visual"><span class="std std-ref">Visualisation tab</span></a>.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Input 1 file</strong></dt><dd><p>User provided path string to the first input NumPy file.</p>
+</dd>
+<dt><strong>Input 2 file</strong></dt><dd><p>User provided path string to the second input NumPy file.</p>
+</dd>
+<dt><strong>Input 1 Type</strong></dt><dd><ul class="simple">
+<li><p><strong>Amplitude</strong> - An iso-surface of the array amplitude.</p></li>
+<li><p><strong>Phase</strong> - An interactive scalar cut plane of the array phase.</p></li>
+<li><p><strong>Amplitude and Phase</strong> - An iso-surface of the array amplitude and an interactive scalar cut plane of the array phase.</p></li>
+<li><p><strong>Amplitude with Phase</strong> - An iso-surface of the array amplitude with the array phase mapped onto the iso-surface.</p></li>
+<li><p><strong>Amplitude (cut plane)</strong> - An interactive scalar cut plane of the array amplitude.</p></li>
+</ul>
+</dd>
+<dt><strong>Input 1 Amplitude</strong></dt><dd><ul class="simple">
+<li><p><strong>Iso-surface</strong> - Scalar value for the rendered iso-surface (Input 1).</p></li>
+<li><p><strong>Opacity</strong> - Opacity of the isosurface when viewing <code class="docutils literal notranslate"><span class="pre">Amplitude</span> <span class="pre">and</span> <span class="pre">Phase</span></code> (Input 1).</p></li>
+<li><p><strong>Feature angle</strong> - Minimum angle between two surface normals of the rendered object (Input 1).</p></li>
+</ul>
+</dd>
+<dt><strong>Input 1 Phase</strong></dt><dd><ul class="simple">
+<li><p><strong>Max</strong> - Maximum phase.</p></li>
+<li><p><strong>Min</strong> - Minimum phase.</p></li>
+</ul>
+</dd>
+<dt><strong>Origin</strong></dt><dd><p>Origin point of the interactive scalar cut plane.</p>
+</dd>
+<dt><strong>Normal</strong></dt><dd><p>Normal vector to the interactive scalar cut plane.</p>
+</dd>
+<dt><strong>Spacing</strong></dt><dd><p>Spacing of the input array indices.</p>
+</dd>
+<dt><strong>Input 2 Amplitude</strong></dt><dd><ul class="simple">
+<li><p><strong>Iso-surface</strong> - Scalar value for the rendered iso-surface (Input 2).</p></li>
+<li><p><strong>Opacity</strong> - Opacity of the isosurface when viewing <code class="docutils literal notranslate"><span class="pre">Amplitude</span> <span class="pre">and</span> <span class="pre">Phase</span></code> (Input 2).</p></li>
+<li><p><strong>Feature angle</strong> - Minimum angle between two surface normals of the rendered object (Input 2).</p></li>
+</ul>
+</dd>
+<dt><strong>View Axes</strong></dt><dd><p>Optionally view the axes of the array.</p>
+</dd>
+</dl>
+</section>
+<section id="view-object">
+<span id="libref-visualtools-viewobject"></span><h2>View Object<a class="headerlink" href="#view-object" title="Link to this heading">¶</a></h2>
+<p id="index-5">Render an object of the three-dimensional input Numpy array with it’s corresponding co-ordinates array to the <a class="reference internal" href="usage.html#usage-visual"><span class="std std-ref">Visualisation tab</span></a>.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
+</dd>
+<dt><strong>Co-ord’s File</strong></dt><dd><p>User provided path string to the corresponding co-ordinates NumPy array file. Alternatively, the <a class="reference internal" href="usage.html#usage-arrays"><span class="std std-ref">memory array</span></a> keyword <code class="docutils literal notranslate"><span class="pre">memorycoords</span></code> provides access to the internally stored coordinate array.  Generating a coordinate array is achieved using the <a class="reference internal" href="libref-operations.html#libref-operations-coord"><span class="std std-ref">Coordinate transformation</span></a> operation.</p>
+</dd>
+<dt><strong>Type</strong></dt><dd><ul class="simple">
+<li><p><strong>Amplitude</strong> - An iso-surface of the object amplitude.</p></li>
+<li><p><strong>Phase</strong> - An interactive scalar cut plane of the object phase.</p></li>
+<li><p><strong>Amplitude and Phase</strong> - An iso-surface of the object amplitude and an interactive scalar cut plane of the object phase.</p></li>
+<li><p><strong>Amplitude with Phase</strong> - An iso-surface of the object amplitude with the object phase mapped onto the iso-surface.</p></li>
+<li><p><strong>Amplitude (cut plane)</strong> - An interactive scalar cut plane of the object amplitude.</p></li>
+</ul>
+</dd>
+<dt><strong>Amplitude</strong></dt><dd><ul class="simple">
+<li><p><strong>Iso-surface</strong> - Scalar value for the rendered iso-surface.</p></li>
+<li><p><strong>Opacity</strong> - Opacity of the isosurface when viewing <code class="docutils literal notranslate"><span class="pre">Amplitude</span> <span class="pre">and</span> <span class="pre">Phase</span></code>.</p></li>
+<li><p><strong>Feature angle</strong> - Minimum angle between two surface normals of the rendered object.</p></li>
+</ul>
+</dd>
+<dt><strong>Phase</strong></dt><dd><ul class="simple">
+<li><p><strong>Max</strong> - Maximum phase.</p></li>
+<li><p><strong>Min</strong> - Minimum phase.</p></li>
+</ul>
+</dd>
+<dt><strong>Origin</strong></dt><dd><p>Origin point of the interactive scalar cut plane.</p>
+</dd>
+<dt><strong>Normal</strong></dt><dd><p>Normal vector to the interactive scalar cut plane.</p>
+</dd>
+<dt><strong>View Axes</strong></dt><dd><p>Optionally view the axes of the object.</p>
+</dd>
+</dl>
+</section>
+<section id="view-support">
+<h2>View Support<a class="headerlink" href="#view-support" title="Link to this heading">¶</a></h2>
+<p id="index-6">Render an image of a three-dimensional input Numpy data array and its Support array to the <a class="reference internal" href="usage.html#usage-visual"><span class="std std-ref">Visualisation tab</span></a>.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Support file</strong></dt><dd><p>User provided path string to the NumPy array file.</p>
+</dd>
+<dt><strong>Data array file</strong></dt><dd><p>User provided path string to the NumPy array file.</p>
+</dd>
+<dt><strong>Isosurface options</strong></dt><dd><ul class="simple">
+<li><p><strong>Support iso-surface</strong> - Scalar value for the rendered iso-surface on the interval [0,1].</p></li>
+<li><p><strong>Opacity</strong> - Opacity of the support isosurface.</p></li>
+<li><p><strong>Data file iso-surface</strong> - Scalar value for the rendered iso-surface.</p></li>
+<li><p><strong>Feature angle</strong> - Minimum angle between two surface normals of the rendered object.</p></li>
+</ul>
+</dd>
+<dt><strong>View Axes</strong></dt><dd><p>Optionally view the axes of the array.</p>
+</dd>
+</dl>
+</section>
+<section id="view-vtk-array">
+<h2>View VTK Array<a class="headerlink" href="#view-vtk-array" title="Link to this heading">¶</a></h2>
+<p id="index-7">Render an input VTK array to the <a class="reference internal" href="usage.html#usage-visual"><span class="std std-ref">Visualisation tab</span></a>.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
+</dd>
+<dt><strong>Type</strong></dt><dd><ul class="simple">
+<li><p><strong>Amplitude</strong> - An iso-surface of the array amplitude.</p></li>
+<li><p><strong>Phase</strong> - An interactive scalar cut plane of the array phase.</p></li>
+<li><p><strong>Amplitude (cut plane)</strong> - An interactive scalar cut plane of the array amplitude.</p></li>
+</ul>
+</dd>
+<dt><strong>Amplitude</strong></dt><dd><ul class="simple">
+<li><p><strong>Iso-surface</strong> - Scalar value for the rendered iso-surface.</p></li>
+<li><p><strong>Feature angle</strong> - Minimum angle between two surface normals of the rendered object.</p></li>
+</ul>
+</dd>
+<dt><strong>Phase</strong></dt><dd><ul class="simple">
+<li><p><strong>Max</strong> - Maximum phase.</p></li>
+<li><p><strong>Min</strong> - Minimum phase.</p></li>
+</ul>
+</dd>
+<dt><strong>Origin</strong></dt><dd><p>Origin point of the interactive scalar cut plane.</p>
+</dd>
+<dt><strong>Normal</strong></dt><dd><p>Normal vector to the interactive scalar cut plane.</p>
+</dd>
+<dt><strong>View Axes</strong></dt><dd><p>Optionally view the axes of the array.</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="libref.html"
+       title="previous chapter">← Library Reference</a>
+  </li>
+  <li class="next">
+    <a href="libref-importtools.html"
+       title="next chapter">Library Reference - Import Tools →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2011 - 2024, Marcus C. Newton.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html  lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+      <title>Library Reference – Phasing Algorithms</title>
+    
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script src="_static/documentation_options.js?v=86e43a22"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+      <link rel="shortcut icon" href="_static/bonsu.ico"/>
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Library Reference - Phasing Operations" href="libref-operations.html" />
+  <link rel="prev" title="Library Reference - Functions" href="libref-functions.html" /> 
+  </head>
+
+  <body>
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="bonsu.html" class="home-link">
+    
+      <img class="logo" src="_static/bonsu.png" alt="logo"/>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="bonsu.html#bonsu-3-7-1-documentation">bonsu 3.7.1 documentation</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="intro.html" class="reference internal ">Introduction</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="setup.html" class="reference internal ">Installation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="usage.html" class="reference internal ">General Usage</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="licence.html" class="reference internal ">History and Licence</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libref.html" class="reference internal ">Library Reference</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="libscript.html" class="reference internal ">Scripting with Bonsu</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="bonsu.html">Docs</a> &raquo;</li>
+    
+      <li><a href="libref.html">Library Reference</a> &raquo;</li>
+    
+    <li>Library Reference – Phasing Algorithms</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="prev">
+    <a href="libref-functions.html"
+       title="previous chapter">← Library Reference - Functions</a>
+  </li>
+  <li class="next">
+    <a href="libref-operations.html"
+       title="next chapter">Library Reference - Phasing Operations →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <section id="library-reference-phasing-algorithms">
+<span id="libref-algorithms"></span><h1>Library Reference – Phasing Algorithms<a class="headerlink" href="#library-reference-phasing-algorithms" title="Link to this heading">¶</a></h1>
+<p>When coherent diffraction measurements are performed phase information is lost and in general we obtain the reciprocal space intensity distribution <img class="math" src="_images/math/48a3668750cc79e2ed9a6c448fad6d7988b246a1.png" alt="I(\mathbf{k}) = \vert \hat{\rho}_0(\mathbf{k}) \vert ^2 = \vert \hat{\rho}_0(\mathbf{k}) e^{i \phi (\mathbf{k})}\vert ^2"/>, where <img class="math" src="_images/math/ea8f27d7a8c687426a0b44c0e21d967dd9c27d5c.png" alt="\hat{\rho}(\mathbf{k})"/> is the complex density in Fourier-space. We wish to recover the complex real-space density <img class="math" src="_images/math/ba9427ee92964fed54c91b67a3c4b5e940668bc1.png" alt="\rho(\mathbf{r})"/>.  This is achieved using iterative reconstruction algorithms that traverse back and forth between direct and Fourier space while applying a constraint at each turn.</p>
+<p>Generally, phase retrieval algorithms define a <span class="target" id="index-0"></span>support region in real-space for which the amplitude of the object density is unrestricted.  Outside this region the amplitude of the density <img class="math" src="_images/math/ba9427ee92964fed54c91b67a3c4b5e940668bc1.png" alt="\rho(\mathbf{r})"/> is minimised in some way.  A Fourier-space constraint is also defined (<img class="math" src="_images/math/0836d0907ec0c4f18bc24f2a6fe337bf0b34f5f8.png" alt="\boldsymbol{P}_{FS}"/>) and requires the objects amplitude to be proportional in some way to the original measurement on some set <img class="math" src="_images/math/f23cbfbb248a5f1645d952eb087d02161b099f20.png" alt="\mathcal{M}"/> such that <img class="math" src="_images/math/09e817ace66f38bcaf8a40dd6e550a7de7b72e2d.png" alt="\boldsymbol{P}_{FS} \vert \hat{\rho}(\mathbf{k}) \vert e^{i \phi(\mathbf{k})} = \vert \hat{\rho}_0(\mathbf{k}) \vert\ e^{i \phi(\mathbf{k})}"/>, for all <img class="math" src="_images/math/83485b0550d027847e008b6d5ef5f9bda7046cc5.png" alt="\mathbf{k}"/> in <img class="math" src="_images/math/f23cbfbb248a5f1645d952eb087d02161b099f20.png" alt="\mathcal{M}"/>.</p>
+<p>It is possible to execute more than one of algorithms in the <a class="reference internal" href="usage.html#usage-pipeline"><span class="std std-ref">phasing pipeline</span></a> Algorithms executed in this way will share reconstruction data, hereafter referred to as <span class="target" id="index-1"></span>sequence data. It is also possible, unless otherwise stated, for algorithms to share <code class="docutils literal notranslate"><span class="pre">support</span></code> data.  This is achieved by leaving blank the path string field for the <code class="docutils literal notranslate"><span class="pre">support</span></code> NumPy file.  Such a feature is desirable for algorithms that modify the support array such as the shrink-wrap method.</p>
+<p>The following describes the available algorithms for phase retrieval.</p>
+<section id="random-start">
+<h2>Random Start<a class="headerlink" href="#random-start" title="Link to this heading">¶</a></h2>
+<p id="index-2">Randomises the phase of the internally stored <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">data</span></code>.  This is typically used before phase retrieval commences.  If this is not used, the <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">data</span></code> is filled with zeros.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Amp max</strong></dt><dd><p>Specifies the amplitude of the array that is randomised.</p>
+</dd>
+</dl>
+</section>
+<section id="array-start">
+<h2>Array Start<a class="headerlink" href="#array-start" title="Link to this heading">¶</a></h2>
+<p id="index-3">Replaces the internally stored <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">data</span></code> with the supplied array. This is typically used before phase retrieval commences.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Input file</strong></dt><dd><p>User provided path string to the input NumPy file.</p>
+</dd>
+</dl>
+</section>
+<section id="hybrid-input-output-hio">
+<h2>Hybrid Input-Output (HIO)<a class="headerlink" href="#hybrid-input-output-hio" title="Link to this heading">¶</a></h2>
+<p id="index-4">Fienup’s hybrid input-output (HIO) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1364/AO.21.002758">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HIO algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+</dl>
+</section>
+<section id="hio-mask">
+<h2>HIO Mask<a class="headerlink" href="#hio-mask" title="Link to this heading">¶</a></h2>
+<p id="index-5">Fienup’s hybrid input-output (HIO) algorithm with the addition of a Fourier space constraint <a class="reference internal" href="libref-functions.html#libref-functions-mask"><span class="std std-ref">mask</span></a>. See <a class="reference external" href="http://dx.doi.org/10.1364/AO.21.002758">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HIO algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+</dl>
+</section>
+<section id="hio-plus">
+<h2>HIO Plus<a class="headerlink" href="#hio-plus" title="Link to this heading">¶</a></h2>
+<p id="index-6">Fienup’s hybrid input-output (HIO) algorithm with non-negativity constraint and with the addition of a Fourier space constraint <a class="reference internal" href="libref-functions.html#libref-functions-mask"><span class="std std-ref">mask</span></a>. See <a class="reference external" href="http://dx.doi.org/10.1364/AO.21.002758">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HIO algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+</dl>
+</section>
+<section id="phase-constrained-hio-pchio">
+<h2>Phase Constrained HIO (PCHIO)<a class="headerlink" href="#phase-constrained-hio-pchio" title="Link to this heading">¶</a></h2>
+<p id="index-7">Fienup’s hybrid input-output (HIO) algorithm with phase constraint and with the addition of a Fourier space constraint <a class="reference internal" href="libref-functions.html#libref-functions-mask"><span class="std std-ref">mask</span></a>. See <a class="reference external" href="http://dx.doi.org/10.1088/1367-2630/12/3/035019">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HIO algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+<dt><strong>Phase Max</strong></dt><dd><p>Voxels with phase greater than <code class="docutils literal notranslate"><span class="pre">Phase</span> <span class="pre">max</span></code> are penalised.</p>
+</dd>
+<dt><strong>Phase Min</strong></dt><dd><p>Voxels with phase lesser than <code class="docutils literal notranslate"><span class="pre">Phase</span> <span class="pre">min</span></code> are penalised.</p>
+</dd>
+</dl>
+</section>
+<section id="phase-gradient-constrained-hio-pgchio">
+<h2>Phase Gradient Constrained HIO (PGCHIO)<a class="headerlink" href="#phase-gradient-constrained-hio-pgchio" title="Link to this heading">¶</a></h2>
+<p id="index-8">Fienup’s hybrid input-output (HIO) algorithm with phase gradient constraint in the Q-vector direction with the addition of a Fourier space constraint <a class="reference internal" href="libref-functions.html#libref-functions-mask"><span class="std std-ref">mask</span></a>. See <a class="reference external" href="http://dx.doi.org/10.1103/PhysRevB.84.054113">here</a> for more details.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Co-ordinate transformation of the object or Q-vector may be required.</p>
+</div>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HIO algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+<dt><strong>Phase Max</strong></dt><dd><p>Voxels with phase gradient greater than <code class="docutils literal notranslate"><span class="pre">Phase</span> <span class="pre">max</span></code> are penalised, in the direction the Q-vector.</p>
+</dd>
+<dt><strong>Phase Min</strong></dt><dd><p>Voxels with phase gradient lesser than <code class="docutils literal notranslate"><span class="pre">Phase</span> <span class="pre">min</span></code> are penalised, in the direction the Q-vector.</p>
+</dd>
+<dt><strong>Q {x,y,z}</strong></dt><dd><p>Q-vector, in real space coordinates.  Only the vectors direction is significant.</p>
+</dd>
+</dl>
+</section>
+<section id="error-reduction-er">
+<h2>Error Reduction (ER)<a class="headerlink" href="#error-reduction-er" title="Link to this heading">¶</a></h2>
+<p id="index-9">Error Reduction (ER) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1364/JOSAA.19.001334">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+</dl>
+</section>
+<section id="er-mask">
+<h2>ER Mask<a class="headerlink" href="#er-mask" title="Link to this heading">¶</a></h2>
+<p id="index-10">Error Reduction (ER) algorithm with the addition of a Fourier space constraint <a class="reference internal" href="libref-functions.html#libref-functions-mask"><span class="std std-ref">mask</span></a>. See <a class="reference external" href="http://dx.doi.org/10.1364/JOSAA.19.001334">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+</dl>
+</section>
+<section id="phase-only-er-poer">
+<h2>Phase Only ER (POER)<a class="headerlink" href="#phase-only-er-poer" title="Link to this heading">¶</a></h2>
+<p id="index-11">Phase Only Error Reduction (POER) algorithm with the addition of a Fourier space constraint <a class="reference internal" href="libref-functions.html#libref-functions-mask"><span class="std std-ref">mask</span></a>. See <a class="reference external" href="http://dx.doi.org/10.1088/1367-2630/12/3/035019">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+</dl>
+</section>
+<section id="relaxed-average-alternating-reflection-raar">
+<h2>Relaxed Average Alternating Reflection (RAAR)<a class="headerlink" href="#relaxed-average-alternating-reflection-raar" title="Link to this heading">¶</a></h2>
+<p id="index-12">Relaxed Average Alternating Reflection (RAAR) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1088/0266-5611/21/1/004">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the RAAR algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+</dl>
+</section>
+<section id="hybrid-projection-reflection-hpr">
+<h2>Hybrid Projection Reflection (HPR)<a class="headerlink" href="#hybrid-projection-reflection-hpr" title="Link to this heading">¶</a></h2>
+<p id="index-13">Hybrid Projection Reflection (HPR) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1364/JOSAA.20.001025">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HPR algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+</dl>
+</section>
+<section id="compressed-sensing-hio-cshio">
+<h2>Compressed Sensing HIO (CSHIO)<a class="headerlink" href="#compressed-sensing-hio-cshio" title="Link to this heading">¶</a></h2>
+<p id="index-14">Compressed Sensing HIO (CSHIO) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1103/PhysRevE.85.056706">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HIO algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+<dt><strong>p-norm</strong></dt><dd><p>p-norm of the Lebesgue space.</p>
+</dd>
+<dt><strong>Epsilon</strong></dt><dd><p>Positive relaxation parameter (<img class="math" src="_images/math/0ad7b30534898f253002222f998f38001e604648.png" alt="\epsilon"/>) for the weighted p-norm.</p>
+</dd>
+<dt><strong>Epsilon min</strong></dt><dd><p>Minimum value that <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> can take.</p>
+</dd>
+<dt><strong>Divisor</strong></dt><dd><p>Amount by which <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> is divided when the following condition is met:
+<img class="math" src="_images/math/826698d3a22dda97c56ebf44cb6c92a011289028.png" alt="\left\vert \| \ \rho^{(n)}(\mathbf{r}) \|_2 - \| \rho^{(n-1)}(\mathbf{r}) \|_2 \right\vert &lt; \frac{\sqrt{\epsilon}}{\eta}"/></p>
+</dd>
+<dt><strong>eta</strong></dt><dd><p>Parameter (<img class="math" src="_images/math/97db043c7cba573ac389b71add78b048077e8a13.png" alt="\eta"/>) in the <code class="docutils literal notranslate"><span class="pre">divisor</span></code> condition above.</p>
+</dd>
+</dl>
+</section>
+<section id="hio-mask-with-partial-coherence-optimisation-hio-mask-pc">
+<span id="libref-algorithms-hiomaskpc"></span><h2>HIO Mask with Partial Coherence Optimisation (HIO Mask PC)<a class="headerlink" href="#hio-mask-with-partial-coherence-optimisation-hio-mask-pc" title="Link to this heading">¶</a></h2>
+<p id="index-15">HIO Mask with Partial Coherence Optimisation (HIO Mask PC) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1038/ncomms1994">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HIO algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform (not including R-L iterations).</p>
+</dd>
+<dt><strong>Iterations preceding R-L optimisation</strong></dt><dd><p>Interval of iterations after which Richardson-Lucy optimisation commences in successive cycles.</p>
+</dd>
+<dt><strong>R-L iterations</strong></dt><dd><p>Number of R-L iterations performed at each cycle.</p>
+</dd>
+<dt><strong>Interval between R-L optimisation</strong></dt><dd><p>Number of iterations between each Richardson-Lucy optimisation cycle.</p>
+</dd>
+</dl>
+<p><strong>Initial PSF HWHM</strong>
+The initial point spread function (PSF) optimised using the R-L algorithm is a normal Lorentzian function (<img class="math" src="_images/math/502b8f398b87dc89293d108d37e9b91895b527ae.png" alt="\frac{1}{\pi}\frac{a}{x^2 + a^2}"/>). The user can specify the HWHM of its Fourier transform (<img class="math" src="_images/math/6badb5c06825843d201150c84374f5b57025c449.png" alt="e^{-a |x |}"/>).</p>
+<dl class="simple">
+<dt><strong>Zero fill end dimensions of PSF</strong></dt><dd><p>After optimising the PSF with the R-L algorithm, voxels upto a distance {i,j,k} from the perimeter of the PSF array are set to zero. This can improve stability of the algorithm.</p>
+</dd>
+<dt><strong>Reset PSF</strong></dt><dd><p>Resets the PSF to a normal Lorentzian function before the next R-L optimisation cycle.</p>
+</dd>
+</dl>
+</section>
+<section id="er-mask-with-partial-coherence-optimisation-er-mask-pc">
+<h2>ER Mask with Partial Coherence Optimisation (ER Mask PC)<a class="headerlink" href="#er-mask-with-partial-coherence-optimisation-er-mask-pc" title="Link to this heading">¶</a></h2>
+<p id="index-16">ER Mask with Partial Coherence Optimisation (ER Mask PC) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1038/ncomms1994">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the ER algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform (not including R-L iterations).</p>
+</dd>
+<dt><strong>Iterations preceding R-L optimisation</strong></dt><dd><p>Interval of iterations after which Richardson-Lucy optimisation commences in successive cycles.</p>
+</dd>
+<dt><strong>R-L iterations</strong></dt><dd><p>Number of R-L iterations performed at each cycle.</p>
+</dd>
+<dt><strong>Interval between R-L optimisation</strong></dt><dd><p>Number of iterations between each Richardson-Lucy optimisation cycle.</p>
+</dd>
+</dl>
+<p><strong>Initial PSF HWHM</strong>
+The initial point spread function (PSF) optimised using the R-L algorithm is a normal Lorentzian function (<img class="math" src="_images/math/502b8f398b87dc89293d108d37e9b91895b527ae.png" alt="\frac{1}{\pi}\frac{a}{x^2 + a^2}"/>). The user can specify the HWHM of its Fourier transform (<img class="math" src="_images/math/6badb5c06825843d201150c84374f5b57025c449.png" alt="e^{-a |x |}"/>).</p>
+<dl class="simple">
+<dt><strong>Zero fill end dimensions of PSF</strong></dt><dd><p>After optimising the PSF with the R-L algorithm, voxels upto a distance {i,j,k} from the perimeter of the PSF array are set to zero. This can improve stability of the algorithm.</p>
+</dd>
+<dt><strong>Reset PSF</strong></dt><dd><p>Resets the PSF to a normal Lorentzian function before the next R-L optimisation cycle.</p>
+</dd>
+</dl>
+</section>
+<section id="hpr-mask-with-partial-coherence-optimisation-hpr-mask-pc">
+<h2>HPR Mask with Partial Coherence Optimisation (HPR Mask PC)<a class="headerlink" href="#hpr-mask-with-partial-coherence-optimisation-hpr-mask-pc" title="Link to this heading">¶</a></h2>
+<p id="index-17">HPR Mask with Partial Coherence Optimisation (HPR Mask PC) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1038/ncomms1994">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HPR algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform (not including R-L iterations).</p>
+</dd>
+<dt><strong>Iterations preceding R-L optimisation</strong></dt><dd><p>Interval of iterations after which Richardson-Lucy optimisation commences in successive cycles.</p>
+</dd>
+<dt><strong>R-L iterations</strong></dt><dd><p>Number of R-L iterations performed at each cycle.</p>
+</dd>
+<dt><strong>Interval between R-L optimisation</strong></dt><dd><p>Number of iterations between each Richardson-Lucy optimisation cycle.</p>
+</dd>
+</dl>
+<p><strong>Initial PSF HWHM</strong>
+The initial point spread function (PSF) optimised using the R-L algorithm is a normal Lorentzian function (<img class="math" src="_images/math/502b8f398b87dc89293d108d37e9b91895b527ae.png" alt="\frac{1}{\pi}\frac{a}{x^2 + a^2}"/>). The user can specify the HWHM of its Fourier transform (<img class="math" src="_images/math/6badb5c06825843d201150c84374f5b57025c449.png" alt="e^{-a |x |}"/>).</p>
+<dl class="simple">
+<dt><strong>Zero fill end dimensions of PSF</strong></dt><dd><p>After optimising the PSF with the R-L algorithm, voxels upto a distance {i,j,k} from the perimeter of the PSF array are set to zero. This can improve stability of the algorithm.</p>
+</dd>
+<dt><strong>Reset PSF</strong></dt><dd><p>Resets the PSF to a normal Lorentzian function before the next R-L optimisation cycle.</p>
+</dd>
+</dl>
+</section>
+<section id="raar-mask-with-partial-coherence-optimisation-raar-mask-pc">
+<h2>RAAR Mask with Partial Coherence Optimisation (RAAR Mask PC)<a class="headerlink" href="#raar-mask-with-partial-coherence-optimisation-raar-mask-pc" title="Link to this heading">¶</a></h2>
+<p id="index-18">RAAR Mask with Partial Coherence Optimisation (RAAR Mask PC) algorithm. See <a class="reference external" href="http://dx.doi.org/10.1038/ncomms1994">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the RAAR algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform (not including R-L iterations).</p>
+</dd>
+<dt><strong>Iterations preceding R-L optimisation</strong></dt><dd><p>Interval of iterations after which Richardson-Lucy optimisation commences in successive cycles.</p>
+</dd>
+<dt><strong>R-L iterations</strong></dt><dd><p>Number of R-L iterations performed at each cycle.</p>
+</dd>
+<dt><strong>Interval between R-L optimisation</strong></dt><dd><p>Number of iterations between each Richardson-Lucy optimisation cycle.</p>
+</dd>
+</dl>
+<p><strong>Initial PSF HWHM</strong>
+The initial point spread function (PSF) optimised using the R-L algorithm is a normal Lorentzian function (<img class="math" src="_images/math/502b8f398b87dc89293d108d37e9b91895b527ae.png" alt="\frac{1}{\pi}\frac{a}{x^2 + a^2}"/>). The user can specify the HWHM of its Fourier transform (<img class="math" src="_images/math/6badb5c06825843d201150c84374f5b57025c449.png" alt="e^{-a |x |}"/>).</p>
+<dl class="simple">
+<dt><strong>Zero fill end dimensions of PSF</strong></dt><dd><p>After optimising the PSF with the R-L algorithm, voxels upto a distance {i,j,k} from the perimeter of the PSF array are set to zero. This can improve stability of the algorithm.</p>
+</dd>
+<dt><strong>Reset PSF</strong></dt><dd><p>Resets the PSF to a normal Lorentzian function before the next R-L optimisation cycle.</p>
+</dd>
+</dl>
+</section>
+<section id="reweighted-2d-saddle-point-optimisation-so2d">
+<h2>Reweighted 2D Saddle Point Optimisation (SO2D)<a class="headerlink" href="#reweighted-2d-saddle-point-optimisation-so2d" title="Link to this heading">¶</a></h2>
+<p id="index-19">Reweighted 2D Saddle Point Optimisation (SO2D) algorithm. See <a class="reference external" href="https://doi.org/10.1103/PhysRevMaterials.3.043803">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+<dt><strong>Step optimisation iterations</strong></dt><dd><p>Total number of iterations performed when optimising the step length.</p>
+</dd>
+<dt><strong>Max step size</strong></dt><dd><p>Maximum size for the total step length (<img class="math" src="_images/math/044c3bf868e117c11679b9b926442f26fa192544.png" alt="\sqrt{\alpha^2 +\beta^2}"/>).</p>
+</dd>
+<dt><strong>Initial Beta</strong></dt><dd><p>Relaxation parameter for the initial step (<img class="math" src="_images/math/7138dad9ac96835665b17f5817eacfcaa9b834c9.png" alt="\beta"/>).</p>
+</dd>
+<dt><strong>Max step increment</strong></dt><dd><p>Maximum amount by which the step can be incremented.</p>
+</dd>
+<dt><strong>Min step increment</strong></dt><dd><p>Minimum amount by which the step can be incremented.</p>
+</dd>
+<dt><strong>Exit Ratio</strong></dt><dd><p>Value below <img class="math" src="_images/math/458299e2cededaaa36ad5a2bc3bcc074a8d7cdee.png" alt="|\psi|/|\psi_0|"/> will halt step length optimisation.</p>
+</dd>
+<dt><strong>Reset Ratio</strong></dt><dd><p>Value above <img class="math" src="_images/math/458299e2cededaaa36ad5a2bc3bcc074a8d7cdee.png" alt="|\psi|/|\psi_0|"/> will reset step length to that of the initial value (initial <img class="math" src="_images/math/7138dad9ac96835665b17f5817eacfcaa9b834c9.png" alt="\beta"/>).</p>
+</dd>
+<dt><strong>Exit Error</strong></dt><dd><p>Value below <img class="math" src="_images/math/38714aca1cb160ed39e2c0db065fdff65e7bfeed.png" alt="(\psi^{(n+1)} - \psi^{(n)})/\psi^{(n)}"/> will halt step length optimisation.</p>
+</dd>
+</dl>
+</section>
+<section id="shrink-wrap">
+<h2>Shrink Wrap<a class="headerlink" href="#shrink-wrap" title="Link to this heading">¶</a></h2>
+<p id="index-20">Shrink Wrap algorithm. See <a class="reference external" href="http://dx.doi.org/10.1038/nmat2702">here</a> for more details.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="simple">
+<dt><strong>Exp amp</strong></dt><dd><p>User provided path string to the input experimental data NumPy file.</p>
+</dd>
+<dt><strong>Square Root Exp amp</strong></dt><dd><p>Causes the <code class="docutils literal notranslate"><span class="pre">Exp</span> <span class="pre">amp</span></code> array to be square rooted before phase retrieval commences. This is necessary if the array contains intensity measurements.</p>
+</dd>
+<dt><strong>Support</strong></dt><dd><p>User provided path string to the <a class="reference internal" href="#libref-algorithms"><span class="std std-ref">support</span></a> data NumPy file.</p>
+</dd>
+<dt><strong>Mask</strong></dt><dd><p>User provided path string to the <code class="docutils literal notranslate"><span class="pre">mask</span></code> data NumPy file.</p>
+</dd>
+<dt><strong>Beta</strong></dt><dd><p>Relaxation parameter for the HIO algorithm.</p>
+</dd>
+<dt><strong>Iterations</strong></dt><dd><p>Total number of iterations for which the algorithm will perform.</p>
+</dd>
+<dt><strong>Cycle length</strong></dt><dd><p>Interval of iterations after which the support is updated.</p>
+</dd>
+<dt><strong>Sigma</strong></dt><dd><p>Standard deviation of the Gaussian smoothing function for the support.</p>
+</dd>
+<dt><strong>Threshold</strong></dt><dd><p>Fractional value below which <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">data</span></code> is not used when creating the new support.</p>
+</dd>
+<dt><strong>Algorithm</strong></dt><dd><p>Algorithm to use when performing the shrink wrapped phase retrieval.</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="prev">
+    <a href="libref-functions.html"
+       title="previous chapter">← Library Reference - Functions</a>
+  </li>
+  <li class="next">
+    <a href="libref-operations.html"
+       title="next chapter">Library Reference - Phasing Operations →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2011 - 2024, Marcus C. Newton.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
+  </body>
+</html>
