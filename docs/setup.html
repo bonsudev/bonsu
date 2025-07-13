@@ -10,8 +10,8 @@
           <link rel="stylesheet" href="_static/theme.css " type="text/css" />
       
       <!-- sphinx script_files -->
-        <script src="_static/documentation_options.js?v=86e43a22"></script>
-        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/documentation_options.js?v=b11cb048"></script>
+        <script src="_static/doctools.js?v=9bcbadda"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
 
       
@@ -70,7 +70,7 @@
   
     <div class="sidebar-group">
       <p class="caption">
-        <span class="caption-text"><a href="bonsu.html#bonsu-3-7-1-documentation">bonsu 3.7.1 documentation</a></span>
+        <span class="caption-text"><a href="bonsu.html#bonsu-3-7-2-documentation">bonsu 3.7.2 documentation</a></span>
       </p>
       <ul class="current">
         
@@ -199,7 +199,7 @@
 </section>
 <section id="installation-on-windows">
 <h2>Installation on Windows<a class="headerlink" href="#installation-on-windows" title="Link to this heading">¶</a></h2>
-<p>Download 64-bit <a class="reference external" href="http://www.python.org">Python</a> <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 3.7 for Microsoft Windows from the Python website and follow the installation instructions.  Ensure that <a class="reference external" href="https://pypi.org/project/pip/">pip</a> is included in the installation.  Prerequisite binaries are available for download in the <a class="reference external" href="https://pypi.org">Python Package Index</a>. They are also listed below.</p>
+<p>Download 64-bit <a class="reference external" href="http://www.python.org">Python</a> <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 3.7 for Microsoft Windows from the Python website and follow the installation instructions. If possible, select <cite>Add Python to environment variables</cite> from the Advanced Options during installation.  Ensure that <a class="reference external" href="https://pypi.org/project/pip/">pip</a> is included in the installation.  Prerequisite binaries are available for download in the <a class="reference external" href="https://pypi.org">Python Package Index</a>. They are also listed below.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/wxPython/">wxPython</a></p></li>
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/numpy">NumPy</a></p></li>
@@ -215,6 +215,10 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
+<p><a class="reference external" href="http://pypi.python.org/pypi/wxPython/">wxPython</a> may require installation of <a class="reference external" href="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist">Visual C++ Redistributable for Visual Studio</a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
 <p>Prebuilt VTK packages <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 7.0 in <a class="reference external" href="https://pypi.python.org/pypi/vtk/">PyPI</a>  generally requre a graphics card with OpenGL 3 support.</p>
 </div>
 <p>Alternatively, it is possible to install a stand alone python distribution such as <a class="reference external" href="https://www.anaconda.com">Anaconda Python</a> . This will likely include all of the above prerequisites.</p>
@@ -224,6 +228,15 @@
 </div>
 <p>If the optional <a class="reference external" href="http://pypi.python.org/pypi/hdf5plugin">hdf5plugin</a> module is required, use the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>bonsu<span class="o">[</span>hdf5plugin<span class="o">]</span>
+</pre></div>
+</div>
+<p>To start the program, execute the following from the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>bonsu
+</pre></div>
+</div>
+<p>Some versions of Python might fail to start Bonsu.  In such cases, execute the following from the Python prompt:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from bonsu.interface.bonsu import main</span>
+<span class="c1"># main()</span>
 </pre></div>
 </div>
 </section>
@@ -331,7 +344,7 @@ $<span class="w"> </span><span class="nb">export</span><span class="w"> </span><
        title="next chapter">General Usage →</a>
   </li>
 </ul><div class="footer" role="contentinfo">
-      &#169; Copyright 2011 - 2024, Marcus C. Newton.
+      &#169; Copyright 2011 - 2025, Marcus C. Newton.
 </div>
             </div>
           </div>
