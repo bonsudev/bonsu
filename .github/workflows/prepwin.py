@@ -2,7 +2,7 @@
 #############################################
 ##   Filename: prepare.py
 ##
-##    Copyright (C) 2011 - 2025 Marcus C. Newton
+##    Copyright (C) 2011 - 2026 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -38,8 +38,11 @@ r = urllib.request.urlopen(fftwurl)
 f = io.BytesIO(r.read())
 
 zf = ZipFile(f)
-zf.extractall(path = FFTWPATH)
+zf.extractall(path = os.path.join(os.getcwd(),FFTWPATH))
 zf.close()
+
+os.add_dll_directory(os.path.join(os.getcwd(),FFTWPATH))
+sys.path.append(os.path.join(os.getcwd(),FFTWPATH))
 
 cmd = ["where", "/r", r"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC", "lib.exe"]
 process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,stdin=subprocess.PIPE, close_fds=False)
@@ -116,7 +119,7 @@ os.system("del "+libfile)
 os.system("del "+expfile)
 os.system("del "+libfilef)
 os.system("del "+expfilef)
-os.system("rmdir /s/q "+FFTWPATH)
+#os.system("rmdir /s/q "+FFTWPATH)
 
 
 

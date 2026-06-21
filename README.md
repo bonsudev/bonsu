@@ -53,5 +53,5 @@ Please see the [change log](https://github.com/bonsudev/bonsu/blob/master/bonsu/
 ## Licence
 
 GNU GPLv3
-Copyright 2011 - 2025 - Marcus C. Newton
+Copyright 2011 - 2026 - Marcus C. Newton
 Registration number 284653218

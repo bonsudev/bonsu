@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: functions.py
 ##
-##    Copyright (C) 2011 - 2025 Marcus C. Newton
+##    Copyright (C) 2011 - 2026 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -755,6 +755,105 @@ def Sequence_AutoCentre(\
 		z_1 = z_0 + shp[2]
 		arraycentred[x_0:x_1,y_0:y_1,z_0:z_1] = array
 		SaveArray(self, filename_out, arraycentred)
+def GetArrayCOM(array):
+	if numpy.abs(array).nonzero()[0].size == 0:
+		raise Exception("GetArrayCOM: No non-zero numbers in array")
+	else:
+		shp = numpy.array(array.shape, dtype=numpy.int64)
+		coorddata = numpy.zeros((array.size,4), dtype=numpy.double)
+		coorddata[:,0] = numpy.tile(numpy.arange(shp[0]), shp[1]*shp[2])
+		coorddata[:,1] = numpy.tile(numpy.repeat(numpy.arange(shp[1]), shp[0]), shp[2])
+		coorddata[:,2] = numpy.repeat(numpy.arange(shp[2]), shp[0]*shp[1])
+		coorddata[:,3] = numpy.abs(array).transpose(2,1,0).flatten()
+		return numpy.average(coorddata[:,:3], axis=0, weights=coorddata[:,3])
+def SubPxShft(array, dx, dy, dz):
+	SubPxShftAxis(array, 0, dx)
+	SubPxShftAxis(array, 1, dy)
+	SubPxShftAxis(array, 2, dz)
+def SubPxShftAxis(array, axis, d):
+	sign = int(math.copysign(1.0,d))
+	dm = d*sign
+	assert (dm <= 1.0)
+	assert (dm >= 0.0)
+	array[:] = (1.0-dm)*array[:] + dm*numpy.roll(array, sign, axis=axis)
+def Sequence_AutoCOMROI(\
+	self,
+	pipelineitem
+	):
+	if self.pipeline_started == True:
+		title = "Sequence " + pipelineitem.treeitem['name']
+		self.ancestor.GetPage(0).queue_info.put("Preparing auto centred Numpy array using RoI Centre of Mass...")
+		filename_in = pipelineitem.input_filename.objectpath.GetValue()
+		filename_out = pipelineitem.output_filename.objectpath.GetValue()
+		roipath = pipelineitem.objectpath.GetValue()
+		try:
+			array = LoadArray(self, filename_in)
+		except:
+			msg = "Could not load array."
+			wx.CallAfter(self.UserMessage, title, msg)
+			return
+		try:
+			if roipath == "":
+				roi = None
+			elif ( '[' in roipath and ']' in roipath ):
+				roi = roipath.partition('[')[-1].rpartition(']')[0]
+				roiids_str = [x.split(":") for x in roi.split(',')]
+				roiids = [list(map(int, i)) for i in roiids_str]
+			else:
+				roi = None
+		except AttributeError:
+			msg = "Could not load ROI."
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+		else:
+			shp = array.shape
+			if roi is not None:
+				if roiids[0][1] > shp[0] or roiids[1][1] > shp[1] or roiids[2][1] > shp[2]:
+					msg = "Impossible dimensions."
+					wx.CallAfter(self.UserMessage, title, msg)
+					self.pipeline_started = False
+					return
+		try:
+			if roi is not None:
+				if shp[2] == 1:
+					max = GetArrayCOM(array[roiids[0][0]:roiids[0][1], roiids[1][0]:roiids[1][1], roiids[2][0]:shp[2]])
+				else:
+					max = GetArrayCOM(array[roiids[0][0]:roiids[0][1], roiids[1][0]:roiids[1][1], roiids[2][0]:roiids[2][1]])
+				max[0] += roiids[0][0]
+				max[1] += roiids[1][0]
+				max[2] += roiids[2][0]
+			else:
+				max = GetArrayCOM(array)
+		except Exception as e:
+			msg = str(e)
+			wx.CallAfter(self.UserMessage, title, msg)
+			self.pipeline_started = False
+			return
+		else:
+			max_int = numpy.floor(max).astype(numpy.int64)
+			shp = numpy.array(array.shape)
+			centre = numpy.array(array.shape) // 2
+			padding = (max_int - centre)
+			extra = numpy.abs(padding)
+			ps = numpy.sign(padding)
+			try:
+				arraycentred = NewArray(self,*(shp+ 2*extra))
+			except:
+				return
+			centre2 = numpy.array(arraycentred.shape) // 2
+			x_0 = extra[0] - padding[0]
+			x_1 = x_0 + shp[0]
+			y_0 = extra[1] - padding[1]
+			y_1 = y_0 + shp[1]
+			z_0 = extra[2] - padding[2]
+			z_1 = z_0 + shp[2]
+			arraycentred[x_0:x_1,y_0:y_1,z_0:z_1] = array
+			centre_f = numpy.array(array.shape).astype(numpy.double) / 2.0
+			max_dec = -(max - centre_f) + padding.astype(numpy.double)
+			SubPxShft(arraycentred, max_dec[0], max_dec[1], max_dec[2])
+			self.ancestor.GetPage(0).queue_info.put("Centre of Mass: "+str(GetArrayCOM(arraycentred)))
+			SaveArray(self, filename_out, arraycentred)
 def Sequence_Wrap(\
 	self,
 	pipelineitem
@@ -1607,7 +1706,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -1825,7 +1924,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -1957,7 +2056,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -2180,7 +2279,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -2238,7 +2337,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.normals_phase_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_phase_real.ConsistencyOff()
 		panelvisual.normals_phase_real.SplittingOff()
-		panelvisual.normals_phase_real.AutoOrientNormalsOff()
+		panelvisual.normals_phase_real.AutoOrientNormalsOn()
 		panelvisual.normals_phase_real.ComputePointNormalsOn()
 		panelvisual.normals_phase_real.ComputeCellNormalsOn()
 		panelvisual.normals_phase_real.NonManifoldTraversalOff()
@@ -2363,7 +2462,7 @@ def Sequence_View_Array(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -2827,7 +2926,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -2835,7 +2934,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_support.SetFeatureAngle(feature_angle_support)
 		panelvisual.normals_support.ConsistencyOff()
 		panelvisual.normals_support.SplittingOff()
-		panelvisual.normals_support.AutoOrientNormalsOff()
+		panelvisual.normals_support.AutoOrientNormalsOn()
 		panelvisual.normals_support.ComputePointNormalsOn()
 		panelvisual.normals_support.ComputeCellNormalsOff()
 		panelvisual.normals_support.NonManifoldTraversalOff()
@@ -2991,7 +3090,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_support.SetFeatureAngle(feature_angle_support)
 		panelvisual.normals_support.ConsistencyOff()
 		panelvisual.normals_support.SplittingOff()
-		panelvisual.normals_support.AutoOrientNormalsOff()
+		panelvisual.normals_support.AutoOrientNormalsOn()
 		panelvisual.normals_support.ComputePointNormalsOn()
 		panelvisual.normals_support.ComputeCellNormalsOff()
 		panelvisual.normals_support.NonManifoldTraversalOff()
@@ -3125,7 +3224,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -3190,7 +3289,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_support.SetFeatureAngle(feature_angle_support)
 		panelvisual.normals_support.ConsistencyOff()
 		panelvisual.normals_support.SplittingOff()
-		panelvisual.normals_support.AutoOrientNormalsOff()
+		panelvisual.normals_support.AutoOrientNormalsOn()
 		panelvisual.normals_support.ComputePointNormalsOn()
 		panelvisual.normals_support.ComputeCellNormalsOff()
 		panelvisual.normals_support.NonManifoldTraversalOff()
@@ -3313,7 +3412,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -3365,7 +3464,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_support.SetFeatureAngle(feature_angle_support)
 		panelvisual.normals_support.ConsistencyOff()
 		panelvisual.normals_support.SplittingOff()
-		panelvisual.normals_support.AutoOrientNormalsOff()
+		panelvisual.normals_support.AutoOrientNormalsOn()
 		panelvisual.normals_support.ComputePointNormalsOn()
 		panelvisual.normals_support.ComputeCellNormalsOff()
 		panelvisual.normals_support.NonManifoldTraversalOff()
@@ -3510,7 +3609,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_support.SetFeatureAngle(feature_angle_support)
 		panelvisual.normals_support.ConsistencyOff()
 		panelvisual.normals_support.SplittingOff()
-		panelvisual.normals_support.AutoOrientNormalsOff()
+		panelvisual.normals_support.AutoOrientNormalsOn()
 		panelvisual.normals_support.ComputePointNormalsOn()
 		panelvisual.normals_support.ComputeCellNormalsOff()
 		panelvisual.normals_support.NonManifoldTraversalOff()
@@ -3648,7 +3747,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -3706,7 +3805,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_phase_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_phase_real.ConsistencyOff()
 		panelvisual.normals_phase_real.SplittingOff()
-		panelvisual.normals_phase_real.AutoOrientNormalsOff()
+		panelvisual.normals_phase_real.AutoOrientNormalsOn()
 		panelvisual.normals_phase_real.ComputePointNormalsOn()
 		panelvisual.normals_phase_real.ComputeCellNormalsOn()
 		panelvisual.normals_phase_real.NonManifoldTraversalOff()
@@ -3757,7 +3856,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_support.SetFeatureAngle(feature_angle_support)
 		panelvisual.normals_support.ConsistencyOff()
 		panelvisual.normals_support.SplittingOff()
-		panelvisual.normals_support.AutoOrientNormalsOff()
+		panelvisual.normals_support.AutoOrientNormalsOn()
 		panelvisual.normals_support.ComputePointNormalsOn()
 		panelvisual.normals_support.ComputeCellNormalsOff()
 		panelvisual.normals_support.NonManifoldTraversalOff()
@@ -3887,7 +3986,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -3939,7 +4038,7 @@ def Sequence_View_DualArray(self, ancestor):
 		panelvisual.normals_support.SetFeatureAngle(feature_angle_support)
 		panelvisual.normals_support.ConsistencyOff()
 		panelvisual.normals_support.SplittingOff()
-		panelvisual.normals_support.AutoOrientNormalsOff()
+		panelvisual.normals_support.AutoOrientNormalsOn()
 		panelvisual.normals_support.ComputePointNormalsOn()
 		panelvisual.normals_support.ComputeCellNormalsOff()
 		panelvisual.normals_support.NonManifoldTraversalOff()
@@ -4115,7 +4214,7 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.normals_support.SetFeatureAngle(feature_angle)
 		panelvisual.normals_support.ConsistencyOff()
 		panelvisual.normals_support.SplittingOff()
-		panelvisual.normals_support.AutoOrientNormalsOff()
+		panelvisual.normals_support.AutoOrientNormalsOn()
 		panelvisual.normals_support.ComputePointNormalsOn()
 		panelvisual.normals_support.ComputeCellNormalsOff()
 		panelvisual.normals_support.NonManifoldTraversalOff()
@@ -4123,7 +4222,7 @@ def Sequence_View_Support(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -4466,7 +4565,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -4684,7 +4783,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -4811,7 +4910,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -5027,7 +5126,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -5091,7 +5190,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.normals_phase_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_phase_real.ConsistencyOff()
 		panelvisual.normals_phase_real.SplittingOff()
-		panelvisual.normals_phase_real.AutoOrientNormalsOff()
+		panelvisual.normals_phase_real.AutoOrientNormalsOn()
 		panelvisual.normals_phase_real.ComputePointNormalsOn()
 		panelvisual.normals_phase_real.ComputeCellNormalsOn()
 		panelvisual.normals_phase_real.NonManifoldTraversalOff()
@@ -5211,7 +5310,7 @@ def Sequence_View_Object(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -5340,7 +5439,7 @@ def Sequence_View_VTK(self, ancestor):
 		panelvisual.normals_amp_real.SetFeatureAngle(feature_angle)
 		panelvisual.normals_amp_real.ConsistencyOff()
 		panelvisual.normals_amp_real.SplittingOff()
-		panelvisual.normals_amp_real.AutoOrientNormalsOff()
+		panelvisual.normals_amp_real.AutoOrientNormalsOn()
 		panelvisual.normals_amp_real.ComputePointNormalsOn()
 		panelvisual.normals_amp_real.ComputeCellNormalsOff()
 		panelvisual.normals_amp_real.NonManifoldTraversalOff()
@@ -5693,25 +5792,30 @@ def Sequence_View_VTK(self, ancestor):
 	else:
 		self.ancestor.GetPage(0).queue_info.put("Preparing VTK array visualisation")
 		self.ancestor.GetPage(0).queue_info.put("Data type: %d"%panelvisual.image.GetDataObjectType())
-		self.ancestor.GetPage(0).queue_info.put("Dimensions: " + str(panelvisual.image.GetDimensions()))
+		if "vtkStructuredPoints" in panelvisual.image.GetClassName():
+			self.ancestor.GetPage(0).queue_info.put("Dimensions: " + str(panelvisual.image.GetDimensions()))
+		elif "vtkStructuredGrid" in panelvisual.image.GetClassName():
+			dims = [0, 0, 0]
+			panelvisual.image.GetDimensions(dims)
+			self.ancestor.GetPage(0).queue_info.put("Dimensions: " + str(dims))
 		if (self.rbampphase.GetStringSelection() == 'Amplitude (isosurface)'):
-			if "vtkStructuredPoints" in panelvisual.image.GetClassName():
+			if panelvisual.image.GetClassName() in ["vtkStructuredGrid","vtkStructuredPoints"]:
 				if panelvisual.image.GetDataDimension() < 3:
 					ViewDataAmp2D(self, ancestor , panelvisual.image, r, g, b)
-			else:
-				ViewDataAmp(self, ancestor , panelvisual.image, r, g, b)
+				else:
+					ViewDataAmp(self, ancestor , panelvisual.image, r, g, b)
 		if (self.rbampphase.GetStringSelection() == 'Phase (cut plane)'):
-			if "vtkStructuredPoints" in panelvisual.image.GetClassName():
+			if panelvisual.image.GetClassName() in ["vtkStructuredGrid","vtkStructuredPoints"]:
 				if panelvisual.image.GetDataDimension() < 3:
 					ViewDataPhase2D(self, ancestor , panelvisual.image, r, g, b)
-			else:
-				ViewDataPhase(self, ancestor , panelvisual.image, r, g, b)
+				else:
+					ViewDataPhase(self, ancestor , panelvisual.image, r, g, b)
 		if (self.rbampphase.GetStringSelection() == 'Amplitude (cut plane)'):
-			if "vtkStructuredPoints" in panelvisual.image.GetClassName():
+			if panelvisual.image.GetClassName() in ["vtkStructuredGrid","vtkStructuredPoints"]:
 				if panelvisual.image.GetDataDimension() < 3:
 					pass
-			else:
-				ViewAmpPlane(self, ancestor , panelvisual.image, r, g, b)
+				else:
+					ViewAmpPlane(self, ancestor , panelvisual.image, r, g, b)
 		panelvisual.datarangelist = []
 		panelvisual.ReleaseVisualButtons(gotovisual=True)
 		panelvisual.button_vremove.Enable(False)

@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: instance.py
 ##
-##    Copyright (C) 2011 - 2025 Marcus C. Newton
+##    Copyright (C) 2011 - 2026 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -122,6 +122,10 @@ def GetInstanceObject(panelphase, i):
 		object.append( panelphase.pipelineitems[i].kdims[0].value.GetValue() )
 		object.append( panelphase.pipelineitems[i].kdims[1].value.GetValue() )
 		object.append( panelphase.pipelineitems[i].kdims[2].value.GetValue() )
+	if subpanelname == 'Auto COMROI':
+		object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
+		object.append( panelphase.pipelineitems[i].objectpath.GetValue() )
+		object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
 	if subpanelname == 'Scale Array':
 		object.append( panelphase.pipelineitems[i].input_filename.objectpath.GetValue() )
 		object.append( panelphase.pipelineitems[i].output_filename.objectpath.GetValue() )
@@ -673,6 +677,14 @@ def SetInstanceObject(panelphase, instance, idx, subpanel_items):
 			panelphase.pipelineitems[idx].kdims[0].value.SetValue(object[3])
 			panelphase.pipelineitems[idx].kdims[1].value.SetValue(object[4])
 			panelphase.pipelineitems[idx].kdims[2].value.SetValue(object[5])
+			DoListCheck(panelphase, object, idx)
+		if subpanelname == 'Auto COMROI':
+			panelphase.pipelineitems.insert(idx, SubPanel_AutoCOMROI(panelphase.panel2))
+			panelphase.pipelineitems[idx].Hide()
+			panelphase.hbox2.Add(panelphase.pipelineitems[idx], 2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+			panelphase.pipelineitems[idx].input_filename.objectpath.SetValue(object[0])
+			panelphase.pipelineitems[idx].objectpath.SetValue(object[1])
+			panelphase.pipelineitems[idx].output_filename.objectpath.SetValue(object[2])
 			DoListCheck(panelphase, object, idx)
 		if subpanelname == 'Scale Array':
 			panelphase.pipelineitems.insert(idx, SubPanel_Scale_Array(panelphase.panel2))

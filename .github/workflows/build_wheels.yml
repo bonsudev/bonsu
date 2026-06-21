@@ -8,8 +8,8 @@ on:
 
 env:
   #CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
-  CIBW_BUILD: cp38-win_amd64 cp39-* cp310-* cp311-* cp312-* cp313-*
-  CIBW_SKIP: cp37-* cp38-macosx*
+  CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-*
+  CIBW_SKIP: cp37-* cp38-* cp39-* cp3??t-*
   CIBW_ARCHS_WINDOWS: "AMD64"
   CIBW_ARCHS_MACOS: "x86_64 arm64"
   CIBW_ARCHS_LINUX: "x86_64"
@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, macos-13, windows-2022]
+        os: [macos-latest, windows-2022]
     
     steps:
       - uses: actions/checkout@v3
@@ -60,7 +60,7 @@ jobs:
         run: python -m pip install attrdict3 wxpython numpy vtk h5py pillow requests cython
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.1
+        run: python -m pip install cibuildwheel==3.4.1
 
       - name: Build wheels - macOS 13
         if: startsWith(matrix.os, 'macos-13')
@@ -107,7 +107,7 @@ jobs:
       contents: write
     
     name: Build source package
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
 

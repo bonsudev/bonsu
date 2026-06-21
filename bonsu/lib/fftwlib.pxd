@@ -2,7 +2,7 @@
 #############################################
 ##   Filename: fftwlib.pxd
 ##
-##    Copyright (C) 2011 - 2025 Marcus C. Newton
+##    Copyright (C) 2011 - 2026 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -78,6 +78,14 @@ cdef extern from 'fftw3.h':
 	
 	void fftw_execute(fftw_plan) nogil
 	void fftwf_execute(fftwf_plan) nogil
+	
+	cpdef enum:
+		FFTW_ESTIMATE
+		FFTW_PATIENT
+		FFTW_EXHAUSTIVE
+		FFTW_MEASURE
+		FFTW_TORECIP "FFTW_BACKWARD"
+		FFTW_TOREAL "FFTW_FORWARD"
 
 
 cdef struct _FFTWPlan:
@@ -103,13 +111,5 @@ cdef void _fftwf_stride(float complex[:, :, ::1] ar_in1, float complex[:, :, ::1
 cdef _fftw_destroy_plan(FFTWPlan* plan)
 cdef _fftwf_destroy_plan(FFTWPlan* plan)
 
-
-cpdef enum:
-	FFTW_ESTIMATE = 64
-	FFTW_PATIENT = 32
-	FFTW_EXHAUSTIVE = 8
-	FFTW_MEASURE = 0
-	FFTW_TORECIP = 1
-	FFTW_TOREAL = -1
 
 

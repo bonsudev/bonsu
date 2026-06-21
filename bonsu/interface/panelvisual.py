@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: panelvisual.py
 ##
-##    Copyright (C) 2011 - 2025 Marcus C. Newton
+##    Copyright (C) 2011 - 2026 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -1351,9 +1351,9 @@ class MeasureLine(wx.Panel):
 		y = numpy.array(self.data)
 		graphdata = numpy.vstack((x,y)).T
 		line = PolyLine(graphdata, colour='blue', width=2.5)
-		if (self.panelvisual.image_probe == self.panelvisual.image_phase_real) or\
-			(self.panelvisual.image_probe == self.panelvisual.image2D_phase_real) or\
-			(self.panelvisual.image_probe == self.panelvisual.object_phase):
+		if (self.panelvisual.image_probe is self.panelvisual.image_phase_real) or\
+			(self.panelvisual.image_probe is self.panelvisual.image2D_phase_real) or\
+			(self.panelvisual.image_probe is self.panelvisual.object_phase):
 			graphic_y_axis = "Phase"
 			self.chkbox_log.Enable(False)
 		else:
@@ -2324,7 +2324,10 @@ class ColourDialog(wx.ScrolledWindow):
 			array = self.panelphase.cms[i][1]
 			for j in range(height):
 				newarray[j,:,:] = numpy.uint8(255.0*array)
-			image.SetData( newarray.tostring())
+			if hasattr(newarray, 'tostring'):
+				image.SetData(newarray.tostring())
+			else:
+				image.SetData(newarray.tobytes())
 			bmp = image.ConvertToBitmap()
 			self.imglist.append(wx.StaticBitmap(self, -1, bmp))
 			self.rb.append( wx.RadioButton(self, -1, label=name, size=(150, height) ) )

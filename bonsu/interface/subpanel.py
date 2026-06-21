@@ -1,7 +1,7 @@
 #############################################
 ##   Filename: subpanel.py
 ##
-##    Copyright (C) 2011 - 2025 Marcus C. Newton
+##    Copyright (C) 2011 - 2026 Marcus C. Newton
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -1302,11 +1302,11 @@ class SubPanel_BlankLineFill(wx.Panel):
 			wx.CallAfter(self.panelphase.UserMessage, title, msg)
 			wx.CallAfter(self.panelphase.ancestor.GetPage(4).UpdateLog, None)
 			return
-		self.roidialog = ROIDialog(self)
+		self.roidialog = ROIDialog(self, "ROI Voxel Fill")
 		self.roidialog.ShowModal()
 class ROIDialog(wx.Dialog):
-	def __init__(self,parent):
-		wx.Dialog.__init__(self, parent, style=wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION| wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.CLOSE_BOX ,title="ROI Voxel Fill", size=(700,480))
+	def __init__(self,parent, title):
+		wx.Dialog.__init__(self, parent, style=wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION| wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.CLOSE_BOX ,title=title, size=(700,480))
 		self.parent = parent
 		self.SetSizeHints(700,480,-1,-1)
 		self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -1441,7 +1441,10 @@ class ROIDialog(wx.Dialog):
 		imagedatanew[:,0] = numpy.uint8(255.0*numpy.take(cm[:,0], imagedatalow[:]))
 		imagedatanew[:,1] = numpy.uint8(255.0*numpy.take(cm[:,1], imagedatalow[:]))
 		imagedatanew[:,2] = numpy.uint8(255.0*numpy.take(cm[:,2], imagedatalow[:]))
-		self.imwx.SetData(imagedatanew.reshape(*shp, 3).tostring())
+		if hasattr(imagedatanew, 'tostring'):
+			self.imwx.SetData(imagedatanew.reshape(*shp, 3).tostring())
+		else:
+			self.imwx.SetData(imagedatanew.reshape(*shp, 3).tobytes())
 		self.imwx.Rescale(self.sx, self.sy)
 		self.bmp = self.imwx.ConvertToBitmap()
 		self.image.SetBitmap(self.bmp)
@@ -1876,7 +1879,10 @@ class KeyDialog(wx.Dialog):
 		imagedatanew[:,0] = numpy.uint8(255.0*numpy.take(cm[:,0], imagedatalow[:]))
 		imagedatanew[:,1] = numpy.uint8(255.0*numpy.take(cm[:,1], imagedatalow[:]))
 		imagedatanew[:,2] = numpy.uint8(255.0*numpy.take(cm[:,2], imagedatalow[:]))
-		self.imwx.SetData(imagedatanew.reshape(*shp, 3).tostring())
+		if hasattr(imagedatanew, 'tostring'):
+			self.imwx.SetData(imagedatanew.reshape(*shp, 3).tostring())
+		else:
+			self.imwx.SetData(imagedatanew.reshape(*shp, 3).tobytes())
 		self.imwx.Rescale(self.sx, self.sy)
 		self.bmp = self.imwx.ConvertToBitmap()
 		self.image.SetBitmap(self.bmp)
@@ -2180,6 +2186,8 @@ class KeyDialog(wx.Dialog):
 		del self.GetParent().keydialog
 		self.EndModal(wx.ID_YES)
 		self.Destroy()
+		self.EndModal(wx.ID_YES)
+		self.Destroy()
 class SubPanel_SPE_to_Numpy(wx.Panel):
 	treeitem = {'name':  'SPE to Numpy' , 'type': 'importtools'}
 	def sequence(self, selff, pipelineitem):
@@ -2449,6 +2457,55 @@ class SubPanel_AutoCentre(wx.Panel):
 		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
 		self.SetAutoLayout(True)
 		self.SetSizer( vbox )
+class SubPanel_AutoCOMROI(wx.Panel):
+	treeitem = {'name':  'Auto COMROI' , 'type': 'operpre'}
+	def sequence(self, selff, pipelineitem):
+		Sequence_AutoCOMROI(selff, pipelineitem)
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+		self.panelphase = self.GetParent().GetParent().GetParent()
+		self.font = self.GetParent().font
+		vbox = wx.BoxSizer(wx.VERTICAL)
+		title = StaticTextNew(self, label="Auto Centre Numpy Array using RoI Centre of Mass")
+		title.SetToolTipNew("Input array will be Auto Centred "+os.linesep+"to RoI Centre of Mass.")
+		vbox.Add(title ,0, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.input_filename = TextPanelObject(self, "Input File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.input_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		hbox = wx.BoxSizer(wx.HORIZONTAL)
+		label = wx.StaticText(self, -1,"ROI:" , style =wx.ALIGN_RIGHT, size=(150,-1) )
+		label.SetFont(self.font)
+		hbox.Add( label, 0, wx.CENTER )
+		self.objectpath = TextCtrlNew(self, -1)
+		self.objectpath.SetFont(self.font)
+		self.objectpath.SetValue("")
+		self.objectpath.SetToolTipNew("Region of Interest")
+		self.objectpath.Bind(wx.EVT_TEXT_ENTER, self.OnEdit)
+		hbox.Add( self.objectpath, 1, wx.CENTER |wx.EXPAND )
+		self.button = ButtonNew(self, -1, "Browse")
+		self.button.SetFont(self.font)
+		self.button.SetToolTipNew("Browse for ROI.")
+		self.button.Bind(wx.EVT_BUTTON, self.OnBrowse)
+		hbox.Add( self.button, 0, wx.LEFT|wx.CENTER)
+		vbox.Add(hbox, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.output_filename = TextPanelObject(self, "Output File: ", "",150,"Numpy files (*.npy)|*.npy|All files (*.*)|*.*")
+		vbox.Add(self.output_filename, 0,  flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=2)
+		self.SetAutoLayout(True)
+		self.SetSizer( vbox )
+	def OnEdit(self, event):
+		self.objectpath.ChangeValue(event.GetString())
+	def OnBrowse(self, event):
+		try:
+			array = LoadArray(self.panelphase, self.input_filename.objectpath.GetValue())
+			self.arrayobject = numpy.abs(array)
+		except:
+			title = "Sequence " + self.treeitem['name']
+			msg = "Could not load array."
+			wx.CallAfter(self.panelphase.UserMessage, title, msg)
+			wx.CallAfter(self.panelphase.ancestor.GetPage(4).UpdateLog, None)
+			return
+		else:
+			self.roidialog = ROIDialog(self, "Auto Centre of Mass RoI")
+			self.roidialog.ShowModal()
 class SubPanel_Wrap(wx.Panel):
 	treeitem = {'name':  'Wrap Data' , 'type': 'operpre'}
 	def sequence(self, selff, pipelineitem):

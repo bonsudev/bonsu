@@ -1,6 +1,13 @@
 
 ## Version History
 
+#### Version 3.7.3 🗓 ️(21/06/2026)
+
+	✨ Auto COMROI pipeline item.
+	🔧 Compatibility with NumPy 2.4.x.
+	🔧 Minor bug fixes.
+
+
 #### Version 3.7.2 🗓 ️(13/07/2025)
 
 	🔧 Minor bug fixes.
