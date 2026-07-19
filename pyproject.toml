@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Bonsu"
-version = "3.7.3"
+version = "3.7.4"
 authors = [{name = "Marcus C. Newton", email = "Bonsu.Devel@gmail.com"},]
 maintainers = [{name = "Marcus C. Newton", email = "Bonsu.Devel@gmail.com"},]
 description = "Bonsu - The Interactive Phase Retrieval Suite"

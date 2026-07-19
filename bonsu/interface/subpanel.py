@@ -2130,6 +2130,11 @@ class KeyDialog(wx.Dialog):
 								self.dataview.Show()
 								self.dataview.Clear()
 								self.dataview.AppendText(str(e))
+						else:
+							self.vbox2.ShowItems(False)
+							self.dataview.Show()
+							self.dataview.Clear()
+							self.dataview.AppendText("To view higher (>4) dimensional arrays and \nunlock your full potential, consider upgrading \nto the licensed version (CDI Suite): \n\n www.cdi.works")
 			else:
 				self.dataview.Clear()
 		self.Refresh()
@@ -2184,8 +2189,6 @@ class KeyDialog(wx.Dialog):
 	def OnExit(self,event):
 		self.file.close()
 		del self.GetParent().keydialog
-		self.EndModal(wx.ID_YES)
-		self.Destroy()
 		self.EndModal(wx.ID_YES)
 		self.Destroy()
 class SubPanel_SPE_to_Numpy(wx.Panel):

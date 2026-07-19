@@ -1,6 +1,11 @@
 
 ## Version History
 
+#### Version 3.7.4 🗓 ️(19/07/2026)
+
+	🔧 Minor bug fixes.
+
+
 #### Version 3.7.3 🗓 ️(21/06/2026)
 
 	✨ Auto COMROI pipeline item.

@@ -8,12 +8,13 @@ on:
 
 env:
   #CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
-  CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-*
-  CIBW_SKIP: cp37-* cp38-* cp39-* cp3??t-*
+  CIBW_BUILD: cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*
+  CIBW_SKIP: cp37-* cp38-* cp3??t-*
   CIBW_ARCHS_WINDOWS: "AMD64"
   CIBW_ARCHS_MACOS: "x86_64 arm64"
   CIBW_ARCHS_LINUX: "x86_64"
   CIBW_ENVIRONMENT_MACOS: CFLAGS='-arch x86_64 -arch arm64' CXXFLAGS='-arch x86_64 -arch arm64'
+  CIBW_ENVIRONMENT_WINDOWS: PATH="C:\\fftwbuild\\;$PATH"
   CIBW_BEFORE_BUILD_WINDOWS: python .github/workflows/prepwin.py && python -m pip install numpy cython
   CIBW_BEFORE_BUILD_MACOS: python -m pip install numpy cython
   CIBW_BEFORE_BUILD_LINUX: python -m pip install numpy cython
@@ -31,10 +32,10 @@ jobs:
         os: [macos-latest, windows-2022]
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       # Used to host cibuildwheel
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -60,7 +61,7 @@ jobs:
         run: python -m pip install attrdict3 wxpython numpy vtk h5py pillow requests cython
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.4.1
+        run: python -m pip install cibuildwheel==4.1.0
 
       - name: Build wheels - macOS 13
         if: startsWith(matrix.os, 'macos-13')
@@ -95,7 +96,7 @@ jobs:
 
 
       - name: Upload binaries to release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         if: ${{startsWith(github.ref, 'refs/tags/') }}
         with:
           files: ./wheelhouse/*.whl
@@ -109,9 +110,9 @@ jobs:
     name: Build source package
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
   
@@ -127,7 +128,7 @@ jobs:
           python -m build --sdist
       
       - name: Upload binaries to release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         if: ${{startsWith(github.ref, 'refs/tags/') }}
         with:
           files: ./dist/*
