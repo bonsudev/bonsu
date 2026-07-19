@@ -10,7 +10,7 @@
           <link rel="stylesheet" href="_static/theme.css " type="text/css" />
       
       <!-- sphinx script_files -->
-        <script src="_static/documentation_options.js?v=15643451"></script>
+        <script src="_static/documentation_options.js?v=deeda49c"></script>
         <script src="_static/doctools.js?v=9bcbadda"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
 
@@ -70,7 +70,7 @@
   
     <div class="sidebar-group">
       <p class="caption">
-        <span class="caption-text"><a href="bonsu.html#bonsu-3-7-3-documentation">bonsu 3.7.3 documentation</a></span>
+        <span class="caption-text"><a href="bonsu.html#bonsu-3-7-4-documentation">bonsu 3.7.4 documentation</a></span>
       </p>
       <ul class="current">
         
@@ -199,7 +199,7 @@
 </section>
 <section id="installation-on-windows">
 <h2>Installation on Windows<a class="headerlink" href="#installation-on-windows" title="Link to this heading">¶</a></h2>
-<p>Download 64-bit <a class="reference external" href="http://www.python.org">Python</a> <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 3.7 for Microsoft Windows from the Python website and follow the installation instructions. If possible, select <cite>Add Python to environment variables</cite> from the Advanced Options during installation.  Ensure that <a class="reference external" href="https://pypi.org/project/pip/">pip</a> is included in the installation.  Prerequisite binaries are available for download in the <a class="reference external" href="https://pypi.org">Python Package Index</a>. They are also listed below.</p>
+<p>Download 64-bit <a class="reference external" href="http://www.python.org">Python</a> <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 3.10 for Microsoft Windows from the Python website and follow the installation instructions. If possible, select <cite>Add Python to environment variables</cite> from the Advanced Options during installation.  Ensure that <a class="reference external" href="https://pypi.org/project/pip/">pip</a> is included in the installation.  Prerequisite binaries are available for download in the <a class="reference external" href="https://pypi.org">Python Package Index</a>. They are also listed below.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/wxPython/">wxPython</a></p></li>
 <li><p><a class="reference external" href="http://pypi.python.org/pypi/numpy">NumPy</a></p></li>
@@ -219,7 +219,7 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Prebuilt VTK packages <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 7.0 in <a class="reference external" href="https://pypi.python.org/pypi/vtk/">PyPI</a>  generally requre a graphics card with OpenGL 3 support.</p>
+<p>Prebuilt VTK packages <img class="math" src="_images/math/5029c2c60b99e78ec2ab8c273ff9aa8fdb7edac8.png" alt="\geq"/> 8.0 in <a class="reference external" href="https://pypi.python.org/pypi/vtk/">PyPI</a>  generally requre a graphics card with OpenGL 3 support.</p>
 </div>
 <p>Alternatively, it is possible to install a stand alone python distribution such as <a class="reference external" href="https://www.anaconda.com">Anaconda Python</a> . This will likely include all of the above prerequisites.</p>
 <p>It is then possible to install Bonsu from the <a class="reference external" href="https://pypi.org">Python Package Index</a> using the following command:</p>
@@ -230,6 +230,8 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>bonsu<span class="o">[</span>hdf5plugin<span class="o">]</span>
 </pre></div>
 </div>
+<section id="working-with-bonsu">
+<h3>Working with Bonsu<a class="headerlink" href="#working-with-bonsu" title="Link to this heading">¶</a></h3>
 <p>To start the program, execute the following from the command line:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>bonsu
 </pre></div>
@@ -239,6 +241,8 @@
 <span class="c1"># main()</span>
 </pre></div>
 </div>
+<p>For automated usage and continuous integration, consider using the Bonsu <a class="reference internal" href="libscript.html#libscript"><span class="std std-ref">scripting interface</span></a>.</p>
+</section>
 </section>
 <section id="installation-on-linux-unix">
 <h2>Installation on Linux/Unix<a class="headerlink" href="#installation-on-linux-unix" title="Link to this heading">¶</a></h2>
@@ -303,14 +307,21 @@ $<span class="w"> </span>make<span class="w"> </span>install
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">--prefix</span></code> option defines the installation base directory.  To allow Python to find the distributions installed with this scheme, it may be necessary to modify Python’s search path(s) to include the above.</p>
+</section>
+<section id="id23">
+<h3>Working with Bonsu<a class="headerlink" href="#id23" title="Link to this heading">¶</a></h3>
 <p>To start the program, execute the following from the command line:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>bonsu<span class="w"> </span><span class="p">&amp;</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For Linux users, a link to the program should be visible in the applications menu.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>If your linux distribution uses a <a class="reference external" href="https://wayland.freedesktop.org/">Wayland</a> compositor for processes graphics and official <a class="reference external" href="http://www.vtk.org/">VTK</a> wheels from <a class="reference external" href="https://pypi.org">PyPI</a>, export the following environment variable before starting Bonsu:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">GDK_BACKEND</span><span class="o">=</span><span class="s2">&quot;x11&quot;</span>
+</pre></div>
 </div>
+</div>
+<p>For automated usage and continuous integration, consider using the Bonsu <a class="reference internal" href="libscript.html#libscript"><span class="std std-ref">scripting interface</span></a>.</p>
 </section>
 <section id="hdf5-plugins">
 <h3>HDF5 Plugins<a class="headerlink" href="#hdf5-plugins" title="Link to this heading">¶</a></h3>
