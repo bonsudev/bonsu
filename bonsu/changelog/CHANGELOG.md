@@ -1,6 +1,14 @@
 
 ## Version History
 
+#### Version 3.7.5 🗓 ️(25/10/2026)
+
+	✨ Ruler widget.
+	✨ Axis styling.
+	🔧 Compatibility with VTK 9.7.x.
+	🔧 Minor bug fixes.
+
+
 #### Version 3.7.4 🗓 ️(19/07/2026)
 
 	🔧 Minor bug fixes.
